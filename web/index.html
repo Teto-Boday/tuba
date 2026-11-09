@@ -234,6 +234,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
       <div class="big" id="nextName">—</div>
       <div>باقي <span id="nextIn" dir="ltr" style="font-variant-numeric:tabular-nums">—</span></div>
     </div>
+    <div class="card" style="padding:14px 16px"><span class="small">حديث</span><p id="pHadith" style="margin:6px 0 0;font-family:'Amiri',serif;font-size:18px;line-height:1.9"></p></div>
     <div class="stack" id="ptimes" style="gap:8px"></div>
     <div class="card stack" id="notifCard" style="gap:10px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
@@ -520,6 +521,7 @@ function renderPrayer() {
   const n = nextPrayer(); const t = n.today;
   $("#ptimes").innerHTML = ORDER.map((k) => `<div class="prow ${k === n.k && t[k] === n.at ? "next" : ""}"><span>${PNAMES[k]}</span>${k === n.k && t[k] === n.at ? '<span class="tag">الجاية</span>' : ""}<span class="t">${fmtTime(t[k])}</span></div>`).join("");
   $("#nextName").textContent = PNAMES[n.k];
+  $("#pHadith").textContent = hadithFor(dayNum(new Date()) * 5 + ORDER.indexOf(n.k), n.k);
   $("#homeNext").textContent = PNAMES[n.k];
   $("#locTxt").textContent = loc.name;
   const q = adhan.Qibla(new adhan.Coordinates(loc.lat, loc.lng));
@@ -549,6 +551,14 @@ $("#locBtn").addEventListener("click", () => {
 const LN = () => window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications;
 const ADHAN_IDS = Array.from({ length: 40 }, (_, i) => ({ id: 1000 + i }));
 let lastPlan = "";
+// أحاديث الصلاة والصيام (من azkar.js)
+const HP = typeof HADITH_PRAYER !== "undefined" ? HADITH_PRAYER : [], HF = typeof HADITH_FAST !== "undefined" ? HADITH_FAST : [];
+function hadithFor(n, p) {
+  const L = HP.filter((h) => p ? !h[2] || h[2].includes(p) : !h[2]); if (!L.length) return "";
+  const [t, src] = L[((n % L.length) + L.length) % L.length]; return `${t} (${src})`;
+}
+function fastHadith(n) { if (!HF.length) return ""; const [t, src] = HF[((n % HF.length) + HF.length) % HF.length]; return `${t} (${src})`; }
+const dayNum = (d) => Math.floor(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() / 864e5);
 // لو Nono's World متثبّت على نفس الجهاز، هو اللي بيأذّن ويفكّر بالصيام، وطُوبَى بيسكت عشان التنبيهات متتكررش
 let otherApp = null;
 async function nonosNotifies() {
@@ -579,7 +589,7 @@ async function scheduleAdhan(force) {
       const day = new Date(); day.setDate(day.getDate() + d);
       const t = times(day);
       for (const k of ["fajr", "dhuhr", "asr", "maghrib", "isha"]) {
-        if (t[k].getTime() > now && list.length < 35) list.push({ id: 1000 + list.length, title: `أذان ${PNAMES[k]}`, body: `حان الآن موعد صلاة ${PNAMES[k]}`, channelId: "adhan", schedule: { at: t[k], allowWhileIdle: true } });
+        if (t[k].getTime() > now && list.length < 35) list.push({ id: 1000 + list.length, title: `حان الآن موعد صلاة ${PNAMES[k]}`, body: hadithFor(dayNum(day) * 5 + list.length, k), largeBody: hadithFor(dayNum(day) * 5 + list.length, k), channelId: "adhan", schedule: { at: t[k], allowWhileIdle: true } });
       }
     }
     await ln.schedule({ notifications: list });
@@ -597,11 +607,11 @@ async function scheduleDesktop() {
   const add = (at, title, body) => { const ms = at - Date.now(); if (ms > 1000 && ms < 26 * 36e5) deskTimers.push(setTimeout(() => fire(title, body), ms)); };
   if (store.get("adhanOn", true)) {
     for (let d = 0; d < 2; d++) { const day = new Date(); day.setDate(day.getDate() + d); const t = times(day);
-      for (const k of ["fajr", "dhuhr", "asr", "maghrib", "isha"]) add(t[k], `أذان ${PNAMES[k]}`, `حان الآن موعد صلاة ${PNAMES[k]}`); }
+      for (const k of ["fajr", "dhuhr", "asr", "maghrib", "isha"]) add(t[k], `حان الآن موعد صلاة ${PNAMES[k]}`, hadithFor(dayNum(day) * 5 + ["fajr", "dhuhr", "asr", "maghrib", "isha"].indexOf(k), k)); }
   }
   if (store.get("fastOn", false)) {
     for (let d = 0; d < 2; d++) { const at = new Date(); at.setDate(at.getDate() + d); at.setHours(21, 0, 0, 0); const wd = at.getDay();
-      if (wd === 0 || wd === 3) add(at, "تذكير بالصيام", `بكرة ${wd === 0 ? "الاثنين" : "الخميس"}، ناوي تصوم؟`); }
+      if (wd === 0 || wd === 3) add(at, `بكرة ${wd === 0 ? "الاثنين" : "الخميس"}، ناوي تصوم؟`, fastHadith(dayNum(at)) + " · متنساش تتسحّر"); }
   }
 }
 if (DESKTOP) setInterval(scheduleDesktop, 6 * 36e5);
@@ -719,7 +729,7 @@ async function scheduleFast() {
       const at = new Date(now); at.setDate(now.getDate() + d); at.setHours(21, 0, 0, 0);
       const wd = at.getDay(); if ((wd !== 0 && wd !== 3) || at <= now) continue;
       const next = wd === 0 ? "الاثنين" : "الخميس";
-      list.push({ id: 2000 + list.length, title: "تذكير بالصيام", body: `بكرة ${next}، ناوي تصوم؟`, channelId: "fast", schedule: { at, allowWhileIdle: true } });
+      list.push({ id: 2000 + list.length, title: `بكرة ${next}، ناوي تصوم؟`, body: fastHadith(dayNum(at)) + " · متنساش تتسحّر", largeBody: fastHadith(dayNum(at)) + " · متنساش تتسحّر", channelId: "fast", schedule: { at, allowWhileIdle: true } });
     }
     if (list.length) await ln.schedule({ notifications: list });
   } catch (e) {}
