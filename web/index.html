@@ -165,6 +165,11 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
       <button class="mini" data-go="prayer"><span class="small">الصلاة الجاية</span><b id="homeNext">—</b><span class="muted" id="homeNextIn"></span></button>
       <button class="mini" data-go="azkar"><span class="small">أذكار</span><b id="homeAzkar">الصباح</b><span class="muted">اضغط وابدأ</span></button>
     </div>
+    <div class="card" id="fastCard" style="display:flex;align-items:center;gap:12px;padding:14px 16px">
+      <span class="num" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.5z"/><path d="M17 4.5v3M15.5 6h3"/></svg></span>
+      <span style="flex:1;display:flex;flex-direction:column;gap:2px"><b style="font-size:15px">تذكير بصيام الاثنين والخميس</b><span class="muted" id="fastTxt" style="font-size:13px"></span></span>
+      <button class="chip" id="fastToggle" aria-pressed="false" aria-label="تذكير بصيام الاثنين والخميس">مقفول</button>
+    </div>
     <button class="hero" data-go="clips" style="border:0;text-align:right;cursor:pointer;display:flex;align-items:center;gap:14px;font-family:inherit">
       <span style="width:52px;height:52px;border-radius:16px;background:rgba(247,244,236,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="26" height="26" viewBox="0 0 24 24" fill="#F7F4EC"><path d="M8 5.5v13l10-6.5z"/></svg></span>
       <span style="display:flex;flex-direction:column;gap:2px"><b style="font-size:18px">المقاطع</b><small id="clipsTeaser">قلّب في مقاطع قصيرة تنفعك</small></span>
@@ -645,6 +650,44 @@ $("#share").addEventListener("click", async () => {
   try { if (navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(data.url); toast("نسخنا الرابط"); } } catch (e) {}
 });
 
+// ---------- تذكير صيام الاثنين والخميس ----------
+const FAST_IDS = Array.from({ length: 8 }, (_, i) => ({ id: 2000 + i }));
+function renderFast() {
+  const on = store.get("fastOn", false); const day = new Date().getDay();
+  $("#fastToggle").setAttribute("aria-pressed", String(on)); $("#fastToggle").textContent = on ? "شغّال" : "مقفول";
+  let t = "مقفول، شغّله لو حابب";
+  if (on) {
+    if (day === 0) t = "بكرة الاثنين، ناوي تصوم؟";
+    else if (day === 3) t = "بكرة الخميس، ناوي تصوم؟";
+    else if (day === 1 || day === 4) t = `النهارده ${day === 1 ? "الاثنين" : "الخميس"}، تقبّل الله منك`;
+    else t = LN() ? "هنفكّرك بالليل قبلها الساعة ٩" : "هيظهرلك التذكير هنا قبلها بيوم";
+  }
+  $("#fastTxt").textContent = t;
+}
+async function scheduleFast() {
+  const ln = LN(); if (!ln) return;
+  try {
+    try { await ln.cancel({ notifications: FAST_IDS }); } catch (e) {}
+    if (!store.get("fastOn", false)) return;
+    let perm = await ln.checkPermissions(); if (perm.display !== "granted") perm = await ln.requestPermissions();
+    if (perm.display !== "granted") return;
+    try { await ln.createChannel({ id: "fast", name: "تذكير الصيام", importance: 4, sound: "default", vibration: true }); } catch (e) {}
+    const list = []; const now = new Date();
+    for (let d = 0; d < 28 && list.length < 8; d++) {
+      const at = new Date(now); at.setDate(now.getDate() + d); at.setHours(21, 0, 0, 0);
+      const wd = at.getDay(); if ((wd !== 0 && wd !== 3) || at <= now) continue;
+      const next = wd === 0 ? "الاثنين" : "الخميس";
+      list.push({ id: 2000 + list.length, title: "تذكير بالصيام", body: `بكرة ${next}، ناوي تصوم؟`, channelId: "fast", schedule: { at, allowWhileIdle: true } });
+    }
+    if (list.length) await ln.schedule({ notifications: list });
+  } catch (e) {}
+}
+$("#fastToggle").addEventListener("click", () => {
+  const on = !store.get("fastOn", false); store.set("fastOn", on); renderFast(); scheduleFast();
+  toast(on ? "تمام، هنفكّرك قبل الاثنين والخميس" : "قفلنا تذكير الصيام");
+});
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { renderFast(); scheduleFast(); } });
+
 // ---------- الوضع الليلي ----------
 const darkMQ = window.matchMedia ? matchMedia("(prefers-color-scheme: dark)") : null;
 function applyTheme() {
@@ -662,7 +705,7 @@ $("#sMinus").addEventListener("click", () => { qSize = Math.max(18, qSize - 2); 
 
 // ---------- البداية ----------
 renderClips(); renderSurahList(""); renderPrayer(); tick.ready = true;
-renderNotif(); scheduleAdhan(); setTimeout(() => { renderNotif(); scheduleAdhan(); }, 1500);
+renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); setTimeout(() => { renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); }, 1500);
 go((location.hash || "#home").slice(1));
 window.addEventListener("hashchange", () => go(location.hash.slice(1)));
 if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {})); }
