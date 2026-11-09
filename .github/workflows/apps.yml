@@ -1,4 +1,4 @@
-name: Android app
+name: Android & Windows apps
 on:
   workflow_dispatch:
   push:
@@ -6,7 +6,8 @@ on:
     paths:
       - "capacitor.config.json"
       - "assets/**"
-      - ".github/workflows/android.yml"
+      - "electron/**"
+      - ".github/workflows/apps.yml"
 permissions:
   contents: write
 jobs:
@@ -32,9 +33,39 @@ jobs:
       - run: npx cap sync android
       - run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
       - run: cp android/app/build/outputs/apk/debug/app-debug.apk Tuba.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android
+          path: Tuba.apk
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+        working-directory: electron
+      - run: npx electron-builder --win --publish never
+        working-directory: electron
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: electron/dist/Tuba-Setup.exe
+  release:
+    needs: [android, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: طُوبَى 1.0.${{ github.run_number }}
+          tag_name: v1.1.${{ github.run_number }}
+          name: طُوبَى 1.1.${{ github.run_number }}
           make_latest: true
-          files: Tuba.apk
+          files: |
+            Tuba.apk
+            Tuba-Setup.exe

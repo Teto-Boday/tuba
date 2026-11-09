@@ -541,7 +541,7 @@ $("#locBtn").addEventListener("click", () => {
   toast("بنحدد موقعك…");
   navigator.geolocation.getCurrentPosition((p) => {
     loc = { lat: p.coords.latitude, lng: p.coords.longitude, name: `موقعك الحالي (${p.coords.latitude.toFixed(2)}, ${p.coords.longitude.toFixed(2)})` };
-    store.set("loc", loc); renderPrayer(); scheduleAdhan(true); toast("تمام، المواقيت اتظبطت على موقعك");
+    store.set("loc", loc); renderPrayer(); scheduleAdhan(true); scheduleDesktop(); toast("تمام، المواقيت اتظبطت على موقعك");
   }, () => toast("مقدرناش نحدد موقعك، اسمح للتطبيق بالموقع وجرب تاني"), { enableHighAccuracy: false, timeout: 15000, maximumAge: 36e5 });
 });
 
@@ -573,10 +573,33 @@ async function scheduleAdhan(force) {
   } catch (e) { lastPlan = ""; }
   renderNotif();
 }
+// برنامج الويندوز: بيفضل شغال جنب الساعة، فالتنبيهات بتتعمل بمؤقتات جوه الصفحة
+const DESKTOP = /Electron/i.test(navigator.userAgent);
+let deskTimers = [];
+function scheduleDesktop() {
+  if (!DESKTOP) return;
+  deskTimers.forEach(clearTimeout); deskTimers = [];
+  const fire = (title, body) => { try { new Notification(title, { body, icon: "icon-192.png" }); } catch (e) {} };
+  const add = (at, title, body) => { const ms = at - Date.now(); if (ms > 1000 && ms < 26 * 36e5) deskTimers.push(setTimeout(() => fire(title, body), ms)); };
+  if (store.get("adhanOn", true)) {
+    for (let d = 0; d < 2; d++) { const day = new Date(); day.setDate(day.getDate() + d); const t = times(day);
+      for (const k of ["fajr", "dhuhr", "asr", "maghrib", "isha"]) add(t[k], `أذان ${PNAMES[k]}`, `حان الآن موعد صلاة ${PNAMES[k]}`); }
+  }
+  if (store.get("fastOn", false)) {
+    for (let d = 0; d < 2; d++) { const at = new Date(); at.setDate(at.getDate() + d); at.setHours(21, 0, 0, 0); const wd = at.getDay();
+      if (wd === 0 || wd === 3) add(at, "تذكير بالصيام", `بكرة ${wd === 0 ? "الاثنين" : "الخميس"}، ناوي تصوم؟`); }
+  }
+}
+if (DESKTOP) setInterval(scheduleDesktop, 6 * 36e5);
 async function renderNotif() {
   const ln = LN(); const on = store.get("adhanOn", true);
+  if (!ln && DESKTOP) {
+    $("#notifToggle").hidden = false; $("#notifToggle").setAttribute("aria-pressed", String(on)); $("#notifToggle").textContent = on ? "شغّال" : "مقفول";
+    $("#notifTxt").textContent = on ? "هيجيلك تنبيه في معاد كل صلاة، طول ما البرنامج شغال جنب الساعة." : "التنبيه مقفول.";
+    $("#exactBtn").hidden = true; $("#getApk").hidden = true; return;
+  }
   if (!ln) {
-    $("#notifTxt").textContent = "تنبيهات الأذان والتطبيق مقفول موجودة في نسخة الأندرويد.";
+    $("#notifTxt").textContent = "تنبيهات الأذان والتطبيق مقفول موجودة في نسخة الأندرويد والويندوز.";
     $("#getApk").hidden = !/^https?:/.test(location.protocol) || location.hostname === "claude.ai";
     return;
   }
@@ -589,7 +612,7 @@ async function renderNotif() {
     try { const r = await ln.checkExactNotificationSetting(); $("#exactBtn").hidden = r.exact_alarm === "granted"; } catch (e) {}
   }
 }
-$("#notifToggle").addEventListener("click", () => { store.set("adhanOn", !store.get("adhanOn", true)); scheduleAdhan(true); renderNotif(); });
+$("#notifToggle").addEventListener("click", () => { store.set("adhanOn", !store.get("adhanOn", true)); scheduleAdhan(true); scheduleDesktop(); renderNotif(); });
 $("#exactBtn").addEventListener("click", async () => { const ln = LN(); try { await ln.changeExactNotificationSetting(); } catch (e) {} setTimeout(renderNotif, 1500); });
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { scheduleAdhan(); renderNotif(); } });
 
@@ -661,7 +684,7 @@ function renderFast() {
     if (day === 0) t = "بكرة الاثنين، ناوي تصوم؟";
     else if (day === 3) t = "بكرة الخميس، ناوي تصوم؟";
     else if (day === 1 || day === 4) t = `النهارده ${day === 1 ? "الاثنين" : "الخميس"}، تقبّل الله منك`;
-    else t = LN() ? "هنفكّرك بالليل قبلها الساعة ٩" : "هيظهرلك التذكير هنا قبلها بيوم";
+    else t = (LN() || DESKTOP) ? "هنفكّرك بالليل قبلها الساعة ٩" : "هيظهرلك التذكير هنا قبلها بيوم";
   }
   $("#fastTxt").textContent = t;
 }
@@ -684,7 +707,7 @@ async function scheduleFast() {
   } catch (e) {}
 }
 $("#fastToggle").addEventListener("click", () => {
-  const on = !store.get("fastOn", false); store.set("fastOn", on); renderFast(); scheduleFast();
+  const on = !store.get("fastOn", false); store.set("fastOn", on); renderFast(); scheduleFast(); scheduleDesktop();
   toast(on ? "تمام، هنفكّرك قبل الاثنين والخميس" : "قفلنا تذكير الصيام");
 });
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { renderFast(); scheduleFast(); } });
@@ -706,7 +729,7 @@ $("#sMinus").addEventListener("click", () => { qSize = Math.max(18, qSize - 2); 
 
 // ---------- البداية ----------
 renderClips(); renderSurahList(""); renderPrayer(); tick.ready = true;
-renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); setTimeout(() => { renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); }, 1500);
+renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); scheduleDesktop(); setTimeout(() => { renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); }, 1500);
 go((location.hash || "#home").slice(1));
 window.addEventListener("hashchange", () => go(location.hash.slice(1)));
 if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {})); }

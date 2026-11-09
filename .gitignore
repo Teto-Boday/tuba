@@ -1,3 +1,5 @@
 node_modules/
 dist/
 android/
+electron/node_modules/
+electron/dist/
