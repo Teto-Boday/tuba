@@ -1,0 +1,7 @@
+{
+  "name": "tuba",
+  "version": "1.0.0",
+  "private": true,
+  "description": "طُوبَى — مقاطع إسلامية قصيرة، والقرآن، ومواقيت الصلاة، والأذكار",
+  "scripts": { "build": "node build.mjs" }
+}

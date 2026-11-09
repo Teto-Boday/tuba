@@ -1,0 +1,12 @@
+{
+  "appId": "app.tuba.teto",
+  "appName": "طُوبَى",
+  "webDir": "dist/app",
+  "server": {
+    "url": "https://teto-boday.github.io/tuba/app/",
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "LocalNotifications": { "iconColor": "#2F5A47" }
+  }
+}

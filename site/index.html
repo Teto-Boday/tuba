@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>طُوبَى — قصيرة. إسلامية. مفيدة.</title>
+<meta name="description" content="طُوبَى: مقاطع إسلامية قصيرة من مصادر موثوقة، والقرآن الكريم، ومواقيت الصلاة، والأذكار. مجاني بالكامل ومن غير إعلانات.">
+<meta property="og:title" content="طُوبَى">
+<meta property="og:description" content="قصيرة. إسلامية. مفيدة. مجاني ومن غير إعلانات.">
+<meta property="og:image" content="app/icon-512.png">
+<meta name="theme-color" content="#F7F4EC">
+<link rel="icon" href="app/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F7F4EC;--card:#FFFDF7;--line:#E3DDCD;--ink:#1F2A24;--muted:#4A544E;--green:#2F5A47;--mint:#E4EEE7}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Readex Pro',system-ui,sans-serif;line-height:1.8}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--green);outline-offset:3px;border-radius:10px}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+h1,h2,h3{font-family:'Amiri',serif;line-height:1.3;margin:0}
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:'Amiri',serif;font-size:26px;font-weight:700}
+.brand img{width:42px;height:42px;border-radius:12px}
+.top nav{display:flex;gap:18px;font-size:15px}
+.top nav a{text-decoration:none;color:var(--muted)}
+.top nav a:hover{color:var(--green)}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:40px 0 70px}
+.hero h1{font-size:clamp(44px,7vw,76px)}
+.tag{font-size:clamp(18px,2.4vw,22px);color:var(--green);font-weight:600;margin:6px 0 14px}
+.lead{font-size:17px;color:var(--muted);max-width:520px;margin:0 0 26px}
+.btns{display:flex;flex-wrap:wrap;gap:12px}
+.btn{height:52px;padding:0 24px;border-radius:26px;display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-weight:600;font-size:16px;border:1px solid transparent}
+.btn.main{background:var(--green);color:var(--bg)}
+.btn.main:hover{background:#244a39}
+.btn.alt{background:var(--card);border-color:var(--line)}
+.btn.alt:hover{border-color:var(--green)}
+.btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.note{font-size:13px;color:var(--muted);margin-top:14px}
+.phone{justify-self:center;width:290px;border-radius:40px;background:var(--ink);padding:12px;box-shadow:0 30px 60px -30px rgba(31,42,36,.45)}
+.screen{border-radius:30px;background:var(--bg);padding:18px 14px;display:flex;flex-direction:column;gap:10px;min-height:540px}
+.s-head{display:flex;align-items:center;gap:8px;font-family:'Amiri',serif;font-size:22px;font-weight:700}
+.s-head img{width:30px;height:30px;border-radius:9px}
+.s-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px}
+.s-card small{color:var(--muted);font-size:11px}
+.s-ayah{font-family:'Amiri',serif;font-size:17px;line-height:2;margin:2px 0}
+.s-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.s-big{font-family:'Amiri',serif;font-size:20px;font-weight:700}
+.s-hero{background:var(--green);color:var(--bg);border-radius:18px;padding:12px}
+.s-hero small{color:#D5E3DA}
+.s-zikr{font-family:'Amiri',serif;font-size:16px;line-height:1.9}
+.s-bar{height:4px;border-radius:2px;background:var(--mint);margin:6px 0}
+.s-bar i{display:block;height:100%;width:40%;background:var(--green);border-radius:2px}
+section{padding:64px 0}
+.sec-title{font-size:clamp(30px,4.4vw,42px);margin-bottom:8px}
+.sec-sub{color:var(--muted);margin:0 0 30px;max-width:620px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.f{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:8px}
+.f .ic{width:48px;height:48px;border-radius:14px;background:var(--mint);color:var(--green);display:flex;align-items:center;justify-content:center}
+.f .ic svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.f h3{font-size:24px}
+.f p{margin:0;color:var(--muted);font-size:15px}
+.band{background:var(--green);color:var(--bg);border-radius:32px;padding:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.band h3{font-size:26px;margin-bottom:4px}
+.band p{margin:0;color:#D5E3DA;font-size:15px}
+.dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.dl .f ol{margin:0;padding-inline-start:20px;color:var(--muted);font-size:15px}
+.dl .f .btn{margin-top:auto;justify-content:center}
+.dl.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.src{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+details{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px 20px;margin-bottom:10px}
+summary{cursor:pointer;font-weight:600;font-size:16px}
+details p{margin:10px 0 0;color:var(--muted)}
+footer{padding:40px 0 60px;color:var(--muted);font-size:14px;text-align:center;border-top:1px solid var(--line)}
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr;padding-top:20px}
+  .phone{order:-1;width:250px}
+  .screen{min-height:460px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .band,.dl,.dl.two,.src{grid-template-columns:1fr}
+  .top nav{display:none}
+}
+@media (max-width:480px){.grid{grid-template-columns:1fr}.band{padding:28px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="#"><img src="app/icon-192.png" alt="">طُوبَى</a>
+    <nav aria-label="أقسام الصفحة"><a href="#features">المميزات</a><a href="#download">التحميل</a><a href="#maker">المصمم</a><a href="#faq">أسئلة</a></nav>
+  </header>
+
+  <main>
+  <div class="hero">
+    <div>
+      <h1>طُوبَى</h1>
+      <p class="tag">قصيرة. إسلامية. مفيدة.</p>
+      <p class="lead">بدل ما تقلّب في اللي مالوش لازمة، قلّب في اللي ينفعك. مقاطع قصيرة من مصادر موثوقة، والقرآن الكريم، ومواقيت الصلاة، والأذكار في تطبيق واحد. مجاني بالكامل ومن غير إعلانات.</p>
+      <div class="btns">
+        <a class="btn main" href="app/"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>افتح طُوبَى</a>
+        <a class="btn alt" href="#download"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19h14"/></svg>نزّله على موبايلك</a>
+      </div>
+      <p class="note">بيشتغل على أندرويد والآيفون والكمبيوتر. والقرآن والأذكار والمواقيت بيشتغلوا من غير نت.</p>
+    </div>
+    <div class="phone" aria-hidden="true">
+      <div class="screen">
+        <div class="s-head"><img src="app/icon-192.png" alt="">طُوبَى</div>
+        <div class="s-card"><small>آية اليوم</small><p class="s-ayah">أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ</p><small>سورة الرعد · آية ٢٨</small></div>
+        <div class="s-row">
+          <div class="s-hero"><small>الصلاة الجاية</small><div class="s-big">العصر</div></div>
+          <div class="s-card"><small>أذكار</small><div class="s-big">الصباح</div></div>
+        </div>
+        <div class="s-card"><small>أذكار الصباح</small><div class="s-zikr">سُبْحَانَ اللَّهِ وَبِحَمْدِهِ</div><div class="s-bar"><i></i></div><small>٤٠ / ١٠٠</small></div>
+        <div class="s-card"><small>القرآن الكريم</small><div class="s-big">سورة الكهف</div><small>كمّل من آخر مكان</small></div>
+      </div>
+    </div>
+  </div>
+
+  <section id="features">
+    <h2 class="sec-title">كل اللي محتاجه في مكان واحد</h2>
+    <p class="sec-sub">من غير تشتيت، ومن غير إعلانات، ومن غير ما تقلق من مصدر الكلام.</p>
+    <div class="grid">
+      <div class="f"><div class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M10 8.5v7l5.5-3.5z"/></svg></div><h3>مقاطع قصيرة</h3><p>مقاطع من القنوات الرسمية للمشايخ، وكل مقطع مكتوب عليه مصدره.</p></div>
+      <div class="f"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 6.5C10 5 7 4.5 4 5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5c-3-.5-6 0-8 1.5z"/><path d="M12 6.5V19"/></svg></div><h3>القرآن الكريم</h3><p>المصحف كامل بالرسم العثماني، وتقدر تحط علامة وتكمّل من آخر مكان.</p></div>
+      <div class="f"><div class="ic"><svg viewBox="0 0 24 24"><path d="M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.5z"/></svg></div><h3>مواقيت الصلاة</h3><p>حسب مكانك، وفيها اتجاه القبلة، وتنبيه الأذان في نسخة الأندرويد.</p></div>
+      <div class="f"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="6"/><path d="M12 16v3.5"/><circle cx="12" cy="20.5" r="1"/></svg></div><h3>الأذكار</h3><p>الصباح والمساء وبعد الصلاة والنوم، بعدّاد بيعدّ معاك.</p></div>
+    </div>
+  </section>
+
+  <section aria-label="ليه طُوبَى">
+    <div class="band">
+      <div><h3>مجاني بالكامل</h3><p>ببلاش ومن غير اشتراكات، ومعتمد على دعم الناس اللي التطبيق نفعهم.</p></div>
+      <div><h3>من غير إعلانات</h3><p>مفيش حاجة هتقطع عليك وانت بتقرا أو بتذكر.</p></div>
+      <div><h3>مصادر موثوقة</h3><p>كل حاجة في التطبيق مكتوب مصدرها، ومحتوى المشايخ من قنواتهم الرسمية.</p></div>
+    </div>
+  </section>
+
+  <section id="download">
+    <h2 class="sec-title">نزّل طُوبَى</h2>
+    <p class="sec-sub">اختار جهازك.</p>
+    <div class="dl">
+      <div class="f">
+        <h3>أندرويد</h3>
+        <ol><li>دوس على الزرار ونزّل الملف.</li><li>لو الموبايل سألك، اسمح بالتثبيت من المصدر ده.</li><li>دوس تثبيت وافتح التطبيق.</li><li>اسمح بالإشعارات عشان يجيلك تنبيه الأذان.</li></ol>
+        <a class="btn main" href="https://github.com/Teto-Boday/tuba/releases/latest/download/Tuba.apk">نزّل للأندرويد</a>
+      </div>
+      <div class="f">
+        <h3>آيفون وآيباد</h3>
+        <ol><li>افتح رابط التطبيق من سفاري.</li><li>دوس على زرار المشاركة.</li><li>اختار "إضافة إلى الشاشة الرئيسية".</li><li>دوس "إضافة".</li></ol>
+        <a class="btn alt" href="app/">افتح التطبيق في سفاري</a>
+      </div>
+      <div class="f">
+        <h3>الكمبيوتر</h3>
+        <ol><li>افتح التطبيق من كروم أو إيدج.</li><li>دوس على أيقونة التثبيت اللي في شريط العنوان.</li><li>أو استخدمه من المتصفح على طول.</li></ol>
+        <a class="btn alt" href="app/">افتح التطبيق</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="maker">
+    <h2 class="sec-title">مين صمّم طُوبَى؟</h2>
+    <p class="sec-sub">طُوبَى من تصميم وتطوير <b>محمد صلاح</b>. ومن تصميمه كمان:</p>
+    <div class="dl two">
+      <div class="f"><h3>Nono's World</h3><p>تطبيق لتنظيم الفلوس والمذاكرة والمود والمذكرات في مكان واحد.</p><a class="btn alt" href="https://teto-boday.github.io/nonos-world/" target="_blank" rel="noopener">شوف Nono's World</a></div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <h2 class="sec-title">أسئلة</h2>
+    <details><summary>هل طُوبَى ببلاش فعلًا؟</summary><p>أيوه، ببلاش بالكامل ومن غير إعلانات. ولو حبيت تدعمنا، فيه صفحة "ادعمنا" جوه التطبيق.</p></details>
+    <details><summary>بيشتغل من غير نت؟</summary><p>القرآن والأذكار ومواقيت الصلاة بيشتغلوا من غير نت بعد أول مرة تفتح فيها التطبيق. المقاطع بس هي اللي محتاجة نت.</p></details>
+    <details><summary>منين بتيجي المحتوى؟</summary><p>نص المصحف من موسوعة القرآن الكريم (QuranEnc.com)، والأذكار من كتاب حصن المسلم، والمواقيت بتتحسب بطريقة الهيئة المصرية العامة للمساحة، والمقاطع من القنوات الرسمية للمشايخ.</p></details>
+    <details><summary>ليه الأندرويد بيقولي إن التطبيق من مصدر غير معروف؟</summary><p>لأن التطبيق مش منزّل على جوجل بلاي لسه، فالموبايل بيطلب منك تأكد إنك عايز تثبّته. ده طبيعي في أي تطبيق بيتنزّل من برّه المتجر.</p></details>
+  </section>
+  </main>
+</div>
+<footer><div class="wrap">طُوبَى · قصيرة. إسلامية. مفيدة.<br>تصميم وتطوير: محمد صلاح</div></footer>
+</body>
+</html>
