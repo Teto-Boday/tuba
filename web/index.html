@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F7F4EC">
 <title>طُوبَى</title>
+<script>(function(){try{var t=JSON.parse(localStorage.getItem("tuba:theme")||'"auto"');var d=t==="dark"||(t==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -19,6 +20,13 @@
   --bg:#F7F4EC; --card:#FFFDF7; --line:#E3DDCD; --ink:#1F2A24; --muted:#4A544E; --muted2:#5B635D;
   --green:#2F5A47; --green-dark:#1F3F31; --mint:#E4EEE7;
   --quran-size:26px;
+  --on-green:#F7F4EC; --hero-sub:#D5E3DA; --done:#EEF4F0; --done-line:#C9DBCF; --mark:#F1E9CF; --nav-line:#ECE6D6; --vid:#E6E1D2;
+}
+html[data-theme="dark"]{
+  --bg:#121814; --card:#1A221D; --line:#2B3630; --ink:#E6ECE8; --muted:#B3BDB6; --muted2:#9DA8A0;
+  --green:#86C3A3; --green-dark:#A9D6BE; --mint:#22332A;
+  --on-green:#10170F; --hero-sub:#1F3A2C; --done:#1C2B22; --done-line:#2F4A3A; --mark:#3A3420; --nav-line:#232D27; --vid:#1F2823;
+  color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -31,7 +39,7 @@ a{color:var(--green)}
 header.top{display:flex;align-items:center;justify-content:space-between;padding:calc(16px + env(safe-area-inset-top)) 4px 12px;gap:8px}
 .h1{margin:0;font-family:'Amiri',serif;font-size:28px;font-weight:700;line-height:1.3}
 .brand{display:flex;align-items:center;gap:10px}
-.logo{width:40px;height:40px;border-radius:12px;background:var(--mint);display:flex;align-items:center;justify-content:center}
+.logo{width:40px;height:40px;border-radius:12px;background:var(--mint);color:var(--green);display:flex;align-items:center;justify-content:center}
 .icon-btn{width:44px;height:44px;border-radius:22px;border:1px solid var(--line);background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .icon-btn:focus-visible,.chip:focus-visible,.btn:focus-visible,.tab:focus-visible,.zikr:focus-visible,.row:focus-visible{outline:3px solid var(--green);outline-offset:2px}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:0 2px 14px;scrollbar-width:none}
@@ -39,15 +47,15 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
 .chip{height:38px;padding:0 16px;border-radius:19px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:14px;white-space:nowrap;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg);font-weight:500}
 .card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:18px}
-.hero{background:var(--green);color:var(--bg);border-radius:26px;padding:20px}
-.hero small{color:#D5E3DA;font-size:13px}
+.hero{background:var(--green);color:var(--on-green);border-radius:26px;padding:20px}
+.hero small{color:var(--hero-sub);font-size:13px}
 .muted{color:var(--muted);font-size:14px}
 .small{font-size:12px;color:var(--muted2)}
 .stack{display:flex;flex-direction:column;gap:12px}
-.btn{height:50px;border-radius:25px;border:none;background:var(--green);color:var(--bg);font-size:16px;font-weight:600;padding:0 20px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.btn{height:50px;border-radius:25px;border:none;background:var(--green);color:var(--on-green);font-size:16px;font-weight:600;padding:0 20px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
 .btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line);font-weight:500}
 .btn[disabled]{opacity:.55;cursor:not-allowed}
-nav.tabs{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid #ECE6D6;display:flex;justify-content:center;padding:8px 4px calc(10px + env(safe-area-inset-bottom));z-index:10}
+nav.tabs{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--nav-line);display:flex;justify-content:center;padding:8px 4px calc(10px + env(safe-area-inset-bottom));z-index:10}
 nav.tabs .in{max-width:560px;width:100%;display:flex;justify-content:space-around}
 .tab{min-width:60px;min-height:48px;border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted2);font-size:12px;cursor:pointer;padding:2px 4px}
 .tab[aria-current="page"]{color:var(--green);font-weight:600}
@@ -57,9 +65,33 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .mini-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .mini{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px;cursor:pointer;text-align:right;display:flex;flex-direction:column;gap:6px}
 .mini b{font-family:'Amiri',serif;font-size:24px;line-height:1.2}
+/* clips feed (زي تيك توك) */
+.feed-screen{padding:0!important}
+.feed-screen.on{display:block;position:fixed;inset:0;bottom:calc(66px + env(safe-area-inset-bottom));background:#111813;z-index:5}
+.feed-top{position:absolute;top:0;left:0;right:0;z-index:3;padding:calc(12px + env(safe-area-inset-top)) 12px 8px;background:linear-gradient(#111813cc,transparent)}
+.feed-top .chips{padding:0}
+.feed-top .chip{background:rgba(255,255,255,.12);border-color:transparent;color:#F7F4EC}
+.feed-top .chip[aria-pressed="true"]{background:#F7F4EC;color:#111813}
+.feed{height:100%;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none}
+.feed::-webkit-scrollbar{display:none}
+.reel{position:relative;height:100%;scroll-snap-align:start;scroll-snap-stop:always;display:flex;align-items:center;justify-content:center;color:#F7F4EC;overflow:hidden}
+.reel .player{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.reel iframe{width:100%;height:100%;border:0;max-width:calc((100dvh) * 9 / 16)}
+.reel .thumb{position:absolute;inset:0;background-size:cover;background-position:center;filter:brightness(.55)}
+.reel .meta{position:absolute;bottom:0;right:0;left:64px;padding:16px 16px 18px;display:flex;flex-direction:column;gap:6px;pointer-events:none;background:linear-gradient(transparent,#111813dd)}
+.reel .meta b{font-size:16px}
+.reel .badge{background:rgba(228,238,231,.9)}
+.reel .side{position:absolute;left:10px;bottom:24px;display:flex;flex-direction:column;gap:14px;z-index:2}
+.reel .side a,.reel .side button{width:48px;height:48px;border-radius:24px;border:0;background:rgba(255,255,255,.14);color:#F7F4EC;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none}
+.reel .side svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.reel .side .on{background:#F7F4EC;color:#2F5A47}
+.feed-empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:30px;color:#F7F4EC}
+.feed-empty p{color:#C9D4CD;margin:0;line-height:1.8;max-width:320px}
+.hint{position:absolute;top:42%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.45);padding:6px 12px;border-radius:12px;font-size:13px;pointer-events:none;animation:hint 2.4s ease-in-out 2}
+@keyframes hint{50%{transform:translate(-50%,-14px)}}
 /* clips */
 .clip{background:var(--card);border:1px solid var(--line);border-radius:24px;overflow:hidden}
-.clip .vid{aspect-ratio:9/16;max-height:70vh;width:100%;background:#E6E1D2;display:block}
+.clip .vid{aspect-ratio:9/16;max-height:70vh;width:100%;background:var(--vid);display:block}
 .clip .vid iframe{width:100%;height:100%;border:0;display:block}
 .clip .meta{padding:14px 16px;display:flex;flex-direction:column;gap:6px}
 .badge{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 8px;border-radius:12px;background:var(--mint);color:var(--green);font-size:12px;font-weight:500}
@@ -77,7 +109,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .basmala{font-family:'Tuba Quran','Amiri Quran','Amiri',serif;text-align:center;font-size:calc(var(--quran-size) - 2px);margin:0 0 10px;line-height:2}
 .mushaf{font-family:'Tuba Quran','Amiri Quran','Amiri',serif;font-size:var(--quran-size);line-height:2.3;text-align:justify;margin:0}
 .mushaf .aya{cursor:pointer;border-radius:8px}
-.mushaf .aya.mark{background:#F1E9CF}
+.mushaf .aya.mark{background:var(--mark)}
 .mark-n{color:var(--green);font-family:'Amiri',serif;white-space:nowrap}
 .reader-bar{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:12px}
 .pager{display:flex;gap:10px;margin-top:16px}
@@ -86,22 +118,22 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .prow{height:60px;padding:0 16px;border-radius:18px;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;gap:10px;font-size:16px}
 .prow.next{background:var(--mint);border-color:var(--green);font-weight:600}
 .prow .t{margin-inline-start:auto;font-variant-numeric:tabular-nums}
-.tag{height:22px;padding:0 8px;border-radius:11px;background:var(--green);color:var(--bg);font-size:11px;display:inline-flex;align-items:center}
+.tag{height:22px;padding:0 8px;border-radius:11px;background:var(--green);color:var(--on-green);font-size:11px;display:inline-flex;align-items:center}
 .big{font-family:'Amiri',serif;font-size:40px;font-weight:700;line-height:1.2}
 .qibla{display:flex;align-items:center;gap:16px}
 .dial{width:84px;height:84px;border-radius:42px;border:2px solid var(--line);position:relative;flex-shrink:0;background:var(--bg)}
 .dial .n{position:absolute;top:2px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--muted2)}
-.dial .arrow{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;padding-top:12px;transition:transform .3s}
+.dial .arrow{color:var(--green);position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;padding-top:12px;transition:transform .3s}
 /* azkar */
 .zikr{width:100%;text-align:right;padding:16px;border-radius:22px;border:1px solid var(--line);background:var(--card);display:flex;flex-direction:column;gap:12px;cursor:pointer;font-family:inherit;color:var(--ink)}
-.zikr.done{background:#EEF4F0;border-color:#C9DBCF}
+.zikr.done{background:var(--done);border-color:var(--done-line)}
 .zikr .txt{font-family:'Amiri',serif;font-size:21px;line-height:1.95}
 .zikr .txt.q{font-family:'Tuba Quran','Amiri Quran','Amiri',serif;font-size:22px;line-height:2.15}
 .bar{height:5px;border-radius:3px;background:var(--mint);overflow:hidden}
 .bar>i{display:block;height:100%;background:var(--green);border-radius:3px;transition:width .15s}
 .zfoot{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--muted)}
 .cnt{height:30px;padding:0 12px;border-radius:15px;background:var(--mint);color:var(--green);font-weight:600;display:inline-flex;align-items:center;gap:4px}
-.zikr.done .cnt{background:var(--green);color:var(--bg)}
+.zikr.done .cnt{background:var(--green);color:var(--on-green)}
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90%}
 .toast.on{opacity:1}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
@@ -114,8 +146,12 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 <section class="screen" id="s-home" aria-label="الرئيسية">
   <header class="top">
     <div class="brand">
-      <div class="logo" aria-hidden="true"><svg viewBox="0 0 100 100" width="30" height="30"><path d="M42 64 C42 34 62 16 88 12 C88 42 70 62 42 64 Z" fill="none" stroke="#2F5A47" stroke-width="7" stroke-linejoin="round"/><path d="M49 57 L77 25" fill="none" stroke="#2F5A47" stroke-width="5" stroke-linecap="round"/><path d="M14 54 C16 84 34 88 42 64" fill="none" stroke="#2F5A47" stroke-width="7" stroke-linecap="round"/><path d="M26 32 L26 56 L46 44 Z" fill="#2F5A47" stroke="#2F5A47" stroke-width="4" stroke-linejoin="round"/></svg></div>
+      <div class="logo" aria-hidden="true"><svg viewBox="0 0 100 100" width="30" height="30"><path d="M42 64 C42 34 62 16 88 12 C88 42 70 62 42 64 Z" fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="round"/><path d="M49 57 L77 25" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M14 54 C16 84 34 88 42 64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M26 32 L26 56 L46 44 Z" fill="currentColor" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/></svg></div>
       <h1 class="h1">طُوبَى</h1>
+    </div>
+    <div style="display:flex;gap:8px">
+    <button class="icon-btn" data-go="settings" aria-label="الإعدادات"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    <button class="icon-btn" data-go="support" aria-label="ادعم طُوبَى"><svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></button>
     </div>
   </header>
 
@@ -129,10 +165,17 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
       <button class="mini" data-go="prayer"><span class="small">الصلاة الجاية</span><b id="homeNext">—</b><span class="muted" id="homeNextIn"></span></button>
       <button class="mini" data-go="azkar"><span class="small">أذكار</span><b id="homeAzkar">الصباح</b><span class="muted">اضغط وابدأ</span></button>
     </div>
-    <h2 style="margin:8px 4px 0;font-size:18px">المقاطع</h2>
-    <div class="chips" id="clipTopics" role="group" aria-label="أقسام المقاطع"></div>
-    <div class="stack" id="clips"></div>
+    <button class="hero" data-go="clips" style="border:0;text-align:right;cursor:pointer;display:flex;align-items:center;gap:14px;font-family:inherit">
+      <span style="width:52px;height:52px;border-radius:16px;background:rgba(247,244,236,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="26" height="26" viewBox="0 0 24 24" fill="#F7F4EC"><path d="M8 5.5v13l10-6.5z"/></svg></span>
+      <span style="display:flex;flex-direction:column;gap:2px"><b style="font-size:18px">المقاطع</b><small id="clipsTeaser">قلّب في مقاطع قصيرة تنفعك</small></span>
+    </button>
   </div>
+</section>
+
+<!-- ===== المقاطع (زي تيك توك) ===== -->
+<section class="screen feed-screen" id="s-clips" aria-label="المقاطع">
+  <div class="feed-top"><div class="chips" id="clipTopics" role="group" aria-label="أقسام المقاطع"></div></div>
+  <div class="feed" id="feed"></div>
 </section>
 
 <!-- ===== القرآن ===== -->
@@ -196,7 +239,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
       <a class="btn ghost" id="getApk" href="../#download" hidden>نزّل نسخة الأندرويد</a>
     </div>
     <div class="card qibla">
-      <div class="dial" aria-hidden="true"><span class="n">ش</span><div class="arrow" id="qArrow"><svg width="22" height="40" viewBox="0 0 22 40"><path d="M11 0 L20 16 L13 14 L13 40 L9 40 L9 14 L2 16 Z" fill="#2F5A47"/></svg></div></div>
+      <div class="dial" aria-hidden="true"><span class="n">ش</span><div class="arrow" id="qArrow"><svg width="22" height="40" viewBox="0 0 22 40"><path d="M11 0 L20 16 L13 14 L13 40 L9 40 L9 14 L2 16 Z" fill="currentColor"/></svg></div></div>
       <div class="stack" style="gap:4px">
         <b style="font-size:16px">اتجاه القبلة</b>
         <span class="muted" id="qiblaTxt"></span>
@@ -223,7 +266,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 <section class="screen" id="s-support" aria-label="ادعم طُوبَى">
   <header class="top"><h1 class="h1">ادعم طُوبَى</h1></header>
   <div class="stack" style="align-items:center;text-align:center;padding-top:10px">
-    <div class="logo" style="width:96px;height:96px;border-radius:28px" aria-hidden="true"><svg viewBox="0 0 100 100" width="70" height="70"><path d="M42 64 C42 34 62 16 88 12 C88 42 70 62 42 64 Z" fill="none" stroke="#2F5A47" stroke-width="6" stroke-linejoin="round"/><path d="M49 57 L77 25" fill="none" stroke="#2F5A47" stroke-width="4" stroke-linecap="round"/><path d="M14 54 C16 84 34 88 42 64" fill="none" stroke="#2F5A47" stroke-width="6" stroke-linecap="round"/><path d="M26 32 L26 56 L46 44 Z" fill="#2F5A47" stroke="#2F5A47" stroke-width="4" stroke-linejoin="round"/></svg></div>
+    <div class="logo" style="width:96px;height:96px;border-radius:28px" aria-hidden="true"><svg viewBox="0 0 100 100" width="70" height="70"><path d="M42 64 C42 34 62 16 88 12 C88 42 70 62 42 64 Z" fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/><path d="M49 57 L77 25" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M14 54 C16 84 34 88 42 64" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><path d="M26 32 L26 56 L46 44 Z" fill="currentColor" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/></svg></div>
     <h2 style="margin:6px 0 0;font-family:'Amiri',serif;font-size:30px">طُوبَى مجاني بالكامل</h2>
     <p class="muted" style="line-height:1.8;margin:0;max-width:380px">من غير إعلانات ولا اشتراكات. لو التطبيق نفعك وحابب تساعدنا نكمّل ونضيف محتوى جديد، تقدر تدعمنا بأي مبلغ.</p>
   </div>
@@ -243,12 +286,40 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
   </div>
 </section>
 
+<!-- ===== الإعدادات ===== -->
+<section class="screen" id="s-settings" aria-label="الإعدادات">
+  <header class="top">
+    <h1 class="h1">الإعدادات</h1>
+    <button class="icon-btn" data-go="home" aria-label="رجوع للرئيسية"><svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+  </header>
+  <div class="stack">
+    <div class="card stack" style="gap:10px">
+      <b style="font-size:16px">المظهر</b>
+      <span class="muted">الوضع الليلي أريح للعين بالليل.</span>
+      <div class="chips" id="themeChips" role="group" aria-label="المظهر" style="padding:0">
+        <button class="chip" data-theme-v="light">فاتح</button>
+        <button class="chip" data-theme-v="dark">ليلي</button>
+        <button class="chip" data-theme-v="auto">زي الموبايل</button>
+      </div>
+    </div>
+    <div class="card stack" style="gap:10px">
+      <b style="font-size:16px">حجم خط المصحف</b>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="icon-btn" id="sMinus" aria-label="صغّر الخط"><span style="font-size:18px;font-weight:600">أ-</span></button>
+        <span class="mushaf" id="sSample" style="flex:1;text-align:center;line-height:1.8">ٱلۡحَمۡدُ لِلَّهِ</span>
+        <button class="icon-btn" id="sPlus" aria-label="كبّر الخط"><span style="font-size:18px;font-weight:600">أ+</span></button>
+      </div>
+    </div>
+    <button class="row" data-go="support"><span class="num" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><span class="grow"><b>ادعم طُوبَى</b><span class="small">إنستاباي أو فودافون كاش</span></span></button>
+  </div>
+</section>
+
 <nav class="tabs" aria-label="التنقل الرئيسي"><div class="in">
-  <button class="tab" data-tab="home"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M10 8.5v7l5.5-3.5z"/></svg>الرئيسية</button>
+  <button class="tab" data-tab="home"><svg class="i" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6h-6v6H4z"/></svg>الرئيسية</button>
+  <button class="tab" data-tab="clips"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M10 8.5v7l5.5-3.5z"/></svg>المقاطع</button>
   <button class="tab" data-tab="quran"><svg class="i" viewBox="0 0 24 24"><path d="M12 6.5C10 5 7 4.5 4 5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5c-3-.5-6 0-8 1.5z"/><path d="M12 6.5V19"/></svg>القرآن</button>
   <button class="tab" data-tab="prayer"><svg class="i" viewBox="0 0 24 24"><path d="M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.5z"/></svg>الصلاة</button>
   <button class="tab" data-tab="azkar"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="10" r="6"/><path d="M12 16v3.5"/><circle cx="12" cy="20.5" r="1"/></svg>الأذكار</button>
-  <button class="tab" data-tab="support"><svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>ادعمنا</button>
 </div></nav>
 <div class="toast" id="toast" role="status"></div>
 </div>
@@ -276,17 +347,18 @@ const BASMALA = "بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّ
 function ayaMark(n) { return `<span class="mark-n">﴿${ar(n)}﴾</span>`; }
 
 // ---------- التنقل ----------
-const TABS = ["home", "quran", "prayer", "azkar", "support"];
+const TABS = ["home", "clips", "quran", "prayer", "azkar", "support", "settings"];
 function go(tab) {
   if (!TABS.includes(tab)) tab = "home";
   TABS.forEach((t) => {
     $("#s-" + t).classList.toggle("on", t === tab);
     const b = document.querySelector(`.tab[data-tab="${t}"]`);
-    if (t === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    if (b) { if (t === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }
   });
   if (location.hash !== "#" + tab) history.replaceState(null, "", "#" + tab);
   window.scrollTo(0, 0);
   if (tab === "azkar") renderAzkar();
+  if (tab === "clips") renderClips(); else stopAllClips();
 }
 document.querySelectorAll(".tab").forEach((b) => b.addEventListener("click", () => go(b.dataset.tab)));
 document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => go(b.dataset.go)));
@@ -301,36 +373,79 @@ document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click"
   $("#ayahDayRef").textContent = `سورة ${QURAN[s - 1][0]} · آية ${ar(a)}`;
 })();
 
-// ---------- المقاطع ----------
-let clipTopic = "الكل";
+// ---------- المقاطع (زي تيك توك) ----------
+let clipTopic = "الكل", feedIO = null;
+const saved = () => store.get("savedClips", []);
+const ICON = {
+  heart: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+  share: '<path d="M12 4v11"/><path d="M7.5 8.5L12 4l4.5 4.5"/><path d="M5 14v5h14v-5"/>',
+  yt: '<rect x="3" y="6" width="18" height="12" rx="4"/><path d="M10.5 9.5v5l4-2.5z"/>',
+  sound: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9a4 4 0 0 1 0 6"/>',
+  mute: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 10l4 4M21 10l-4 4"/>'
+};
+let muted = true;
 function renderClips() {
-  const topics = ["الكل", ...new Set(CLIPS.map((c) => c.topic).filter(Boolean))];
+  const shuffle = (arr) => { const a = arr.slice(); const seed = Number(todayKey().replace(/-/g, "")); for (let i = a.length - 1; i > 0; i--) { const j = (seed * (i + 7)) % (i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const topics = ["الكل", "المحفوظة", ...new Set(CLIPS.map((c) => c.topic).filter(Boolean))];
   $("#clipTopics").innerHTML = topics.map((t) => `<button class="chip" aria-pressed="${t === clipTopic}" data-t="${esc(t)}">${esc(t)}</button>`).join("");
   $("#clipTopics").querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => { clipTopic = b.dataset.t; renderClips(); }));
-  const list = CLIPS.filter((c) => clipTopic === "الكل" || c.topic === clipTopic);
+  $("#clipsTeaser").textContent = CLIPS.length ? `${ar(CLIPS.length)} مقطع قصير مستنيك` : "جاية قريب إن شاء الله";
+  const sv = saved();
+  let list = clipTopic === "المحفوظة" ? CLIPS.filter((c) => sv.includes(c.youtubeId)) : CLIPS.filter((c) => clipTopic === "الكل" || c.topic === clipTopic);
+  if (clipTopic === "الكل") list = shuffle(list);
+  if (feedIO) { feedIO.disconnect(); feedIO = null; }
   if (!list.length) {
-    $("#clips").innerHTML = `<div class="card empty"><b style="font-size:16px">المقاطع جاية قريب إن شاء الله</b><p class="muted" style="margin:8px 0 0;line-height:1.8">بنختار المقاطع من القنوات الرسمية للمشايخ ونراجعها قبل ما تنزل.</p></div>`;
+    $("#feed").innerHTML = clipTopic === "المحفوظة"
+      ? `<div class="feed-empty"><b style="font-size:18px">لسه محفظتش مقاطع</b><p>دوس على القلب جنب أي مقطع عشان يتحفظ هنا.</p></div>`
+      : `<div class="feed-empty"><svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#F7F4EC" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M10 8.5v7l5.5-3.5z"/></svg><b style="font-size:18px">المقاطع جاية قريب إن شاء الله</b><p>بنختار المقاطع من القنوات الرسمية للمشايخ ونراجعها قبل ما تنزل.</p></div>`;
     return;
   }
-  $("#clips").innerHTML = list.map((c, i) => `
-    <article class="clip">
-      <div class="vid" data-id="${esc(c.youtubeId)}">
-        <button class="btn ghost" style="width:100%;height:100%;border-radius:0;border:0;background:#E6E1D2;flex-direction:column" aria-label="شغّل: ${esc(c.title)}">
-          <span style="width:72px;height:72px;border-radius:36px;background:rgba(255,253,247,.9);display:flex;align-items:center;justify-content:center"><svg width="28" height="28" viewBox="0 0 24 24" fill="#1F2A24"><path d="M8 5.5v13l10-6.5z"/></svg></span>
-          <span class="muted" style="margin-top:10px">اضغط للتشغيل</span>
-        </button>
+  $("#feed").innerHTML = list.map((c, i) => {
+    const id = esc(c.youtubeId); const isSaved = sv.includes(c.youtubeId);
+    return `<article class="reel" data-id="${id}" aria-label="${esc(c.title || "مقطع")}">
+      <div class="thumb" style="background-image:url('https://i.ytimg.com/vi/${id}/hqdefault.jpg')"></div>
+      <div class="player"></div>
+      <div class="side">
+        <button class="${isSaved ? "on" : ""}" data-save="${id}" aria-label="${isSaved ? "شيل من المحفوظة" : "احفظ المقطع"}" aria-pressed="${isSaved}"><svg viewBox="0 0 24 24">${ICON.heart}</svg></button>
+        <button data-share="${id}" data-title="${esc(c.title || "")}" aria-label="شارك المقطع"><svg viewBox="0 0 24 24">${ICON.share}</svg></button>
+        <button data-mute aria-label="${muted ? "شغّل الصوت" : "اكتم الصوت"}"><svg viewBox="0 0 24 24">${muted ? ICON.mute : ICON.sound}</svg></button>
+        <a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener" aria-label="افتحه على يوتيوب"><svg viewBox="0 0 24 24">${ICON.yt}</svg></a>
       </div>
       <div class="meta">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b>${esc(c.sheikh || "")}</b><span class="badge">محتوى مُراجَع</span></div>
         <span style="line-height:1.6">${esc(c.title || "")}</span>
-        <span class="small">المصدر: ${esc(c.source || "يوتيوب")}</span>
+        <span style="font-size:12px;color:#C9D4CD">المصدر: ${esc(c.source || "يوتيوب")}</span>
       </div>
-    </article>`).join("");
-  $("#clips").querySelectorAll(".vid").forEach((v) => v.querySelector("button").addEventListener("click", () => {
-    const id = encodeURIComponent(v.dataset.id);
-    v.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1&rel=0" title="مقطع" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+      ${i === 0 && list.length > 1 ? '<div class="hint">اسحب لفوق للمقطع اللي بعده</div>' : ""}
+    </article>`;
+  }).join("");
+  const play = (reel) => {
+    const id = encodeURIComponent(reel.dataset.id);
+    reel.querySelector(".player").innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=${muted ? 1 : 0}&playsinline=1&loop=1&playlist=${id}&rel=0&modestbranding=1" title="مقطع" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+  };
+  const stop = (reel) => { reel.querySelector(".player").innerHTML = ""; };
+  feedIO = new IntersectionObserver((es) => es.forEach((e) => {
+    if (!$("#s-clips").classList.contains("on")) return;
+    if (e.intersectionRatio >= 0.6) play(e.target); else stop(e.target);
+  }), { root: $("#feed"), threshold: [0, 0.6] });
+  $("#feed").querySelectorAll(".reel").forEach((r) => feedIO.observe(r));
+  $("#feed").querySelectorAll("[data-save]").forEach((b) => b.addEventListener("click", () => {
+    const id = b.dataset.save; let s2 = saved();
+    s2 = s2.includes(id) ? s2.filter((x) => x !== id) : [...s2, id]; store.set("savedClips", s2);
+    const on = s2.includes(id); b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on));
+    b.setAttribute("aria-label", on ? "شيل من المحفوظة" : "احفظ المقطع"); toast(on ? "اتحفظ في المحفوظة" : "اتشال من المحفوظة");
+  }));
+  $("#feed").querySelectorAll("[data-share]").forEach((b) => b.addEventListener("click", async () => {
+    const url = "https://www.youtube.com/watch?v=" + b.dataset.share;
+    try { if (navigator.share) await navigator.share({ title: b.dataset.title, text: b.dataset.title + " — من طُوبَى", url }); else { await navigator.clipboard.writeText(url); toast("نسخنا رابط المقطع"); } } catch (e) {}
+  }));
+  $("#feed").querySelectorAll("[data-mute]").forEach((b) => b.addEventListener("click", () => {
+    muted = !muted;
+    $("#feed").querySelectorAll("[data-mute]").forEach((x) => { x.innerHTML = `<svg viewBox="0 0 24 24">${muted ? ICON.mute : ICON.sound}</svg>`; x.setAttribute("aria-label", muted ? "شغّل الصوت" : "اكتم الصوت"); });
+    const cur = [...$("#feed").querySelectorAll(".reel")].find((r) => r.querySelector("iframe")); if (cur) play(cur);
   }));
 }
+function stopAllClips() { $("#feed").querySelectorAll(".player").forEach((p) => { p.innerHTML = ""; }); }
 
 // ---------- القرآن ----------
 let curSurah = 0;
@@ -529,6 +644,21 @@ $("#share").addEventListener("click", async () => {
   const data = { title: "طُوبَى", text: "طُوبَى: مقاطع إسلامية قصيرة، وقرآن، ومواقيت صلاة، وأذكار. ببلاش ومن غير إعلانات.", url: location.href.split("#")[0] };
   try { if (navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(data.url); toast("نسخنا الرابط"); } } catch (e) {}
 });
+
+// ---------- الوضع الليلي ----------
+const darkMQ = window.matchMedia ? matchMedia("(prefers-color-scheme: dark)") : null;
+function applyTheme() {
+  const t = store.get("theme", "auto");
+  const dark = t === "dark" || (t === "auto" && darkMQ && darkMQ.matches);
+  if (dark) document.documentElement.setAttribute("data-theme", "dark"); else document.documentElement.removeAttribute("data-theme");
+  const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.content = dark ? "#121814" : "#F7F4EC";
+  document.querySelectorAll("#themeChips .chip").forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.themeV === t)));
+}
+document.querySelectorAll("#themeChips .chip").forEach((c) => c.addEventListener("click", () => { store.set("theme", c.dataset.themeV); applyTheme(); }));
+if (darkMQ && darkMQ.addEventListener) darkMQ.addEventListener("change", applyTheme);
+applyTheme();
+$("#sPlus").addEventListener("click", () => { qSize = Math.min(40, qSize + 2); applySize(); });
+$("#sMinus").addEventListener("click", () => { qSize = Math.max(18, qSize - 2); applySize(); });
 
 // ---------- البداية ----------
 renderClips(); renderSurahList(""); renderPrayer(); tick.ready = true;
