@@ -243,6 +243,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
       </div>
       <button class="btn ghost" id="exactBtn" hidden>اسمح للتنبيه ييجي في معاده بالظبط</button>
       <a class="btn ghost" id="getApk" href="../#download" hidden>نزّل نسخة الأندرويد</a>
+      <div class="stack" id="ntfyBox" style="gap:10px" hidden></div>
     </div>
     <div class="card qibla">
       <div class="dial" aria-hidden="true"><span class="n">ش</span><div class="arrow" id="qArrow"><svg width="22" height="40" viewBox="0 0 22 40"><path d="M11 0 L20 16 L13 14 L13 40 L9 40 L9 14 L2 16 Z" fill="currentColor"/></svg></div></div>
@@ -615,7 +616,76 @@ async function scheduleDesktop() {
   }
 }
 if (DESKTOP) setInterval(scheduleDesktop, 6 * 36e5);
+// ---------- الآيفون: الأذان عن طريق تطبيق ntfy ----------
+const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+const NTFY_APP = "https://apps.apple.com/app/ntfy/id1625396347";
+function ntfyTopic() {
+  let t = store.get("ntfyTopic", "");
+  if (!t) { const a = "abcdefghijkmnpqrstuvwxyz23456789"; t = "tuba-"; for (let i = 0; i < 14; i++) t += a[Math.floor(Math.random() * a.length)]; store.set("ntfyTopic", t); }
+  return t;
+}
+const ntfyActive = () => IOS && !LN() && store.get("ntfyOk", false) && !store.get("nonosHandles", false);
+function ntfyPost(title, body, atMs) {
+  const q = `title=${encodeURIComponent(title)}` + (atMs ? `&delay=${Math.floor(atMs / 1000)}` : "");
+  return fetch(`https://ntfy.sh/${ntfyTopic()}?${q}`, { method: "POST", body: String(body || "").slice(0, 400) });
+}
+// بنبعت مواعيد يوم ونص قدام، وكل ما التطبيق يتفتح بنكمّل من آخر معاد اتبعت (من غير تكرار)
+async function schedulePushIOS() {
+  if (!ntfyActive()) return;
+  const now = Date.now(); const h = +store.get("ntfyH", 0);
+  if (h > now + 20 * 36e5) return;
+  const from = Math.max(h, now + 60000), to = now + 36 * 36e5; const ev = [];
+  for (let d = 0; d < 3; d++) {
+    const day = new Date(); day.setDate(day.getDate() + d); const t = times(day);
+    if (store.get("adhanOn", true)) ["fajr", "dhuhr", "asr", "maghrib", "isha"].forEach((k, i) => ev.push({ at: t[k].getTime(), title: `حان الآن موعد صلاة ${PNAMES[k]}`, body: hadithFor(dayNum(day) * 5 + i, k) }));
+    const at = new Date(day); at.setHours(21, 0, 0, 0); const wd = at.getDay();
+    if (store.get("fastOn", false) && (wd === 0 || wd === 3)) ev.push({ at: at.getTime(), title: `بكرة ${wd === 0 ? "الاثنين" : "الخميس"}، ناوي تصوم؟`, body: fastHadith(dayNum(at)) + " · متنساش تتسحّر" });
+  }
+  const list = ev.filter((e) => e.at > from && e.at <= to).sort((a, b) => a.at - b.at);
+  let ok = true;
+  for (const e of list) { try { const r = await ntfyPost(e.title, e.body, e.at); if (!r.ok) ok = false; } catch (err) { ok = false; } }
+  if (ok) store.set("ntfyH", to);
+}
+function renderNtfy() {
+  const box = $("#ntfyBox"); box.hidden = false;
+  $("#notifToggle").hidden = true; $("#getApk").hidden = true; $("#exactBtn").hidden = true;
+  const topic = ntfyTopic();
+  if (store.get("nonosHandles", false)) {
+    $("#notifTxt").textContent = "Nono's World هو اللي بيأذّنلك، فطُوبَى ساكت عشان التنبيهات متتكررش.";
+    box.innerHTML = `<button class="btn ghost" id="nfBack">لا، خلّي طُوبَى هو اللي يأذّن</button>`;
+    $("#nfBack").onclick = () => { store.set("nonosHandles", false); renderNtfy(); };
+    return;
+  }
+  if (!store.get("ntfyOk", false)) {
+    $("#notifTxt").textContent = "على الآيفون، الأذان بيوصلك عن طريق تطبيق مجاني اسمه ntfy. ظبّطه مرة واحدة بس:";
+    box.innerHTML = `<ol class="muted" style="margin:0;padding-inline-start:20px;line-height:1.9;font-size:14px">
+        <li>نزّل تطبيق <b>ntfy</b> من الآب ستور وافتحه، ووافق على الإشعارات.</li>
+        <li>دوس <b>+</b>، واكتب الاسم ده بالظبط، ودوس <b>Subscribe</b>:</li></ol>
+      <div style="display:flex;align-items:center;gap:8px"><b dir="ltr" style="flex:1;text-align:center;background:var(--mint);color:var(--green);border-radius:14px;padding:10px;font-size:15px;user-select:all">${topic}</b><button class="btn ghost" id="nfCopy" style="height:44px;padding:0 14px">انسخ</button></div>
+      <a class="btn ghost" href="${NTFY_APP}" target="_blank" rel="noopener">نزّل ntfy</a>
+      <button class="btn" id="nfDone">خلّصت، ابعتلي تنبيه تجربة</button>
+      <button class="btn ghost" id="nfNonos">Nono's World بيأذّنلي، مش محتاج</button>`;
+    $("#nfCopy").onclick = async () => { try { await navigator.clipboard.writeText(topic); toast("اتنسخ"); } catch (e) { toast(topic); } };
+    $("#nfNonos").onclick = () => { store.set("nonosHandles", true); renderNtfy(); };
+    $("#nfDone").onclick = async () => {
+      try { const r = await ntfyPost("تمام! طُوبَى هيأذّنلك من هنا 🌿", "لو التنبيه ده وصلك، يبقى كله مظبوط."); if (!r.ok) throw 0; }
+      catch (e) { toast("مقدرناش نبعت، اتأكد إن النت شغال وجرب تاني"); return; }
+      store.set("ntfyOk", true); store.set("ntfyH", 0); renderNtfy(); schedulePushIOS();
+      toast("بعتنالك تنبيه تجربة، لو موصلش اتأكد من الاسم في ntfy");
+    };
+    return;
+  }
+  const on = store.get("adhanOn", true);
+  $("#notifTxt").textContent = on ? "الأذان بيوصلك عن طريق ntfy، حتى والتطبيق مقفول." : "التنبيه مقفول.";
+  box.innerHTML = `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="chip" id="nfToggle" aria-pressed="${on}">${on ? "شغّال" : "مقفول"}</button><button class="chip" id="nfTest">ابعت تجربة</button><button class="chip" id="nfReset">ظبّطه من الأول</button></div>
+    <span class="small">لو قفلته، التنبيهات اللي اتبعتت لـ ntfy خلاص ممكن توصل لحد يوم ونص.</span>`;
+  $("#nfToggle").onclick = () => { store.set("adhanOn", !on); store.set("ntfyH", on ? Date.now() + 36 * 36e5 : 0); renderNtfy(); schedulePushIOS(); };
+  $("#nfTest").onclick = async () => { try { await ntfyPost("تنبيه تجربة من طُوبَى 🌿", "كده الأذان هيوصلك في معاده."); toast("بعتنا"); } catch (e) { toast("مقدرناش نبعت"); } };
+  $("#nfReset").onclick = () => { store.set("ntfyOk", false); renderNtfy(); };
+}
+
 async function renderNotif() {
+  if (IOS && !LN()) { renderNtfy(); return; }
   const ln = LN(); const on = store.get("adhanOn", true);
   if ((ln || DESKTOP) && await nonosNotifies()) {
     $("#notifToggle").hidden = true; $("#exactBtn").hidden = true; $("#getApk").hidden = true;
@@ -712,7 +782,7 @@ function renderFast() {
     if (day === 0) t = "بكرة الاثنين، ناوي تصوم؟";
     else if (day === 3) t = "بكرة الخميس، ناوي تصوم؟";
     else if (day === 1 || day === 4) t = `النهارده ${day === 1 ? "الاثنين" : "الخميس"}، تقبّل الله منك`;
-    else t = otherApp === true ? "التذكير بيوصلك من Nono's World" : (LN() || DESKTOP) ? "هنفكّرك بالليل قبلها الساعة ٩" : "هيظهرلك التذكير هنا قبلها بيوم";
+    else t = otherApp === true || (IOS && store.get("nonosHandles", false)) ? "التذكير بيوصلك من Nono's World" : (LN() || DESKTOP || ntfyActive()) ? "هنفكّرك بالليل قبلها الساعة ٩" : "هيظهرلك التذكير هنا قبلها بيوم";
   }
   $("#fastTxt").textContent = t;
 }
@@ -736,9 +806,14 @@ async function scheduleFast() {
 }
 $("#fastToggle").addEventListener("click", () => {
   const on = !store.get("fastOn", false); store.set("fastOn", on); renderFast(); scheduleFast(); scheduleDesktop();
+  if (on && ntfyActive()) { // ابعت تذكير الصيام للفترة اللي مواعيدها اتبعتت خلاص
+    const h = +store.get("ntfyH", 0);
+    for (let d = 0; d < 3; d++) { const at = new Date(); at.setDate(at.getDate() + d); at.setHours(21, 0, 0, 0); const wd = at.getDay();
+      if ((wd === 0 || wd === 3) && at > new Date() && at.getTime() <= h) ntfyPost(`بكرة ${wd === 0 ? "الاثنين" : "الخميس"}، ناوي تصوم؟`, fastHadith(dayNum(at)) + " · متنساش تتسحّر", at.getTime()).catch(() => {}); }
+  }
   toast(on ? "تمام، هنفكّرك قبل الاثنين والخميس" : "قفلنا تذكير الصيام");
 });
-document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { renderFast(); scheduleFast(); } });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { renderFast(); scheduleFast(); schedulePushIOS(); } });
 
 // ---------- الوضع الليلي ----------
 const darkMQ = window.matchMedia ? matchMedia("(prefers-color-scheme: dark)") : null;
@@ -757,7 +832,7 @@ $("#sMinus").addEventListener("click", () => { qSize = Math.max(18, qSize - 2); 
 
 // ---------- البداية ----------
 renderClips(); renderSurahList(""); renderPrayer(); tick.ready = true;
-renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); scheduleDesktop(); setTimeout(() => { renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); }, 1500);
+renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); scheduleDesktop(); schedulePushIOS(); setTimeout(() => { renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); }, 1500);
 go((location.hash || "#home").slice(1));
 window.addEventListener("hashchange", () => go(location.hash.slice(1)));
 if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {})); }
