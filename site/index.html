@@ -42,7 +42,10 @@ header .wrap{display:flex;align-items:center;justify-content:space-between;gap:1
 header nav{display:flex;gap:18px;font-size:15px}
 header nav a{text-decoration:none;color:var(--muted)}
 header nav a:hover{color:var(--green)}
-.chipbtn{background:var(--green);color:var(--bg);text-decoration:none;font-weight:600;border-radius:14px;padding:7px 16px;font-size:15px}
+.chipbtn{background:var(--green);color:var(--bg);text-decoration:none;font-weight:600;border-radius:14px;padding:7px 16px;font-size:15px;white-space:nowrap}
+.chipbtn.ghost{background:var(--card);color:var(--green);border:1px solid var(--line)}
+section[id]{scroll-margin-top:80px}
+@media (max-width:400px){.chipbtn{padding:6px 11px;font-size:14px}.brand{font-size:22px}}
 
 /* buttons */
 .btns{display:flex;flex-wrap:wrap;gap:12px}
@@ -133,7 +136,7 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:14px;text-align:center}
 <header><div class="wrap">
   <a class="brand" href="#"><img src="app/icon-192.png" alt="">طُوبَى</a>
   <nav aria-label="أقسام الصفحة"><a href="#features">المميزات</a><a href="#download">التحميل</a><a href="#maker">المصمم</a><a href="#faq">أسئلة</a></nav>
-  <a class="chipbtn" href="#download">حمّل</a>
+  <div style="display:flex;gap:8px"><a class="chipbtn ghost" href="#maker">عملنا إيه تاني؟</a><a class="chipbtn" href="#download">حمّل</a></div>
 </div></header>
 
 <main>
@@ -226,6 +229,13 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:14px;text-align:center}
     </div>
   </section>
 
+  <section class="block" id="maker">
+    <div class="wrap maker reveal">
+      <div class="sec-title" style="margin-bottom:6px"><h2>مين صمّم طُوبَى؟</h2><p>طُوبَى من تصميم وتطوير <b>محمد صلاح</b>. ومن تصميمه كمان:</p></div>
+      <div class="card"><h3>Nono's World</h3><p>تطبيق لتنظيم الفلوس والمذاكرة والمود والمذكرات في مكان واحد.</p><a class="btn alt" href="https://teto-boday.github.io/nonos-world/#download" target="_blank" rel="noopener">حمّل Nono's World</a></div>
+    </div>
+  </section>
+
   <section class="block" id="download">
     <div class="wrap">
       <div class="sec-title reveal"><h2>نزّل طُوبَى</h2><p>اختار جهازك.</p></div>
@@ -247,13 +257,6 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:14px;text-align:center}
           <a class="btn alt" href="app/" style="margin-top:8px">أو افتحه كصفحة ويب على طول</a>
         </div>
       </div>
-    </div>
-  </section>
-
-  <section class="block" id="maker">
-    <div class="wrap maker reveal">
-      <div class="sec-title" style="margin-bottom:6px"><h2>مين صمّم طُوبَى؟</h2><p>طُوبَى من تصميم وتطوير <b>محمد صلاح</b>. ومن تصميمه كمان:</p></div>
-      <div class="card"><h3>Nono's World</h3><p>تطبيق لتنظيم الفلوس والمذاكرة والمود والمذكرات في مكان واحد.</p><a class="btn alt" href="https://teto-boday.github.io/nonos-world/" target="_blank" rel="noopener">شوف Nono's World</a></div>
     </div>
   </section>
 
