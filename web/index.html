@@ -284,7 +284,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
       <b style="font-size:17px">محمد صلاح</b>
       <span class="small">ومن تصميمه كمان:</span>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <a class="chip" style="display:inline-flex;align-items:center;text-decoration:none" href="https://teto-boday.github.io/nonos-world/" target="_blank" rel="noopener">Nono's World</a>
+        <a class="chip" id="nonosLink" style="display:inline-flex;align-items:center;text-decoration:none;height:auto;padding:8px 16px;white-space:normal" href="https://teto-boday.github.io/nonos-world/#download" target="_blank" rel="noopener">Nono's World: فلوسك ومذاكرتك ومهامك (دوس وحمّله)</a>
       </div>
     </div>
     <p class="small" style="text-align:center;line-height:1.8">نص المصحف: QuranEnc.com · مواقيت الصلاة: مكتبة Adhan · الأذكار: حصن المسلم</p>
@@ -633,6 +633,7 @@ function renderAzkar() {
 $("#zReset").addEventListener("click", () => { const s2 = zState(); s2[zCat] = []; store.set("azkar", s2); renderAzkar(); toast("بدأنا من الأول"); });
 
 // ---------- الدعم ----------
+if (/Android/i.test(navigator.userAgent)) $("#nonosLink").href = "https://github.com/Teto-Boday/nonos-world/releases/latest/download/NonosWorld.apk";
 if (DONATE_URL) $("#donate").href = DONATE_URL;
 else { $("#donate").addEventListener("click", (e) => { e.preventDefault(); toast("رابط الدعم هيتضاف قريب إن شاء الله"); }); }
 $("#payList").innerHTML = (typeof PAY_OPTIONS !== "undefined" ? PAY_OPTIONS : []).map((p, i) => `
