@@ -128,6 +128,11 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:14px;text-align:center}
   header nav{display:none}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* no-copy: the page feels like the app — no selecting, copying, long-press menus or dragging images */
+html{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
+img,svg{-webkit-user-drag:none;user-drag:none}
 </style>
 </head>
 <body>
@@ -301,6 +306,19 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:14px;text-align:center}
     var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ e.target.classList.remove("pending"); io.unobserve(e.target); } }); }, {threshold:.12});
     els.forEach(function(el){ var r = el.getBoundingClientRect(); if (r.top > innerHeight){ el.classList.add("pending"); io.observe(el); } });
   }
+})();
+</script>
+<script>
+// no-copy: block copy, cut, right-click menu and image dragging (text fields still work)
+(function(){
+  function inField(e){ var t = e.target; return t && t.closest && t.closest("input,textarea,[contenteditable]"); }
+  ["copy","cut","contextmenu","selectstart","dragstart"].forEach(function(ev){
+    document.addEventListener(ev, function(e){ if (!inField(e)) e.preventDefault(); });
+  });
+  document.addEventListener("keydown", function(e){
+    var k = (e.key || "").toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && ["c","x","a","s","u","p"].indexOf(k) > -1 && !inField(e)) e.preventDefault();
+  });
 })();
 </script>
 </body>
