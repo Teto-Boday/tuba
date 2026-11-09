@@ -6,7 +6,7 @@ let win, tray, quitting = false;
 if (!app.requestSingleInstanceLock()) app.quit();
 app.setAppUserModelId("app.tuba.teto");
 function create(show = true) {
-  win = new BrowserWindow({ width: 460, height: 860, minWidth: 360, show, title: "طُوبَى", icon: path.join(__dirname, "icon.png"), autoHideMenuBar: true, backgroundColor: "#F7F4EC" });
+  win = new BrowserWindow({ width: 460, height: 860, minWidth: 360, show, title: "طُوبَى", icon: path.join(__dirname, "icon.png"), autoHideMenuBar: true, backgroundColor: "#F7F4EC", webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, sandbox: false } });
   win.loadURL(URL);
   win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: "deny" }; });
   win.on("close", (e) => { if (!quitting) { e.preventDefault(); win.hide(); } });

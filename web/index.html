@@ -284,7 +284,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
       <b style="font-size:17px">محمد صلاح</b>
       <span class="small">ومن تصميمه كمان:</span>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <a class="chip" id="nonosLink" style="display:inline-flex;align-items:center;text-decoration:none;height:auto;padding:8px 16px;white-space:normal" href="https://teto-boday.github.io/nonos-world/#download" target="_blank" rel="noopener">Nono's World: فلوسك ومذاكرتك ومهامك (دوس وحمّله)</a>
+        <a class="chip" id="nonosLink" style="display:inline-flex;align-items:center;text-decoration:none;height:auto;padding:8px 16px;white-space:normal" href="https://teto-boday.github.io/nonos-world/" target="_blank" rel="noopener">Nono's World: فلوسك ومذاكرتك ومهامك (دوس وشوفه)</a>
       </div>
     </div>
     <p class="small" style="text-align:center;line-height:1.8">نص المصحف: QuranEnc.com · مواقيت الصلاة: مكتبة Adhan · الأذكار: حصن المسلم</p>
@@ -549,6 +549,19 @@ $("#locBtn").addEventListener("click", () => {
 const LN = () => window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications;
 const ADHAN_IDS = Array.from({ length: 40 }, (_, i) => ({ id: 1000 + i }));
 let lastPlan = "";
+// لو Nono's World متثبّت على نفس الجهاز، هو اللي بيأذّن ويفكّر بالصيام، وطُوبَى بيسكت عشان التنبيهات متتكررش
+let otherApp = null;
+async function nonosNotifies() {
+  if (otherApp !== null) return otherApp;
+  otherApp = false;
+  try {
+    const al = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AppLauncher;
+    if (al) { const r = await al.canOpenUrl({ url: "world.nonos.app" }); otherApp = !!(r && r.value); }
+    else if (window.tubaDesktop && window.tubaDesktop.hasNonos) otherApp = true;
+  } catch (e) {}
+  return otherApp;
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") otherApp = null; });
 async function scheduleAdhan(force) {
   const ln = LN(); if (!ln) return;
   const on = store.get("adhanOn", true);
@@ -556,7 +569,7 @@ async function scheduleAdhan(force) {
   if (!force && plan === lastPlan) return; lastPlan = plan;
   try {
     try { await ln.cancel({ notifications: ADHAN_IDS }); } catch (e) {}
-    if (!on) return;
+    if (!on || await nonosNotifies()) { renderNotif(); return; }
     let perm = await ln.checkPermissions();
     if (perm.display !== "granted") perm = await ln.requestPermissions();
     if (perm.display !== "granted") { lastPlan = ""; renderNotif(); return; }
@@ -576,9 +589,10 @@ async function scheduleAdhan(force) {
 // برنامج الويندوز: بيفضل شغال جنب الساعة، فالتنبيهات بتتعمل بمؤقتات جوه الصفحة
 const DESKTOP = /Electron/i.test(navigator.userAgent);
 let deskTimers = [];
-function scheduleDesktop() {
+async function scheduleDesktop() {
   if (!DESKTOP) return;
   deskTimers.forEach(clearTimeout); deskTimers = [];
+  if (await nonosNotifies()) return;
   const fire = (title, body) => { try { new Notification(title, { body, icon: "icon-192.png" }); } catch (e) {} };
   const add = (at, title, body) => { const ms = at - Date.now(); if (ms > 1000 && ms < 26 * 36e5) deskTimers.push(setTimeout(() => fire(title, body), ms)); };
   if (store.get("adhanOn", true)) {
@@ -593,6 +607,11 @@ function scheduleDesktop() {
 if (DESKTOP) setInterval(scheduleDesktop, 6 * 36e5);
 async function renderNotif() {
   const ln = LN(); const on = store.get("adhanOn", true);
+  if ((ln || DESKTOP) && await nonosNotifies()) {
+    $("#notifToggle").hidden = true; $("#exactBtn").hidden = true; $("#getApk").hidden = true;
+    $("#notifTxt").textContent = "Nono's World متثبّت عندك، فهو اللي بيأذّن ويفكّرك بالصيام، عشان التنبيهات متتكررش.";
+    return;
+  }
   if (!ln && DESKTOP) {
     $("#notifToggle").hidden = false; $("#notifToggle").setAttribute("aria-pressed", String(on)); $("#notifToggle").textContent = on ? "شغّال" : "مقفول";
     $("#notifTxt").textContent = on ? "هيجيلك تنبيه في معاد كل صلاة، طول ما البرنامج شغال جنب الساعة." : "التنبيه مقفول.";
@@ -656,7 +675,6 @@ function renderAzkar() {
 $("#zReset").addEventListener("click", () => { const s2 = zState(); s2[zCat] = []; store.set("azkar", s2); renderAzkar(); toast("بدأنا من الأول"); });
 
 // ---------- الدعم ----------
-if (/Android/i.test(navigator.userAgent)) $("#nonosLink").href = "https://github.com/Teto-Boday/nonos-world/releases/latest/download/NonosWorld.apk";
 if (DONATE_URL) $("#donate").href = DONATE_URL;
 else { $("#donate").addEventListener("click", (e) => { e.preventDefault(); toast("رابط الدعم هيتضاف قريب إن شاء الله"); }); }
 $("#payList").innerHTML = (typeof PAY_OPTIONS !== "undefined" ? PAY_OPTIONS : []).map((p, i) => `
@@ -684,7 +702,7 @@ function renderFast() {
     if (day === 0) t = "بكرة الاثنين، ناوي تصوم؟";
     else if (day === 3) t = "بكرة الخميس، ناوي تصوم؟";
     else if (day === 1 || day === 4) t = `النهارده ${day === 1 ? "الاثنين" : "الخميس"}، تقبّل الله منك`;
-    else t = (LN() || DESKTOP) ? "هنفكّرك بالليل قبلها الساعة ٩" : "هيظهرلك التذكير هنا قبلها بيوم";
+    else t = otherApp === true ? "التذكير بيوصلك من Nono's World" : (LN() || DESKTOP) ? "هنفكّرك بالليل قبلها الساعة ٩" : "هيظهرلك التذكير هنا قبلها بيوم";
   }
   $("#fastTxt").textContent = t;
 }
@@ -692,7 +710,7 @@ async function scheduleFast() {
   const ln = LN(); if (!ln) return;
   try {
     try { await ln.cancel({ notifications: FAST_IDS }); } catch (e) {}
-    if (!store.get("fastOn", false)) return;
+    if (!store.get("fastOn", false) || await nonosNotifies()) return;
     let perm = await ln.checkPermissions(); if (perm.display !== "granted") perm = await ln.requestPermissions();
     if (perm.display !== "granted") return;
     try { await ln.createChannel({ id: "fast", name: "تذكير الصيام", importance: 4, sound: "default", vibration: true }); } catch (e) {}

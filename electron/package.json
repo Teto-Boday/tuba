@@ -12,7 +12,7 @@
   "build": {
     "appId": "app.tuba.teto",
     "productName": "Tuba",
-    "files": ["main.js", "icon.png"],
+    "files": ["main.js", "preload.js", "icon.png"],
     "win": { "target": "nsis", "icon": "icon.png", "artifactName": "Tuba-Setup.${ext}" },
     "nsis": { "oneClick": true, "perMachine": false, "createDesktopShortcut": true, "shortcutName": "طُوبَى" }
   }
