@@ -13,9 +13,9 @@ const PAY_OPTIONS = [
 // مثال:
 // { youtubeId: "XXXXXXXXXXX", title: "عنوان المقطع", sheikh: "اسم الشيخ", source: "القناة الرسمية للشيخ على يوتيوب", topic: "قصص الأنبياء" },
 const CLIPS = [
-  { youtubeId: "Q6kfa4YuOSw", title: "", sheikh: "الشيخ سمير مصطفى", source: "يوتيوب", topic: "الشيخ سمير مصطفى" },
-  { youtubeId: "xJVrSHayQic", title: "", sheikh: "الشيخ سمير مصطفى", source: "يوتيوب", topic: "الشيخ سمير مصطفى" },
-  { youtubeId: "IslIl76RYVE", title: "", sheikh: "الشيخ سمير مصطفى", source: "يوتيوب", topic: "الشيخ سمير مصطفى" },
-  { youtubeId: "Xw52LalNPo4", title: "", sheikh: "الشيخ سمير مصطفى", source: "يوتيوب", topic: "الشيخ سمير مصطفى" },
-  { youtubeId: "krAZCScImok", title: "", sheikh: "الشيخ سمير مصطفى", source: "يوتيوب", topic: "الشيخ سمير مصطفى" },
+  { youtubeId: "Q6kfa4YuOSw", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "الشيخ سمير مصطفى" },
+  { youtubeId: "xJVrSHayQic", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "الشيخ سمير مصطفى" },
+  { youtubeId: "IslIl76RYVE", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "الشيخ سمير مصطفى" },
+  { youtubeId: "Xw52LalNPo4", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "الشيخ سمير مصطفى" },
+  { youtubeId: "krAZCScImok", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "الشيخ سمير مصطفى" },
 ];

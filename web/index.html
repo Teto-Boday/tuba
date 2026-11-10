@@ -91,8 +91,9 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .reel .side .on{background:#F7F4EC;color:#2F5A47}
 .feed-empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:30px;color:#F7F4EC}
 .feed-empty p{color:#C9D4CD;margin:0;line-height:1.8;max-width:320px}
-.hint{position:absolute;top:42%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.45);padding:6px 12px;border-radius:12px;font-size:13px;pointer-events:none;animation:hint 2.4s ease-in-out 2}
+.hint{position:absolute;top:42%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.45);padding:6px 12px;border-radius:12px;font-size:13px;pointer-events:none;z-index:2;animation:hint 1.6s ease-in-out 2, hintOut .5s ease 3.4s forwards}
 @keyframes hint{50%{transform:translate(-50%,-14px)}}
+@keyframes hintOut{to{opacity:0;visibility:hidden}}
 /* clips */
 .clip{background:var(--card);border:1px solid var(--line);border-radius:24px;overflow:hidden}
 .clip .vid{aspect-ratio:9/16;max-height:70vh;width:100%;background:var(--vid);display:block}
@@ -427,12 +428,12 @@ function renderClips() {
         <span style="line-height:1.6">${esc(c.title || "")}</span>
         <span style="font-size:12px;color:#C9D4CD">المصدر: ${esc(c.source || "يوتيوب")}</span>
       </div>
-      ${i === 0 && list.length > 1 ? '<div class="hint">اسحب لفوق للمقطع اللي بعده</div>' : ""}
+      ${i === 0 && list.length > 1 && !store.get("hintSeen", false) ? '<div class="hint">اسحب لفوق للمقطع اللي بعده</div>' : ""}
     </article>`;
   }).join("");
   const play = (reel) => {
     const id = encodeURIComponent(reel.dataset.id);
-    reel.querySelector(".player").innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=${muted ? 1 : 0}&playsinline=1&loop=1&playlist=${id}&rel=0&modestbranding=1" title="مقطع" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+    reel.querySelector(".player").innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=${muted ? 1 : 0}&playsinline=1&loop=1&playlist=${id}&rel=0&modestbranding=1&controls=0&hl=ar&iv_load_policy=3" title="مقطع" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
   };
   const stop = (reel) => { reel.querySelector(".player").innerHTML = ""; };
   feedIO = new IntersectionObserver((es) => es.forEach((e) => {
@@ -440,6 +441,8 @@ function renderClips() {
     if (e.intersectionRatio >= 0.6) play(e.target); else stop(e.target);
   }), { root: $("#feed"), threshold: [0, 0.6] });
   $("#feed").querySelectorAll(".reel").forEach((r) => feedIO.observe(r));
+  const hint = $("#feed").querySelector(".hint");
+  if (hint) { const kill = () => { hint.remove(); store.set("hintSeen", true); }; setTimeout(kill, 4200); $("#feed").addEventListener("scroll", kill, { once: true, passive: true }); }
   $("#feed").querySelectorAll("[data-save]").forEach((b) => b.addEventListener("click", () => {
     const id = b.dataset.save; let s2 = saved();
     s2 = s2.includes(id) ? s2.filter((x) => x !== id) : [...s2, id]; store.set("savedClips", s2);
