@@ -386,7 +386,7 @@ document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click"
 })();
 
 // ---------- المقاطع (زي تيك توك) ----------
-let clipTopic = "الكل", feedIO = null;
+let clipTopic = "لك", feedIO = null;
 const saved = () => store.get("savedClips", []);
 const ICON = {
   heart: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
@@ -397,14 +397,27 @@ const ICON = {
 };
 let muted = true;
 function renderClips() {
-  const shuffle = (arr) => { const a = arr.slice(); const seed = Number(todayKey().replace(/-/g, "")); for (let i = a.length - 1; i > 0; i--) { const j = (seed * (i + 7)) % (i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-  const topics = ["الكل", "المحفوظة", ...new Set(CLIPS.map((c) => c.topic).filter(Boolean))];
+  if (clipTopic !== "المحفوظة") clipTopic = "لك";
+  const topics = ["لك", "المحفوظة"];
   $("#clipTopics").innerHTML = topics.map((t) => `<button class="chip" aria-pressed="${t === clipTopic}" data-t="${esc(t)}">${esc(t)}</button>`).join("");
   $("#clipTopics").querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => { clipTopic = b.dataset.t; renderClips(); }));
   $("#clipsTeaser").textContent = CLIPS.length ? `${ar(CLIPS.length)} مقطع قصير مستنيك` : "جاية قريب إن شاء الله";
   const sv = saved();
-  let list = clipTopic === "المحفوظة" ? CLIPS.filter((c) => sv.includes(c.youtubeId)) : CLIPS.filter((c) => clipTopic === "الكل" || c.topic === clipTopic);
-  if (clipTopic === "الكل") list = shuffle(list);
+  let list;
+  if (clipTopic === "المحفوظة") list = CLIPS.filter((c) => sv.includes(c.youtubeId));
+  else {
+    // فيد واحد مخلوط: ترتيب بيتغير كل يوم، واللي شبه المقاطع اللي حفظتها (نفس الموضوع، وبعده نفس الشيخ) بيطلع أكتر وفي الأول
+    const likeT = {}, likeS = {};
+    CLIPS.forEach((c) => { if (sv.includes(c.youtubeId)) { if (c.topic) likeT[c.topic] = (likeT[c.topic] || 0) + 1; if (c.sheikh) likeS[c.sheikh] = (likeS[c.sheikh] || 0) + 1; } });
+    const seed = Number(todayKey().replace(/-/g, ""));
+    const rnd = (str) => { let h = seed; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 1000003; return h / 1000003; };
+    const pool = CLIPS.map((c) => ({ c, score: rnd(c.youtubeId) + Math.min(0.6, 0.3 * (likeT[c.topic] || 0)) + Math.min(0.2, 0.1 * (likeS[c.sheikh] || 0)) })).sort((x, y) => y.score - x.score);
+    list = []; let last = null, run = 0;
+    while (pool.length) { // متحطش أكتر من مقطعين ورا بعض لنفس الشيخ
+      let i = pool.findIndex((x) => !(x.c.sheikh === last && run >= 2)); if (i < 0) i = 0;
+      const [x] = pool.splice(i, 1); run = x.c.sheikh === last ? run + 1 : 1; last = x.c.sheikh; list.push(x.c);
+    }
+  }
   if (feedIO) { feedIO.disconnect(); feedIO = null; }
   if (!list.length) {
     $("#feed").innerHTML = clipTopic === "المحفوظة"
