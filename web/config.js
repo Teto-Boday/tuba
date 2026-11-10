@@ -29,4 +29,13 @@ const CLIPS = [
   { youtubeId: "MJnYdIyVyNI", title: "", sheikh: "محمد الغليظ", source: "القناة الرسمية لمحمد الغليظ", topic: "" },
   { youtubeId: "8FBnh8vkEYs", title: "", sheikh: "محمد الغليظ", source: "القناة الرسمية لمحمد الغليظ", topic: "" },
   { youtubeId: "JhvOazA4OsA", title: "", sheikh: "محمد الغليظ", source: "القناة الرسمية لمحمد الغليظ", topic: "" },
+  { youtubeId: "XenQyW-nQ1U", title: "", sheikh: "الشيخ أمجد سمير", source: "القناة الرسمية للشيخ أمجد سمير", topic: "الزواج" },
+  { youtubeId: "vdGFGdPavoI", title: "", sheikh: "الشيخ أمجد سمير", source: "القناة الرسمية للشيخ أمجد سمير", topic: "قصص الأنبياء" },
+  { youtubeId: "WO_DyfSRRdQ", title: "", sheikh: "الشيخ أمجد سمير", source: "القناة الرسمية للشيخ أمجد سمير", topic: "الصلاة" },
+  { youtubeId: "Ob7_tISLU0g", title: "", sheikh: "الشيخ أمجد سمير", source: "القناة الرسمية للشيخ أمجد سمير", topic: "غض البصر" },
+  { youtubeId: "2SzwisQHmss", title: "", sheikh: "الشيخ أمجد سمير", source: "القناة الرسمية للشيخ أمجد سمير", topic: "غض البصر" },
+  { youtubeId: "tyiJmaN6vOA", title: "", sheikh: "الشيخ أمجد سمير", source: "القناة الرسمية للشيخ أمجد سمير", topic: "غض البصر" },
+  { youtubeId: "O_8TmnKWdrg", title: "", sheikh: "الشيخ أمجد سمير", source: "القناة الرسمية للشيخ أمجد سمير", topic: "البلاء" },
+  { youtubeId: "XAzggASyKtQ", title: "", sheikh: "الشيخ أمجد سمير", source: "القناة الرسمية للشيخ أمجد سمير", topic: "الزواج" },
+  { youtubeId: "hkdLg3BOaWk", title: "", sheikh: "الشيخ أمجد سمير", source: "القناة الرسمية للشيخ أمجد سمير", topic: "الصلاة" },
 ];
