@@ -395,7 +395,31 @@ const ICON = {
   sound: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9a4 4 0 0 1 0 6"/>',
   mute: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 10l4 4M21 10l-4 4"/>'
 };
-let muted = true;
+let muted = store.get("clipsMuted", false); // الصوت شغّال من الأول، إلا لو المستخدم كتمه
+// التحكم في مشغّل يوتيوب: المقطع بيبدأ مكتوم (ده الوحيد اللي المتصفحات بتسمح بيه تلقائي)، وبعدين بنفتح الصوت
+const ytCmd = (ifr, func, args) => { try { ifr.contentWindow.postMessage(JSON.stringify({ event: "command", func, args: args || [] }), "*"); } catch (e) {} };
+function soundPill(reel, on) {
+  let p = reel.querySelector(".snd-pill");
+  if (on && !p) { p = document.createElement("div"); p.className = "hint snd-pill"; p.style.animation = "none"; p.textContent = "دوس على الفيديو عشان الصوت يشتغل"; reel.appendChild(p); }
+  if (!on && p) p.remove();
+}
+window.addEventListener("message", (e) => {
+  if (!/youtube(-nocookie)?\.com$/.test((() => { try { return new URL(e.origin).hostname; } catch (x) { return ""; } })())) return;
+  const reel = [...document.querySelectorAll("#feed .reel")].find((r) => { const f = r.querySelector("iframe"); return f && f.contentWindow === e.source; });
+  if (!reel) return;
+  let d; try { d = typeof e.data === "string" ? JSON.parse(e.data) : e.data; } catch (x) { return; }
+  const st = d && d.event === "onStateChange" ? d.info : d && d.info && typeof d.info.playerState === "number" ? d.info.playerState : null;
+  if (st === null) return;
+  const ifr = reel.querySelector("iframe"); const y = reel._yt || (reel._yt = { tries: 0, at: 0, blocked: false });
+  if (st === 1 && !muted && !y.blocked && y.tries === 0) { y.tries = 1; y.at = Date.now(); ytCmd(ifr, "unMute"); ytCmd(ifr, "setVolume", [100]); }
+  else if (st === 2) {
+    if (y.at && Date.now() - y.at < 1500 && y.tries < 3) { // المتصفح وقّف المقطع لما فتحنا الصوت: نرجّعه مكتوم ونطلب ضغطة
+      y.blocked = true; y.at = 0; ytCmd(ifr, "mute"); ytCmd(ifr, "playVideo"); soundPill(reel, true);
+    } else if (y.blocked && !muted && y.tries < 3) { // المستخدم داس على الفيديو: دلوقتي مسموح نفتح الصوت
+      y.blocked = false; y.tries++; y.at = Date.now(); ytCmd(ifr, "unMute"); ytCmd(ifr, "setVolume", [100]); ytCmd(ifr, "playVideo"); soundPill(reel, false);
+    }
+  }
+});
 function renderClips() {
   if (clipTopic !== "المحفوظة") clipTopic = "لك";
   const topics = ["لك", "المحفوظة"];
@@ -445,10 +469,12 @@ function renderClips() {
     </article>`;
   }).join("");
   const play = (reel) => {
-    const id = encodeURIComponent(reel.dataset.id);
-    reel.querySelector(".player").innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=${muted ? 1 : 0}&playsinline=1&loop=1&playlist=${id}&rel=0&modestbranding=1&controls=0&hl=ar&iv_load_policy=3" title="مقطع" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+    const id = encodeURIComponent(reel.dataset.id); reel._yt = null; soundPill(reel, false);
+    reel.querySelector(".player").innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&playsinline=1&loop=1&playlist=${id}&rel=0&modestbranding=1&controls=0&hl=ar&iv_load_policy=3&enablejsapi=1&origin=${encodeURIComponent(location.origin)}" title="مقطع" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+    const ifr = reel.querySelector("iframe");
+    ifr.addEventListener("load", () => { try { ifr.contentWindow.postMessage(JSON.stringify({ event: "listening", id: 1, channel: "widget" }), "*"); } catch (e) {} ytCmd(ifr, "addEventListener", ["onStateChange"]); });
   };
-  const stop = (reel) => { reel.querySelector(".player").innerHTML = ""; };
+  const stop = (reel) => { reel.querySelector(".player").innerHTML = ""; soundPill(reel, false); };
   feedIO = new IntersectionObserver((es) => es.forEach((e) => {
     if (!$("#s-clips").classList.contains("on")) return;
     if (e.intersectionRatio >= 0.6) play(e.target); else stop(e.target);
@@ -467,9 +493,11 @@ function renderClips() {
     try { if (navigator.share) await navigator.share({ title: b.dataset.title, text: b.dataset.title + " — من طُوبَى", url }); else { await navigator.clipboard.writeText(url); toast("نسخنا رابط المقطع"); } } catch (e) {}
   }));
   $("#feed").querySelectorAll("[data-mute]").forEach((b) => b.addEventListener("click", () => {
-    muted = !muted;
+    muted = !muted; store.set("clipsMuted", muted);
     $("#feed").querySelectorAll("[data-mute]").forEach((x) => { x.innerHTML = `<svg viewBox="0 0 24 24">${muted ? ICON.mute : ICON.sound}</svg>`; x.setAttribute("aria-label", muted ? "شغّل الصوت" : "اكتم الصوت"); });
-    const cur = [...$("#feed").querySelectorAll(".reel")].find((r) => r.querySelector("iframe")); if (cur) play(cur);
+    const cur = [...$("#feed").querySelectorAll(".reel")].find((r) => r.querySelector("iframe"));
+    if (cur) { const f = cur.querySelector("iframe"); cur._yt = { tries: 1, at: muted ? 0 : Date.now(), blocked: false }; soundPill(cur, false);
+      if (muted) ytCmd(f, "mute"); else { ytCmd(f, "unMute"); ytCmd(f, "setVolume", [100]); ytCmd(f, "playVideo"); } }
   }));
 }
 function stopAllClips() { $("#feed").querySelectorAll(".player").forEach((p) => { p.innerHTML = ""; }); }
