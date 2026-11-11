@@ -439,7 +439,7 @@ function renderClips() {
     CLIPS.forEach((c) => { if (sv.includes(c.youtubeId)) { [].concat(c.topic || []).forEach((t) => { likeT[t] = (likeT[t] || 0) + 1; }); if (c.sheikh) likeS[c.sheikh] = (likeS[c.sheikh] || 0) + 1; } });
     const seed = Number(todayKey().replace(/-/g, ""));
     const rnd = (str) => { let h = seed; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 1000003; return h / 1000003; };
-    const pool = CLIPS.map((c) => ({ c, score: rnd(c.youtubeId) + Math.min(0.6, 0.3 * [].concat(c.topic || []).reduce((m, t) => Math.max(m, likeT[t] || 0), 0)) + Math.min(0.2, 0.1 * (likeS[c.sheikh] || 0)) })).sort((x, y) => y.score - x.score);
+    const pool = CLIPS.map((c) => ({ c, score: rnd(c.youtubeId) + Math.min(0.8, 0.5 * [].concat(c.topic || []).reduce((m, t) => Math.max(m, likeT[t] || 0), 0)) + Math.min(0.2, 0.1 * (likeS[c.sheikh] || 0)) })).sort((x, y) => y.score - x.score);
     list = []; let last = null, run = 0;
     while (pool.length) { // متحطش أكتر من مقطعين ورا بعض لنفس الشيخ
       let i = pool.findIndex((x) => !(x.c.sheikh === last && run >= 2)); if (i < 0) i = 0;
