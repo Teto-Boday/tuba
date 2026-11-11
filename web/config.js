@@ -16,6 +16,7 @@ const PAY_OPTIONS = [
 const QURAN_EVERY = 5;
 
 // topic = موضوع المقطع (صلاة، زكاة، توبة، ذكر...)، ولو ليه أكتر من موضوع اكتبهم كده: ["الذنوب", "التوبة"]. اللي يحفظ مقطع في موضوع، التطبيق يطلّعله منه أكتر.
+// priority: true = المقطع ده يطلع الأول في موضوعه.
 // after = لو المقطع جزء تاني، اكتب youtubeId بتاع الجزء الأول عشان ييجي بعده على طول.
 const CLIPS = [
   { youtubeId: "Q6kfa4YuOSw", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "التوبة" },
@@ -138,4 +139,11 @@ const CLIPS = [
   { youtubeId: "K7S17SMOReU", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "التوبة" },
   { youtubeId: "EPDApCPL-5c", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "التوبة" },
   { youtubeId: "YYR63rMfpkU", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "التوبة" },
+  { youtubeId: "o44J2DguBJo", title: "الجزء الأول", sheikh: "إذاعة شيم", source: "القناة الرسمية لإذاعة شيم", topic: "الجنة" },
+  { youtubeId: "U2L-9ZR90mk", title: "الجزء الثاني", sheikh: "إذاعة شيم", source: "القناة الرسمية لإذاعة شيم", topic: "الجنة", after: "o44J2DguBJo" },
+  { youtubeId: "WCQDuemzR3U", title: "الجزء الثالث", sheikh: "إذاعة شيم", source: "القناة الرسمية لإذاعة شيم", topic: "الجنة", after: "U2L-9ZR90mk" },
+  { youtubeId: "yYqgVt1qzQM", title: "", sheikh: "إذاعة شيم", source: "القناة الرسمية لإذاعة شيم", topic: "الجنة" },
+  { youtubeId: "s6eYACeItGU", title: "", sheikh: "إذاعة شيم", source: "القناة الرسمية لإذاعة شيم", topic: "الجنة" },
+  { youtubeId: "o3jDJv3QSbI", title: "", sheikh: "إذاعة شيم", source: "القناة الرسمية لإذاعة شيم", topic: "الجنة", priority: true },
+  { youtubeId: "hpbvdnYIpvU", title: "", sheikh: "إذاعة شيم", source: "القناة الرسمية لإذاعة شيم", topic: "الجنة", priority: true },
 ];

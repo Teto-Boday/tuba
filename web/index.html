@@ -452,7 +452,16 @@ function renderClips() {
       const [x] = pool.splice(i, 1); run = x.c.sheikh && x.c.sheikh === last ? run + 1 : 1; last = x.c.sheikh; sinceQ = isQ(x.c) ? 0 : sinceQ + 1; list.push(x.c);
     }
     // المقاطع اللي ليها جزء تاني: الجزء التاني بييجي بعد الأول على طول
-    CLIPS.filter((c) => c.after).forEach((c) => { const i = list.findIndex((x) => x.youtubeId === c.after); if (i >= 0) list.splice(i + 1, 0, c); else list.push(c); });
+    // المقاطع اللي ليها أولوية بتطلع الأول جوه موضوعها
+    const tp = (c) => [].concat(c.topic || []);
+    [...new Set(CLIPS.filter((c) => c.priority).flatMap(tp))].forEach((T) => {
+      const idx = []; list.forEach((c, i) => { if (tp(c).includes(T)) idx.push(i); });
+      const sorted = idx.map((i) => list[i]).sort((a, b) => (b.priority ? 1 : 0) - (a.priority ? 1 : 0));
+      idx.forEach((i, k) => { list[i] = sorted[k]; });
+    });
+    let parts = CLIPS.filter((c) => c.after), moved = true;
+    while (parts.length && moved) { moved = false; parts = parts.filter((c) => { const i = list.findIndex((x) => x.youtubeId === c.after); if (i < 0) return true; list.splice(i + 1, 0, c); moved = true; return false; }); }
+    parts.forEach((c) => list.push(c));
   }
   if (feedIO) { feedIO.disconnect(); feedIO = null; }
   if (!list.length) {
