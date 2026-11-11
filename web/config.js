@@ -13,6 +13,7 @@ const PAY_OPTIONS = [
 // مثال:
 // { youtubeId: "XXXXXXXXXXX", title: "عنوان المقطع", sheikh: "اسم الشيخ", source: "القناة الرسمية للشيخ على يوتيوب", topic: "قصص الأنبياء" },
 // topic = موضوع المقطع (صلاة، زكاة، توبة، ذكر...)، ولو ليه أكتر من موضوع اكتبهم كده: ["الذنوب", "التوبة"]. اللي يحفظ مقطع في موضوع، التطبيق يطلّعله منه أكتر.
+// after = لو المقطع جزء تاني، اكتب youtubeId بتاع الجزء الأول عشان ييجي بعده على طول.
 const CLIPS = [
   { youtubeId: "Q6kfa4YuOSw", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "" },
   { youtubeId: "xJVrSHayQic", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "" },
@@ -104,4 +105,15 @@ const CLIPS = [
   { youtubeId: "P_DdBE9it3w", title: "", sheikh: "", source: "يوتيوب", topic: "القرآن" },
   { youtubeId: "YWlvOccRqtw", title: "", sheikh: "", source: "يوتيوب", topic: "القرآن" },
   { youtubeId: "YUnEX9ghaBM", title: "", sheikh: "", source: "يوتيوب", topic: "القرآن" },
+  { youtubeId: "p65_4xjHIHs", title: "", sheikh: "الشيخ نبيل العوضي", source: "القناة الرسمية للشيخ نبيل العوضي", topic: "الغزوات" },
+  { youtubeId: "ZKIPLrziFig", title: "", sheikh: "الشيخ نبيل العوضي", source: "القناة الرسمية للشيخ نبيل العوضي", topic: "الغزوات" },
+  { youtubeId: "8vyxa56Emm8", title: "", sheikh: "الشيخ نبيل العوضي", source: "القناة الرسمية للشيخ نبيل العوضي", topic: "الغزوات" },
+  { youtubeId: "lBhp7Ib4FBU", title: "", sheikh: "الشيخ نبيل العوضي", source: "القناة الرسمية للشيخ نبيل العوضي", topic: "قصص الأنبياء" },
+  { youtubeId: "lggm8DYyckk", title: "", sheikh: "الشيخ نبيل العوضي", source: "القناة الرسمية للشيخ نبيل العوضي", topic: "قصص الأنبياء" },
+  { youtubeId: "cTy6ewbb6rM", title: "", sheikh: "الشيخ نبيل العوضي", source: "القناة الرسمية للشيخ نبيل العوضي", topic: "قصص الأنبياء" },
+  { youtubeId: "gqiq289lHSI", title: "", sheikh: "الشيخ نبيل العوضي", source: "القناة الرسمية للشيخ نبيل العوضي", topic: "قصص الأنبياء" },
+  { youtubeId: "YDBKaY0xmnE", title: "الجزء الأول", sheikh: "الشيخ نبيل العوضي", source: "القناة الرسمية للشيخ نبيل العوضي", topic: "قصص الأنبياء" },
+  { youtubeId: "mBEdX1EuNWs", title: "الجزء الثاني", sheikh: "الشيخ نبيل العوضي", source: "القناة الرسمية للشيخ نبيل العوضي", topic: "قصص الأنبياء", after: "YDBKaY0xmnE" },
+  { youtubeId: "SUaDM24m8pw", title: "", sheikh: "الشيخ نبيل العوضي", source: "القناة الرسمية للشيخ نبيل العوضي", topic: "قصص الأنبياء" },
+  { youtubeId: "AB5aNEu4SSc", title: "", sheikh: "الشيخ نبيل العوضي", source: "القناة الرسمية للشيخ نبيل العوضي", topic: "قصص الأنبياء" },
 ];
