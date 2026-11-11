@@ -467,7 +467,7 @@ function renderClips() {
         <a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener" aria-label="افتحه على يوتيوب"><svg viewBox="0 0 24 24">${ICON.yt}</svg></a>
       </div>
       <div class="meta">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b>${esc(c.sheikh || "")}</b><span class="badge">محتوى مُراجَع</span></div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b>${esc(c.sheikh || (c.topic === "القرآن" ? "تلاوة قرآن" : [].concat(c.topic || [])[0] || ""))}</b><span class="badge">محتوى مُراجَع</span></div>
         <span style="line-height:1.6">${esc(c.title || "")}</span>
         <span style="font-size:12px;color:#C9D4CD">المصدر: ${esc(c.source || "يوتيوب")}</span>
       </div>
