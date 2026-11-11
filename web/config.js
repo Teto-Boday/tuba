@@ -12,7 +12,7 @@ const PAY_OPTIONS = [
 // youtubeId = الجزء اللي بعد watch?v= أو بعد /shorts/ في رابط الفيديو.
 // مثال:
 // { youtubeId: "XXXXXXXXXXX", title: "عنوان المقطع", sheikh: "اسم الشيخ", source: "القناة الرسمية للشيخ على يوتيوب", topic: "قصص الأنبياء" },
-// topic = موضوع المقطع (صلاة، زكاة، توبة، ذكر...). اللي يحفظ مقطع في موضوع، التطبيق يطلّعله منه أكتر.
+// topic = موضوع المقطع (صلاة، زكاة، توبة، ذكر...)، ولو ليه أكتر من موضوع اكتبهم كده: ["الذنوب", "التوبة"]. اللي يحفظ مقطع في موضوع، التطبيق يطلّعله منه أكتر.
 const CLIPS = [
   { youtubeId: "Q6kfa4YuOSw", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "" },
   { youtubeId: "xJVrSHayQic", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "" },
@@ -48,4 +48,14 @@ const CLIPS = [
   { youtubeId: "iVhFhFDEiFI", title: "", sheikh: "يوسف القط", source: "القناة الرسمية ليوسف القط", topic: "الصحابة" },
   { youtubeId: "_o5AGiXpDWU", title: "", sheikh: "يوسف القط", source: "القناة الرسمية ليوسف القط", topic: "الزواج" },
   { youtubeId: "lE6m0fyG_Uc", title: "", sheikh: "يوسف القط", source: "القناة الرسمية ليوسف القط", topic: "الرسول ﷺ" },
+  { youtubeId: "-nNpz9tZvtM", title: "", sheikh: "أنس أكشن", source: "القناة الرسمية لأنس أكشن", topic: "النار" },
+  { youtubeId: "tffCgsfprvg", title: "", sheikh: "أنس أكشن", source: "القناة الرسمية لأنس أكشن", topic: "الذنوب" },
+  { youtubeId: "PFxfivk_EeU", title: "", sheikh: "أنس أكشن", source: "القناة الرسمية لأنس أكشن", topic: "الجنة" },
+  { youtubeId: "itIpblAJffQ", title: "", sheikh: "أنس أكشن", source: "القناة الرسمية لأنس أكشن", topic: "الجنة" },
+  { youtubeId: "lZ5XZQJaf60", title: "", sheikh: "أنس أكشن", source: "القناة الرسمية لأنس أكشن", topic: ["الذنوب", "التوبة"] },
+  { youtubeId: "zbkGVuKV0aM", title: "", sheikh: "أنس أكشن", source: "القناة الرسمية لأنس أكشن", topic: "الصلاة" },
+  { youtubeId: "3ydecSQXx2w", title: "", sheikh: "أنس أكشن", source: "القناة الرسمية لأنس أكشن", topic: "آخر الزمان" },
+  { youtubeId: "TGPGeeiEwGA", title: "", sheikh: "أنس أكشن", source: "القناة الرسمية لأنس أكشن", topic: "آخر الزمان" },
+  { youtubeId: "sBObhNC5WIw", title: "", sheikh: "أنس أكشن", source: "القناة الرسمية لأنس أكشن", topic: "النار" },
+  { youtubeId: "VyGe-RS72sw", title: "", sheikh: "أنس أكشن", source: "القناة الرسمية لأنس أكشن", topic: "آخر الزمان" },
 ];
