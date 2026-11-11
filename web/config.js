@@ -18,7 +18,7 @@ const QURAN_EVERY = 5;
 // topic = موضوع المقطع (صلاة، زكاة، توبة، ذكر...)، ولو ليه أكتر من موضوع اكتبهم كده: ["الذنوب", "التوبة"]. اللي يحفظ مقطع في موضوع، التطبيق يطلّعله منه أكتر.
 // after = لو المقطع جزء تاني، اكتب youtubeId بتاع الجزء الأول عشان ييجي بعده على طول.
 const CLIPS = [
-  { youtubeId: "Q6kfa4YuOSw", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "" },
+  { youtubeId: "Q6kfa4YuOSw", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "التوبة" },
   { youtubeId: "xJVrSHayQic", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "" },
   { youtubeId: "IslIl76RYVE", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "" },
   { youtubeId: "Xw52LalNPo4", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "" },
@@ -119,4 +119,23 @@ const CLIPS = [
   { youtubeId: "mBEdX1EuNWs", title: "الجزء الثاني", sheikh: "الشيخ نبيل العوضي", source: "القناة الرسمية للشيخ نبيل العوضي", topic: "قصص الأنبياء", after: "YDBKaY0xmnE" },
   { youtubeId: "SUaDM24m8pw", title: "", sheikh: "الشيخ نبيل العوضي", source: "القناة الرسمية للشيخ نبيل العوضي", topic: "قصص الأنبياء" },
   { youtubeId: "AB5aNEu4SSc", title: "", sheikh: "الشيخ نبيل العوضي", source: "القناة الرسمية للشيخ نبيل العوضي", topic: "قصص الأنبياء" },
+  { youtubeId: "Y4uk7fqW4Hs", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "التوبة" },
+  { youtubeId: "9xKqjqZUg4s", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "التوبة" },
+  { youtubeId: "zWSFWYL9-e8", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "النار" },
+  { youtubeId: "gNs1VZRUBBg", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "الذنوب" },
+  { youtubeId: "3UamKnvzqj0", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "التوبة" },
+  { youtubeId: "95FMkoisFMU", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "التوبة" },
+  { youtubeId: "CxyDVtgb7UE", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "الذنوب" },
+  { youtubeId: "TW_k8D9gVzM", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "الصحابة" },
+  { youtubeId: "z7_pAibrqPw", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "التوبة" },
+  { youtubeId: "xxhYHlL0Gvo", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "التوبة" },
+  { youtubeId: "oRJfUK4SOFQ", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "الذنوب" },
+  { youtubeId: "AYSBlQ74hEc", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "الجنة" },
+  { youtubeId: "E78i9QPKqh4", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "الذنوب" },
+  { youtubeId: "J_qK9LNiP0g", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "التوبة" },
+  { youtubeId: "oPisuRofG7g", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "النار" },
+  { youtubeId: "ekA5NcMLZZ0", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "التوبة" },
+  { youtubeId: "K7S17SMOReU", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "التوبة" },
+  { youtubeId: "EPDApCPL-5c", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "التوبة" },
+  { youtubeId: "YYR63rMfpkU", title: "", sheikh: "الشيخ سمير مصطفى", source: "قناة الشيخ سمير مصطفى الرسمية", topic: "التوبة" },
 ];
