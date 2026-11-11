@@ -440,10 +440,16 @@ function renderClips() {
     const seed = Number(todayKey().replace(/-/g, ""));
     const rnd = (str) => { let h = seed; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 1000003; return h / 1000003; };
     const pool = CLIPS.filter((c) => !c.after).map((c) => ({ c, score: rnd(c.youtubeId) + Math.min(0.8, 0.5 * [].concat(c.topic || []).reduce((m, t) => Math.max(m, likeT[t] || 0), 0)) + Math.min(0.2, 0.1 * (likeS[c.sheikh] || 0)) })).sort((x, y) => y.score - x.score);
-    list = []; let last = null, run = 0;
-    while (pool.length) { // متحطش أكتر من مقطعين ورا بعض لنفس الشيخ
-      let i = pool.findIndex((x) => !(x.c.sheikh === last && run >= 2)); if (i < 0) i = 0;
-      const [x] = pool.splice(i, 1); run = x.c.sheikh === last ? run + 1 : 1; last = x.c.sheikh; list.push(x.c);
+    list = []; let last = null, run = 0, sinceQ = 0;
+    const gap = Math.max(1, typeof QURAN_EVERY === "number" ? QURAN_EVERY : 5) - 1;
+    const isQ = (c) => [].concat(c.topic || []).includes("القرآن");
+    const sameSheikh = (x) => x.c.sheikh && x.c.sheikh === last && run >= 2; // متحطش أكتر من مقطعين ورا بعض لنفس الشيخ
+    const tooSoon = (x) => isQ(x.c) && sinceQ < gap; // مقطع قرآن واحد كل كام مقطع
+    while (pool.length) {
+      let i = pool.findIndex((x) => !sameSheikh(x) && !tooSoon(x));
+      if (i < 0) i = pool.findIndex((x) => !tooSoon(x));
+      if (i < 0) i = 0;
+      const [x] = pool.splice(i, 1); run = x.c.sheikh && x.c.sheikh === last ? run + 1 : 1; last = x.c.sheikh; sinceQ = isQ(x.c) ? 0 : sinceQ + 1; list.push(x.c);
     }
     // المقاطع اللي ليها جزء تاني: الجزء التاني بييجي بعد الأول على طول
     CLIPS.filter((c) => c.after).forEach((c) => { const i = list.findIndex((x) => x.youtubeId === c.after); if (i >= 0) list.splice(i + 1, 0, c); else list.push(c); });
