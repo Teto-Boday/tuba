@@ -803,27 +803,30 @@ const todayKey = () => { const d = new Date(); return `${d.getFullYear()}-${d.ge
 let zCat = (() => { const h = new Date().getHours(); return h >= 4 && h < 15 ? "morning" : "evening"; })();
 $("#homeAzkar").textContent = AZKAR[zCat].title;
 function zState() { const st = store.get("azkar", {}); if (st.day !== todayKey()) return { day: todayKey() }; return st; }
+// بعض الأذكار عددها بيزيد بعد صلوات معينة (المعوذات ٣ مرات بعد الصبح والمغرب)
+function lastPrayer() { const t = times(new Date()), now = new Date(); let k = "isha"; for (const p of ["fajr", "dhuhr", "asr", "maghrib", "isha"]) if (t[p] <= now) k = p; return k; }
+const zc = (it) => (it.count3 && it.count3.includes(lastPrayer()) ? 3 : it.count);
 function renderAzkar() {
   const st = zState(); const counts = st[zCat] || [];
   $("#zCats").innerHTML = Object.keys(AZKAR).map((k) => `<button class="chip" aria-pressed="${k === zCat}" data-k="${k}">${AZKAR[k].title}</button>`).join("");
   $("#zCats").querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => { zCat = b.dataset.k; renderAzkar(); }));
   const items = AZKAR[zCat].items;
-  const done = items.filter((it, i) => (counts[i] || 0) >= it.count).length;
+  const done = items.filter((it, i) => (counts[i] || 0) >= zc(it)).length;
   $("#zProg").textContent = done === items.length ? `ما شاء الله، خلّصت أذكار ${AZKAR[zCat].title}` : `خلّصت ${ar(done)} من ${ar(items.length)}`;
   $("#zList").innerHTML = items.map((it, i) => {
-    const c = Math.min(counts[i] || 0, it.count); const fin = c >= it.count; const pct = Math.round((c / it.count) * 100);
+    const c = Math.min(counts[i] || 0, zc(it)); const fin = c >= zc(it); const pct = Math.round((c / zc(it)) * 100);
     const body = it.q ? `<span class="txt q">${qText(it.q)}</span>` : `<span class="txt">${esc(it.text)}</span>`;
     return `<button class="zikr ${fin ? "done" : ""}" data-i="${i}" aria-label="${fin ? "تمّ" : "اضغط للعدّ"}">
       ${it.note ? `<span class="small">${esc(it.note)}</span>` : ""}${body}
       <span class="bar" aria-hidden="true"><i style="width:${pct}%"></i></span>
-      <span class="zfoot"><span>${it.count > 1 ? "التكرار: " + ar(it.count) : "مرة واحدة"}</span>
-      <span class="cnt">${fin ? "✓ تمّ" : ar(c) + " / " + ar(it.count)}</span></span></button>`;
+      <span class="zfoot"><span>${zc(it) > 1 ? "التكرار: " + ar(zc(it)) : "مرة واحدة"}</span>
+      <span class="cnt">${fin ? "✓ تمّ" : ar(c) + " / " + ar(zc(it))}</span></span></button>`;
   }).join("");
   $("#zList").querySelectorAll(".zikr").forEach((b) => b.addEventListener("click", () => {
     const i = +b.dataset.i; const s2 = zState(); const arr = s2[zCat] || []; const it = AZKAR[zCat].items[i];
-    if ((arr[i] || 0) >= it.count) return;
+    if ((arr[i] || 0) >= zc(it)) return;
     arr[i] = (arr[i] || 0) + 1; s2[zCat] = arr; store.set("azkar", s2);
-    if (arr[i] >= it.count && navigator.vibrate) navigator.vibrate(60);
+    if (arr[i] >= zc(it) && navigator.vibrate) navigator.vibrate(60);
     const y = window.scrollY; renderAzkar(); window.scrollTo(0, y);
     const nb = $("#zList").querySelector(`.zikr[data-i="${i}"]`); if (nb) nb.focus({ preventScroll: true });
   }));
