@@ -160,6 +160,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .tour-btns .btn{flex:1}
 .tour-skip{background:none;border:0;color:var(--muted);font-size:15px;min-height:44px;padding:0 6px;cursor:pointer;font-family:inherit}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+#tourTitle,#tourTitle:focus,#tourTitle:focus-visible{outline:0!important;box-shadow:none!important}
 </style>
 </head>
 <body>
@@ -958,7 +959,7 @@ const TOUR = (() => {
   const install = LN() || DESKTOP ? null : IOS ? "ثبّته على موبايلك: من سفاري دوس زرار المشاركة، واختار \"إضافة إلى الشاشة الرئيسية\"." : "ثبّته على جهازك: من قايمة المتصفح اختار \"تثبيت التطبيق\" أو \"إضافة إلى الشاشة الرئيسية\".";
   return [
     { ic: '<path d="M42 64 C42 34 62 16 88 12 C88 42 70 62 42 64 Z" stroke-width="6"/><path d="M49 57 L77 25" stroke-width="4"/><path d="M14 54 C16 84 34 88 42 64" stroke-width="6"/><path d="M26 32 L26 56 L46 44 Z" fill="currentColor" stroke-width="4"/>', vb: "0 0 100 100",
-      t: "أهلًا بيك في طُوبَى", p: "مقاطع إسلامية قصيرة، والقرآن الكريم، ومواقيت الصلاة، والأذكار في مكان واحد. مجاني ومن غير إعلانات.", l: ["الشرح ده ست خطوات بس، وتقدر تتخطاه."].concat(install ? [install] : []) },
+      t: "أهلًا بيك في طُوبَى", p: "مقاطع إسلامية قصيرة، والقرآن الكريم، ومواقيت الصلاة، والأذكار في مكان واحد. مجاني ومن غير إعلانات.", l: ["الشرح ده سبع خطوات بس، وتقدر تتخطاه."].concat(install ? [install] : []) },
     { ic: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M10 8.5v7l5.5-3.5z"/>', t: "المقاطع", p: "مقاطع قصيرة من القنوات الرسمية للمشايخ، بتقلّب فيها زي أي تطبيق مقاطع.",
       l: ["اسحب لفوق عشان تروح للمقطع اللي بعده.", "دوس القلب على المقطع اللي يعجبك: هيتحفظ في \"المحفوظة\"، وهيطلعلك مقاطع شبهه أكتر.", "زرار السماعة بيكتم الصوت أو يشغّله."] },
     { ic: '<path d="M12 6.5C10 5 7 4.5 4 5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5c-3-.5-6 0-8 1.5z"/><path d="M12 6.5V19"/>', t: "القرآن الكريم", p: "المصحف كامل، وبيشتغل من غير نت.",
