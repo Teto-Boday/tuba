@@ -146,4 +146,11 @@ const CLIPS = [
   { youtubeId: "s6eYACeItGU", title: "", sheikh: "إذاعة شيم", source: "القناة الرسمية لإذاعة شيم", topic: "الجنة" },
   { youtubeId: "o3jDJv3QSbI", title: "", sheikh: "إذاعة شيم", source: "القناة الرسمية لإذاعة شيم", topic: "الجنة", priority: true },
   { youtubeId: "hpbvdnYIpvU", title: "", sheikh: "إذاعة شيم", source: "القناة الرسمية لإذاعة شيم", topic: "الجنة", priority: true },
+  { youtubeId: "JrnEH5FZBmc", title: "", sheikh: "مصطفى حسني", source: "القناة الرسمية لمصطفى حسني", topic: "الحزن" },
+  { youtubeId: "GyaV-JJMFaY", title: "", sheikh: "مصطفى حسني", source: "القناة الرسمية لمصطفى حسني", topic: "العذاب" },
+  { youtubeId: "5H-xlUaRuuA", title: "", sheikh: "مصطفى حسني", source: "القناة الرسمية لمصطفى حسني", topic: "الصديق" },
+  { youtubeId: "nt1ZWgfZemY", title: "", sheikh: "مصطفى حسني", source: "القناة الرسمية لمصطفى حسني", topic: "الحب" },
+  { youtubeId: "8UPWRXuw190", title: "", sheikh: "مصطفى حسني", source: "القناة الرسمية لمصطفى حسني", topic: "الحزن" },
+  { youtubeId: "dp85GuzzQ8w", title: "", sheikh: "مصطفى حسني", source: "القناة الرسمية لمصطفى حسني", topic: "الحزن" },
+  { youtubeId: "wFLQ7nTHsU0", title: "", sheikh: "مصطفى حسني", source: "القناة الرسمية لمصطفى حسني", topic: "بر الوالدين" },
 ];
