@@ -143,6 +143,22 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .zikr.done .cnt{background:var(--green);color:var(--on-green)}
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90%}
 .toast.on{opacity:1}
+/* الشرح التعليمي */
+.tour{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;padding:calc(16px + env(safe-area-inset-top)) 22px calc(22px + env(safe-area-inset-bottom))}
+.tour-top{display:flex;justify-content:space-between;align-items:center;min-height:44px}
+.tour-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;max-width:420px;margin:0 auto;width:100%}
+.tour-ic{width:120px;height:120px;border-radius:36px;background:var(--mint);color:var(--green);display:flex;align-items:center;justify-content:center}
+.tour-ic svg{width:60px;height:60px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.tour h2{margin:6px 0 0;font-family:'Amiri',serif;font-size:32px;line-height:1.3}
+.tour p{margin:0;color:var(--muted);font-size:16px;line-height:1.9}
+.tour ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;width:100%;text-align:right}
+.tour li{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 14px;font-size:15px;line-height:1.7}
+.tour-dots{display:flex;gap:6px;justify-content:center;margin:14px 0}
+.tour-dots i{width:8px;height:8px;border-radius:4px;background:var(--line);transition:width .2s}
+.tour-dots i.on{width:22px;background:var(--green)}
+.tour-btns{display:flex;gap:10px;max-width:420px;margin:0 auto;width:100%}
+.tour-btns .btn{flex:1}
+.tour-skip{background:none;border:0;color:var(--muted);font-size:15px;min-height:44px;padding:0 6px;cursor:pointer;font-family:inherit}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 </head>
@@ -324,6 +340,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
         <button class="icon-btn" id="sPlus" aria-label="كبّر الخط"><span style="font-size:18px;font-weight:600">أ+</span></button>
       </div>
     </div>
+    <button class="row" id="tourAgain"><span class="num" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.8 9.5a2.3 2.3 0 1 1 3.4 2c-.8.5-1.2 1-1.2 2"/><circle cx="12" cy="16.6" r=".6"/></svg></span><span class="grow"><b>إزاي أستخدم طُوبَى؟</b><span class="small">شرح سريع لكل حاجة في التطبيق</span></span></button>
     <button class="row" data-go="support"><span class="num" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><span class="grow"><b>ادعم طُوبَى</b><span class="small">إنستاباي أو فودافون كاش</span></span></button>
   </div>
 </section>
@@ -335,6 +352,12 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
   <button class="tab" data-tab="prayer"><svg class="i" viewBox="0 0 24 24"><path d="M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.5z"/></svg>الصلاة</button>
   <button class="tab" data-tab="azkar"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="10" r="6"/><path d="M12 16v3.5"/><circle cx="12" cy="20.5" r="1"/></svg>الأذكار</button>
 </div></nav>
+<div class="tour" id="tour" role="dialog" aria-modal="true" aria-labelledby="tourTitle" hidden>
+  <div class="tour-top"><span class="small" id="tourCount"></span><button class="tour-skip" id="tourSkip">تخطّي</button></div>
+  <div class="tour-body"><div class="tour-ic" id="tourIc" aria-hidden="true"></div><h2 id="tourTitle" tabindex="-1"></h2><p id="tourTxt"></p><ul id="tourList"></ul></div>
+  <div class="tour-dots" id="tourDots" aria-hidden="true"></div>
+  <div class="tour-btns"><button class="btn ghost" id="tourPrev">السابق</button><button class="btn" id="tourNext">التالي</button></div>
+</div>
 <div class="toast" id="toast" role="status"></div>
 </div>
 
@@ -926,10 +949,56 @@ $("#sMinus").addEventListener("click", () => { qSize = Math.max(18, qSize - 2); 
   ["copy", "cut", "contextmenu", "dragstart"].forEach((ev) => document.addEventListener(ev, (e) => { if (!ok(e)) e.preventDefault(); }));
 })();
 
+// ---------- الشرح التعليمي (أول مرة تفتح التطبيق) ----------
+const TOUR = (() => {
+  const adhan = LN() ? "اسمح بالإشعارات لما التطبيق يطلبها، والأذان هيوصلك حتى والتطبيق مقفول."
+    : DESKTOP ? "البرنامج بيفتح مع الويندوز، والأذان بيوصلك طول ما هو شغّال."
+    : IOS ? "على الآيفون: الأذان بيوصلك عن طريق تطبيق مجاني اسمه ntfy، والخطوات في شاشة الصلاة."
+    : "تنبيه الأذان موجود في نسخة الأندرويد والويندوز، وعلى الآيفون عن طريق تطبيق ntfy.";
+  const install = LN() || DESKTOP ? null : IOS ? "ثبّته على موبايلك: من سفاري دوس زرار المشاركة، واختار \"إضافة إلى الشاشة الرئيسية\"." : "ثبّته على جهازك: من قايمة المتصفح اختار \"تثبيت التطبيق\" أو \"إضافة إلى الشاشة الرئيسية\".";
+  return [
+    { ic: '<path d="M42 64 C42 34 62 16 88 12 C88 42 70 62 42 64 Z" stroke-width="6"/><path d="M49 57 L77 25" stroke-width="4"/><path d="M14 54 C16 84 34 88 42 64" stroke-width="6"/><path d="M26 32 L26 56 L46 44 Z" fill="currentColor" stroke-width="4"/>', vb: "0 0 100 100",
+      t: "أهلًا بيك في طُوبَى", p: "مقاطع إسلامية قصيرة، والقرآن الكريم، ومواقيت الصلاة، والأذكار في مكان واحد. مجاني ومن غير إعلانات.", l: ["الشرح ده خمس خطوات بس، وتقدر تتخطاه."].concat(install ? [install] : []) },
+    { ic: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M10 8.5v7l5.5-3.5z"/>', t: "المقاطع", p: "مقاطع قصيرة من القنوات الرسمية للمشايخ، بتقلّب فيها زي أي تطبيق مقاطع.",
+      l: ["اسحب لفوق عشان تروح للمقطع اللي بعده.", "دوس القلب على المقطع اللي يعجبك: هيتحفظ في \"المحفوظة\"، وهيطلعلك مقاطع شبهه أكتر.", "زرار السماعة بيكتم الصوت أو يشغّله."] },
+    { ic: '<path d="M12 6.5C10 5 7 4.5 4 5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5c-3-.5-6 0-8 1.5z"/><path d="M12 6.5V19"/>', t: "القرآن الكريم", p: "المصحف كامل، وبيشتغل من غير نت.",
+      l: ["دوّر على السورة باسمها أو برقمها.", "دوس على أي آية عشان تحطلها علامة، وبعدين \"كمّل من آخر مكان\".", "كبّر الخط أو صغّره من زرارَي أ+ و أ-."] },
+    { ic: '<path d="M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.5z"/>', t: "مواقيت الصلاة", p: "المواقيت بتتحسب على جهازك حسب مكانك.",
+      l: ["أول حاجة: دوس زرار الموقع فوق في شاشة الصلاة عشان المواقيت تتظبط على مدينتك.", adhan, "وتحتها اتجاه القبلة من مكانك."] },
+    { ic: '<circle cx="12" cy="10" r="6"/><path d="M12 16v3.5"/><circle cx="12" cy="20.5" r="1"/>', t: "الأذكار", p: "أذكار الصباح والمساء وبعد الصلاة والنوم.",
+      l: ["دوس على الذكر وهو يعدّ معاك لحد ما يكتب \"تمّ\".", "العدّاد بيبدأ من الأول كل يوم.", "ومن الرئيسية تقدر تشغّل تذكير صيام الاثنين والخميس."] },
+    { ic: '<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/>', t: "آخر حاجة", p: "زرار الترس في الرئيسية بيفتح الإعدادات.",
+      l: ["الوضع الليلي: فاتح، أو ليلي، أو زي الموبايل.", "ولو حبيت تشوف الشرح ده تاني: الإعدادات، ثم \"إزاي أستخدم طُوبَى؟\"."] }
+  ];
+})();
+let tourI = 0, tourBack = null;
+function tourShow(i) {
+  tourI = Math.max(0, Math.min(TOUR.length - 1, i)); const st = TOUR[tourI];
+  $("#tourIc").innerHTML = `<svg viewBox="${st.vb || "0 0 24 24"}">${st.ic}</svg>`;
+  $("#tourTitle").textContent = st.t; $("#tourTxt").textContent = st.p;
+  $("#tourList").innerHTML = st.l.map((x) => `<li>${esc(x)}</li>`).join("");
+  $("#tourCount").textContent = `${ar(tourI + 1)} من ${ar(TOUR.length)}`;
+  $("#tourDots").innerHTML = TOUR.map((_, k) => `<i class="${k === tourI ? "on" : ""}"></i>`).join("");
+  $("#tourPrev").style.visibility = tourI ? "visible" : "hidden";
+  $("#tourNext").textContent = tourI === TOUR.length - 1 ? "يلا نبدأ" : "التالي";
+  $("#tourTitle").focus({ preventScroll: true });
+}
+function tourOpen() { tourBack = document.activeElement; $("#tour").hidden = false; tourShow(0); }
+function tourClose() { $("#tour").hidden = true; store.set("tourDone", true); if (tourBack && tourBack.focus) tourBack.focus(); }
+$("#tourNext").addEventListener("click", () => { if (tourI === TOUR.length - 1) tourClose(); else tourShow(tourI + 1); });
+$("#tourPrev").addEventListener("click", () => tourShow(tourI - 1));
+$("#tourSkip").addEventListener("click", tourClose);
+$("#tourAgain").addEventListener("click", tourOpen);
+$("#tour").addEventListener("keydown", (e) => { if (e.key === "Escape") tourClose(); if (e.key === "ArrowLeft") $("#tourNext").click(); if (e.key === "ArrowRight" && tourI) tourShow(tourI - 1); });
+let tsX = null; // السحب يمين وشمال بين الخطوات
+$("#tour").addEventListener("touchstart", (e) => { tsX = e.touches[0].clientX; }, { passive: true });
+$("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const dx = e.changedTouches[0].clientX - tsX; tsX = null; if (dx > 60 && tourI < TOUR.length - 1) tourShow(tourI + 1); else if (dx < -60 && tourI) tourShow(tourI - 1); }, { passive: true });
+
 // ---------- البداية ----------
 renderClips(); renderSurahList(""); renderPrayer(); tick.ready = true;
 renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); scheduleDesktop(); schedulePushIOS(); setTimeout(() => { renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); }, 1500);
 go((location.hash || "#home").slice(1));
+if (!store.get("tourDone", false)) tourOpen();
 window.addEventListener("hashchange", () => go(location.hash.slice(1)));
 if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {})); }
 </script>
