@@ -161,6 +161,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .tour-skip{background:none;border:0;color:var(--muted);font-size:15px;min-height:44px;padding:0 6px;cursor:pointer;font-family:inherit}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 #tourTitle,#tourTitle:focus,#tourTitle:focus-visible{outline:0!important;box-shadow:none!important}
+.xrow{display:flex;align-items:center;justify-content:space-between;gap:10px}.xrow>span{display:flex;flex-direction:column;gap:1px;font-weight:600;font-size:15px}.xrow .small{font-weight:400}
 </style>
 </head>
 <body>
@@ -340,6 +341,13 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
         <span class="mushaf" id="sSample" style="flex:1;text-align:center;line-height:1.8">ٱلۡحَمۡدُ لِلَّهِ</span>
         <button class="icon-btn" id="sPlus" aria-label="كبّر الخط"><span style="font-size:18px;font-weight:600">أ+</span></button>
       </div>
+    </div>
+    <div class="card stack" style="gap:10px">
+      <b style="font-size:16px">تذكيرات</b>
+      <span class="muted" id="exTxt">بتوصلك حتى والتطبيق مقفول.</span>
+      <div class="xrow"><span>أذكار الصباح <span class="small">بعد الفجر بـ٢٠ دقيقة</span></span><button class="chip" id="exAzM" aria-pressed="true" aria-label="تذكير أذكار الصباح">شغّال</button></div>
+      <div class="xrow"><span>أذكار المساء <span class="small">بعد العصر بنص ساعة</span></span><button class="chip" id="exAzE" aria-pressed="true" aria-label="تذكير أذكار المساء">شغّال</button></div>
+      <div class="xrow"><span>سورة الكهف <span class="small">الجمعة الساعة ١٠ الصبح</span></span><button class="chip" id="exKahf" aria-pressed="true" aria-label="تذكير سورة الكهف يوم الجمعة">شغّال</button></div>
     </div>
     <button class="row" id="tourAgain"><span class="num" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.8 9.5a2.3 2.3 0 1 1 3.4 2c-.8.5-1.2 1-1.2 2"/><circle cx="12" cy="16.6" r=".6"/></svg></span><span class="grow"><b>إزاي أستخدم طُوبَى؟</b><span class="small">شرح سريع لكل حاجة في التطبيق</span></span></button>
     <button class="row" data-go="support"><span class="num" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><span class="grow"><b>ادعم طُوبَى</b><span class="small">إنستاباي أو فودافون كاش</span></span></button>
@@ -719,6 +727,7 @@ async function scheduleDesktop() {
     for (let d = 0; d < 2; d++) { const day = new Date(); day.setDate(day.getDate() + d); const t = times(day);
       for (const k of ["fajr", "dhuhr", "asr", "maghrib", "isha"]) add(t[k], `حان الآن موعد صلاة ${PNAMES[k]}`, hadithFor(dayNum(day) * 5 + ["fajr", "dhuhr", "asr", "maghrib", "isha"].indexOf(k), k)); }
   }
+  for (let d = 0; d < 2; d++) { const day = new Date(); day.setDate(day.getDate() + d); extraEvents(day).forEach((e) => add(e.at, e.title, e.body)); }
   if (store.get("fastOn", false)) {
     for (let d = 0; d < 2; d++) { const at = new Date(); at.setDate(at.getDate() + d); at.setHours(21, 0, 0, 0); const wd = at.getDay();
       if (wd === 0 || wd === 3) add(at, `بكرة ${wd === 0 ? "الاثنين" : "الخميس"}، ناوي تصوم؟`, fastHadith(dayNum(at)) + " · متنساش تتسحّر"); }
@@ -748,6 +757,7 @@ async function schedulePushIOS() {
     const day = new Date(); day.setDate(day.getDate() + d); const t = times(day);
     if (store.get("adhanOn", true)) ["fajr", "dhuhr", "asr", "maghrib", "isha"].forEach((k, i) => ev.push({ at: t[k].getTime(), title: `حان الآن موعد صلاة ${PNAMES[k]}`, body: hadithFor(dayNum(day) * 5 + i, k) }));
     const at = new Date(day); at.setHours(21, 0, 0, 0); const wd = at.getDay();
+    extraEvents(day).forEach((e) => ev.push({ at: e.at.getTime(), title: e.title, body: e.body }));
     if (store.get("fastOn", false) && (wd === 0 || wd === 3)) ev.push({ at: at.getTime(), title: `بكرة ${wd === 0 ? "الاثنين" : "الخميس"}، ناوي تصوم؟`, body: fastHadith(dayNum(at)) + " · متنساش تتسحّر" });
   }
   const list = ev.filter((e) => e.at > from && e.at <= to).sort((a, b) => a.at - b.at);
@@ -798,7 +808,7 @@ async function renderNotif() {
   const ln = LN(); const on = store.get("adhanOn", true);
   if ((ln || DESKTOP) && await nonosNotifies()) {
     $("#notifToggle").hidden = true; $("#exactBtn").hidden = true; $("#getApk").hidden = true;
-    $("#notifTxt").textContent = "Nono's World متثبّت عندك، فهو اللي بيأذّن ويفكّرك بالصيام، عشان التنبيهات متتكررش.";
+    $("#notifTxt").textContent = "Nono's World متثبّت عندك، فهو اللي بيأذّن ويفكّرك بالصيام والأذكار، عشان التنبيهات متتكررش.";
     return;
   }
   if (!ln && DESKTOP) {
@@ -927,6 +937,64 @@ $("#fastToggle").addEventListener("click", () => {
 });
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { renderFast(); scheduleFast(); schedulePushIOS(); } });
 
+// ---------- تذكيرات الأذكار وسورة الكهف ----------
+const EX = { azm: ["exAzM", "أذكار الصباح"], aze: ["exAzE", "أذكار المساء"], kahf: ["exKahf", "سورة الكهف"] };
+const exOn = (k) => store.get("ex_" + k, true);
+const KAHF_HADITH = "قال ﷺ: «من قرأ سورة الكهف يوم الجمعة أضاء له من النور ما بين الجمعتين» (رواه الحاكم والبيهقي، وصححه الألباني)";
+function extraEvents(day) {
+  const t = times(day); const ev = [];
+  if (exOn("azm")) ev.push({ at: new Date(t.fajr.getTime() + 20 * 6e4), title: "أذكار الصباح", body: "صباح الخير 🌿 دقيقتين لنفسك، افتح طُوبَى وقولها", go: "azkar" });
+  if (exOn("aze")) ev.push({ at: new Date(t.asr.getTime() + 30 * 6e4), title: "أذكار المساء", body: "متنساش أذكار المساء 🌿", go: "azkar" });
+  if (exOn("kahf") && day.getDay() === 5) { const at = new Date(day); at.setHours(10, 0, 0, 0); ev.push({ at, title: "النهارده الجمعة", body: "متنساش تقرأ سورة الكهف 🌿 · " + KAHF_HADITH, go: "kahf" }); }
+  return ev;
+}
+const EXTRA_IDS = Array.from({ length: 20 }, (_, i) => ({ id: 3000 + i }));
+let exBusy = null; // واحدة بس في نفس الوقت، والأخيرة هي اللي تكسب
+function scheduleExtra() { exBusy = (exBusy || Promise.resolve()).then(scheduleExtraNow, scheduleExtraNow); return exBusy; }
+async function scheduleExtraNow() {
+  const ln = LN(); if (!ln) return;
+  try {
+    try { await ln.cancel({ notifications: EXTRA_IDS }); } catch (e) {}
+    if (!Object.keys(EX).some(exOn) || await nonosNotifies()) return;
+    let perm = await ln.checkPermissions(); if (perm.display !== "granted") perm = await ln.requestPermissions();
+    if (perm.display !== "granted") return;
+    try { await ln.createChannel({ id: "azkar", name: "الأذكار وسورة الكهف", importance: 4, sound: "default", vibration: true }); } catch (e) {}
+    const list = []; const now = Date.now() + 30000;
+    for (let d = 0; d < 8; d++) { const day = new Date(); day.setDate(day.getDate() + d);
+      for (const e of extraEvents(day)) if (e.at.getTime() > now && list.length < 20) list.push({ id: 3000 + list.length, title: e.title, body: e.body, largeBody: e.body, channelId: "azkar", extra: { go: e.go }, schedule: { at: e.at, allowWhileIdle: true } }); }
+    if (list.length) await ln.schedule({ notifications: list });
+  } catch (e) {}
+}
+// لما يدوس على التنبيه: يفتح الأذكار، أو سورة الكهف يوم الجمعة
+function openFromNotif(g) { if (g === "kahf") { go("quran"); openSurah(17); } else if (g === "azkar") go("azkar"); }
+try { const ln0 = LN(); if (ln0 && ln0.addListener) ln0.addListener("localNotificationActionPerformed", (a) => { const g = a && a.notification && a.notification.extra && a.notification.extra.go; if (g) openFromNotif(g); }); } catch (e) {}
+async function renderExtra() {
+  Object.entries(EX).forEach(([k, [id]]) => { const on = exOn(k); const b = $("#" + id); b.setAttribute("aria-pressed", String(on)); b.textContent = on ? "شغّال" : "مقفول"; });
+  const nonos = ((LN() || DESKTOP) && await nonosNotifies()) || (IOS && !LN() && store.get("nonosHandles", false));
+  $("#exTxt").textContent = nonos ? "Nono's World متثبّت عندك، فهو اللي بيبعت التذكيرات دي، عشان متتكررش."
+    : (LN() ? "بتوصلك حتى والتطبيق مقفول."
+    : DESKTOP ? "بتوصلك طول ما البرنامج شغال جنب الساعة."
+    : ntfyActive() ? "بتوصلك عن طريق ntfy زي الأذان."
+    : IOS ? "على الآيفون بتوصلك عن طريق ntfy: ظبّطه من شاشة الصلاة."
+    : "التذكيرات موجودة في نسخة الأندرويد والويندوز، وعلى الآيفون عن طريق ntfy.");
+}
+Object.entries(EX).forEach(([k, [id, name]]) => $("#" + id).addEventListener("click", () => {
+  const on = !exOn(k); store.set("ex_" + k, on); renderExtra(); scheduleExtra(); scheduleDesktop();
+  if (on && ntfyActive()) { // ابعت الفترة اللي مواعيدها اتبعتت خلاص لـ ntfy
+    const h = +store.get("ntfyH", 0), now = Date.now();
+    for (let d = 0; d < 3; d++) { const day = new Date(); day.setDate(day.getDate() + d);
+      extraEvents(day).filter((e) => EX[k][1] === e.title || (k === "kahf" && e.go === "kahf")).forEach((e) => { if (e.at.getTime() > now && e.at.getTime() <= h) ntfyPost(e.title, e.body, e.at.getTime()).catch(() => {}); }); }
+  }
+  toast(on ? `تمام، هنفكّرك بـ${name}` : `قفلنا تذكير ${name}` + (!on && ntfyActive() ? "، واللي اتبعت لـ ntfy ممكن يوصل لحد يوم ونص" : ""));
+}));
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { renderExtra(); scheduleExtra(); } });
+// اللي ظبّط ntfy قبل التحديث ده: ابعتله تذكيرات الفترة اللي الأذان بتاعها اتبعت خلاص (مرة واحدة)
+if (ntfyActive() && !store.get("exSent", false)) {
+  store.set("exSent", true); const h = +store.get("ntfyH", 0), now = Date.now() + 60000;
+  for (let d = 0; d < 3; d++) { const day = new Date(); day.setDate(day.getDate() + d);
+    extraEvents(day).forEach((e) => { if (e.at.getTime() > now && e.at.getTime() <= h) ntfyPost(e.title, e.body, e.at.getTime()).catch(() => {}); }); }
+} else store.set("exSent", true);
+
 // ---------- الوضع الليلي ----------
 const darkMQ = window.matchMedia ? matchMedia("(prefers-color-scheme: dark)") : null;
 function applyTheme() {
@@ -967,7 +1035,7 @@ const TOUR = (() => {
     { ic: '<path d="M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.5z"/>', t: "مواقيت الصلاة", p: "المواقيت بتتحسب على جهازك حسب مكانك.",
       l: ["أول حاجة: دوس زرار الموقع فوق في شاشة الصلاة عشان المواقيت تتظبط على مدينتك.", adhan, "وتحتها اتجاه القبلة من مكانك."] },
     { ic: '<circle cx="12" cy="10" r="6"/><path d="M12 16v3.5"/><circle cx="12" cy="20.5" r="1"/>', t: "الأذكار", p: "أذكار الصباح والمساء وبعد الصلاة والنوم.",
-      l: ["دوس على الذكر وهو يعدّ معاك لحد ما يكتب \"تمّ\".", "العدّاد بيبدأ من الأول كل يوم.", "ومن الرئيسية تقدر تشغّل تذكير صيام الاثنين والخميس."] },
+      l: ["دوس على الذكر وهو يعدّ معاك لحد ما يكتب \"تمّ\".", "العدّاد بيبدأ من الأول كل يوم.", "وهيفكّرك بأذكار الصباح والمساء، وتقدر تقفلها من الإعدادات.", "ومن الرئيسية تقدر تشغّل تذكير صيام الاثنين والخميس."] },
     { ic: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>', t: "ادعم طُوبَى", p: "طُوبَى مجاني ومن غير إعلانات، وهيفضل كده إن شاء الله.",
       l: ["لو حبيت تساعد في تكاليفه وتطويره: دوس زرار القلب فوق في الرئيسية.", "الدعم بإنستاباي أو فودافون كاش، وباللي تقدر عليه.", "ومش لازم فلوس: إنك تبعت التطبيق لحد يستفيد منه دعم برضو."] },
     { ic: '<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/>', t: "آخر حاجة", p: "زرار الترس في الرئيسية بيفتح الإعدادات.",
@@ -1000,7 +1068,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- البداية ----------
 renderClips(); renderSurahList(""); renderPrayer(); tick.ready = true;
-renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); scheduleDesktop(); schedulePushIOS(); setTimeout(() => { renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); }, 1500);
+renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); renderExtra(); scheduleExtra(); scheduleDesktop(); schedulePushIOS(); setTimeout(() => { renderExtra(); scheduleExtra(); renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); }, 1500);
 go((location.hash || "#home").slice(1));
 if (store.get("tourVer", 0) < TOUR_VER) tourOpen();
 window.addEventListener("hashchange", () => go(location.hash.slice(1)));
