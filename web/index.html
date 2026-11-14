@@ -352,8 +352,14 @@ html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,
   </header>
   <div class="chips" id="zCats" role="group" aria-label="أقسام الأذكار"></div>
   <p class="muted" id="zProg" style="margin:0 4px 12px" aria-live="polite"></p>
+  <div class="card" id="zAudio" style="display:flex;align-items:center;gap:12px;padding:14px 16px;margin-bottom:12px" hidden>
+    <button class="icon-btn" id="zPlay" aria-label="اسمع الأذكار"><svg class="i" viewBox="0 0 24 24" id="zPlayIc"><path d="M8 5l11 7-11 7z"/></svg></button>
+    <span style="flex:1;display:flex;flex-direction:column;gap:2px"><b id="zAudTitle" style="font-size:15px"></b><span class="small" id="zAudSt">بصوت الشيخ مشاري العفاسي</span></span>
+    <button class="icon-btn" id="zDl" aria-label="نزّل الصوت عشان تسمعه من غير نت"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
+  </div>
   <div class="stack" id="zList" style="gap:10px"></div>
   <p class="small" style="text-align:center;margin-top:16px">المصدر: حصن المسلم · اضغط على الذكر عشان تعدّ</p>
+  <p class="small" style="text-align:center;margin-top:6px">صوت الأذكار: موقع Makkah Live (makkahlive.net). لو أنت صاحب حق وعايز الملفات تتشال، ابلغنا على <a href="mailto:teto.2362006@gmail.com">teto.2362006@gmail.com</a>.</p>
 </section>
 
 <!-- ===== الدعم ===== -->
@@ -1306,7 +1312,8 @@ const zc = (it) => (it.count3 && it.count3.includes(lastPrayer()) ? 3 : it.count
 function renderAzkar() {
   const st = zState(); const counts = st[zCat] || [];
   $("#zCats").innerHTML = Object.keys(AZKAR).map((k) => `<button class="chip" aria-pressed="${k === zCat}" data-k="${k}">${AZKAR[k].title}</button>`).join("");
-  $("#zCats").querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => { zCat = b.dataset.k; renderAzkar(); }));
+  $("#zCats").querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => { zCat = b.dataset.k; zEl.pause(); renderAzkar(); }));
+  renderZAudio();
   const items = AZKAR[zCat].items, lp = lastPrayer();
   const shown = (it) => !it.only || it.only.includes(lp); // أذكار خاصة بصلوات معينة
   const vis = items.filter(shown);
@@ -1331,6 +1338,46 @@ function renderAzkar() {
     const nb = $("#zList").querySelector(`.zikr[data-i="${i}"]`); if (nb) nb.focus({ preventScroll: true });
   }));
 }
+// صوت الأذكار: ملفات من موقع Makkah Live (مستضافة على archive.org)، بتتنزل على الجهاز زي تلاوة القرآن
+const ZAUD = {
+  morning: { t: "أذكار الصباح", u: "https://archive.org/download/makkah-live.-net-athkar-01/MakkahLive.Net_athkar_03.mp3" },
+  evening: { t: "أذكار المساء", u: "https://archive.org/download/makkah-live.-net-athkar-01/MakkahLive.Net_athkar_04.mp3" },
+  sleep: { t: "أذكار النوم", u: "https://archive.org/download/makkah-live.-net-athkar-01/MakkahLive.Net_athkar_11.mp3" },
+};
+const zEl = new Audio();
+const zIcon = (playing) => $("#zPlayIc").innerHTML = playing ? '<path d="M8 5v14M16 5v14"/>' : '<path d="M8 5l11 7-11 7z"/>';
+async function zSaved(cat) { try { return !!(await (await caches.open(AUDIO_CACHE)).match(ZAUD[cat].u)); } catch (e) { return false; } }
+async function renderZAudio() {
+  if (!ZAUD[zCat]) { $("#zAudio").hidden = true; return; }
+  $("#zAudio").hidden = false; $("#zAudTitle").textContent = ZAUD[zCat].t;
+  const saved = await zSaved(zCat);
+  if (zEl.dataset.cat !== zCat) zIcon(false);
+  $("#zAudSt").textContent = saved ? "متنزّل على الجهاز، بيشتغل من غير نت · بصوت الشيخ مشاري العفاسي" : "بصوت الشيخ مشاري العفاسي · نزّله عشان تسمعه من غير نت";
+  $("#zDl").hidden = saved;
+}
+$("#zPlay").addEventListener("click", () => {
+  if (!ZAUD[zCat]) return;
+  if (!zEl.paused && zEl.dataset.cat === zCat) { zEl.pause(); zIcon(false); return; }
+  zEl.dataset.cat = zCat; zEl.src = ZAUD[zCat].u;
+  zEl.play().then(() => zIcon(true)).catch(() => { zIcon(false); toast("اتأكد من النت أو نزّل الصوت الأول"); });
+});
+zEl.addEventListener("ended", () => zIcon(false));
+zEl.addEventListener("pause", () => zIcon(false));
+$("#zDl").addEventListener("click", async () => {
+  const cat = zCat, u = ZAUD[cat].u;
+  try {
+    const c = await caches.open(AUDIO_CACHE);
+    if (await c.match(u)) return renderZAudio();
+    $("#zAudSt").textContent = "بننزّل الصوت…";
+    let r;
+    try { r = await fetch(u, { mode: "cors" }); if (!r.ok) throw new Error("http " + r.status); }
+    catch (e) { if (!(e instanceof TypeError)) throw e; r = await fetch(u, { mode: "no-cors" }); }
+    if (r.type !== "opaque" && !r.ok) throw new Error("http " + r.status);
+    await c.put(u, r);
+    toast("اتنزّل، تقدر تسمعه من غير نت");
+  } catch (e) { toast("ماقدرناش ننزّل، اتأكد من النت وجرّب تاني"); }
+  renderZAudio();
+});
 $("#zReset").addEventListener("click", () => { const s2 = zState(); s2[zCat] = []; store.set("azkar", s2); renderAzkar(); toast("بدأنا من الأول"); });
 
 // ---------- الدعم ----------
