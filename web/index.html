@@ -456,14 +456,14 @@ html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,
   <button class="tab" data-tab="azkar"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="10" r="6"/><path d="M12 16v3.5"/><circle cx="12" cy="20.5" r="1"/></svg>الأذكار</button>
 </div></nav>
 <div class="tour" id="tour" role="dialog" aria-modal="true" aria-labelledby="tourTitle" hidden>
-  <div class="tour-top"><span class="small" id="tourCount"></span><button class="tour-skip" id="tourSkip">تخطّي</button></div>
+  <div class="tour-top"><span class="small" id="tourCount"></span></div>
   <div class="tour-body"><div class="tour-ic" id="tourIc" aria-hidden="true"></div><h2 id="tourTitle" tabindex="-1"></h2><p id="tourTxt"></p><ul id="tourList"></ul></div>
   <div class="tour-dots" id="tourDots" aria-hidden="true"></div>
   <div class="tour-btns"><button class="btn ghost" id="tourPrev">السابق</button><button class="btn" id="tourNext">التالي</button></div>
 </div>
 <div class="spot" id="spot" hidden role="dialog" aria-modal="true" aria-live="polite">
   <div class="spot-ring" id="spotRing"></div>
-  <div class="spot-card" id="spotCard"><span class="small" id="spotCount"></span><h3 id="spotT"></h3><p id="spotX"></p><div class="tour-btns"><button class="btn ghost" id="spotSkip">تخطّي</button><button class="btn" id="spotNext">التالي</button></div></div>
+  <div class="spot-card" id="spotCard"><span class="small" id="spotCount"></span><h3 id="spotT"></h3><p id="spotX"></p><div class="tour-btns"><button class="btn" id="spotNext">التالي</button></div></div>
 </div>
 <div class="toast" id="toast" role="status"></div>
 </div>
@@ -1598,14 +1598,13 @@ function tourShow(i) {
   $("#tourCount").textContent = `${ar(tourI + 1)} من ${ar(TOUR.length)}`;
   $("#tourDots").innerHTML = TOUR.map((_, k) => `<i class="${k === tourI ? "on" : ""}"></i>`).join("");
   $("#tourPrev").style.visibility = tourI ? "visible" : "hidden";
-  holdBtns([$("#tourNext"), $("#tourSkip")], tourI === TOUR.length - 1 ? "يلا نبدأ" : "التالي");
+  holdBtns([$("#tourNext")], tourI === TOUR.length - 1 ? "يلا نبدأ" : "التالي");
   $("#tourTitle").focus({ preventScroll: true });
 }
 function tourOpen() { tourBack = document.activeElement; $("#tour").hidden = false; tourShow(0); }
 function tourClose() { $("#tour").hidden = true; store.set("tourVer", TOUR_VER); setTimeout(() => spotAuto((location.hash || "#home").slice(1)), 300); if (tourBack && tourBack.focus) tourBack.focus(); }
 $("#tourNext").addEventListener("click", () => { if ($("#tourNext").disabled) return; if (tourI === TOUR.length - 1) tourClose(); else tourShow(tourI + 1); });
 $("#tourPrev").addEventListener("click", () => tourShow(tourI - 1));
-$("#tourSkip").addEventListener("click", tourClose);
 $("#tourAgain").addEventListener("click", () => { TABS.forEach((t) => store.set("pg_" + t, 0)); tourOpen(); });
 
 // ---------- كارت الدعم في الرئيسية: بعد ٣ أيام استخدام، و"مش دلوقتي" يخفيه أسبوعين ----------
@@ -1673,14 +1672,13 @@ function spotShow(i) {
   card.style.top = low ? "12px" : ""; card.style.bottom = low ? "" : "calc(84px + env(safe-area-inset-bottom))";
   $("#spotCount").textContent = `${ar(i + 1)} من ${ar(spotSteps.length)}`;
   $("#spotT").textContent = st.t; $("#spotX").textContent = st.x;
-  holdBtns([$("#spotNext"), $("#spotSkip")], i === spotSteps.length - 1 ? "فهمت" : "التالي");
+  holdBtns([$("#spotNext")], i === spotSteps.length - 1 ? "فهمت" : "التالي");
 }
 function spotClose() { $("#spot").hidden = true; store.set("pg_" + spotPage, pgVer(spotPage)); }
 $("#spotNext").addEventListener("click", () => { if (spotI >= spotSteps.length - 1) spotClose(); else spotShow(spotI + 1); });
-$("#spotSkip").addEventListener("click", spotClose);
 addEventListener("resize", () => { if (!$("#spot").hidden) spotShow(spotI); });
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && $("#spot").hidden) spotAuto((location.hash || "#home").slice(1)); });
-$("#tour").addEventListener("keydown", (e) => { if ($("#tourNext").disabled) return; if (e.key === "Escape") tourClose(); if (e.key === "ArrowLeft") $("#tourNext").click(); if (e.key === "ArrowRight" && tourI) tourShow(tourI - 1); });
+$("#tour").addEventListener("keydown", (e) => { if ($("#tourNext").disabled) return; if (e.key === "ArrowLeft") $("#tourNext").click(); if (e.key === "ArrowRight" && tourI) tourShow(tourI - 1); });
 let tsX = null; // السحب يمين وشمال بين الخطوات
 $("#tour").addEventListener("touchstart", (e) => { tsX = e.touches[0].clientX; }, { passive: true });
 $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const dx = e.changedTouches[0].clientX - tsX; tsX = null; if (!$("#tourNext").disabled && dx > 60 && tourI < TOUR.length - 1) tourShow(tourI + 1); else if (dx < -60 && tourI) tourShow(tourI - 1); }, { passive: true });
