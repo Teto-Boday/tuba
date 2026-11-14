@@ -505,6 +505,7 @@ document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click"
 
 // ---------- المقاطع (زي تيك توك) ----------
 let clipTopic = "لك", feedIO = null;
+const LAUNCH_SALT = Math.floor(Math.random() * 1000003); // رقم بيتغيّر مع كل فتحة للتطبيق
 const saved = () => store.get("savedClips", []);
 const ICON = {
   heart: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
@@ -553,7 +554,8 @@ function renderClips() {
     // فيد واحد مخلوط: ترتيب بيتغير كل يوم، واللي شبه المقاطع اللي حفظتها (نفس الموضوع، وبعده نفس الشيخ) بيطلع أكتر وفي الأول
     const likeT = {}, likeS = {};
     CLIPS.forEach((c) => { if (sv.includes(c.youtubeId)) { [].concat(c.topic || []).forEach((t) => { likeT[t] = (likeT[t] || 0) + 1; }); if (c.sheikh) likeS[c.sheikh] = (likeS[c.sheikh] || 0) + 1; } });
-    const seed = Number(todayKey().replace(/-/g, ""));
+    // بتتغيّر كل مرة التطبيق يتفتح (مش بس كل يوم) عشان الترتيب ما يفضلش ثابت
+    const seed = Number(todayKey().replace(/-/g, "")) + LAUNCH_SALT;
     const rnd = (str) => { let h = seed; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 1000003; return h / 1000003; };
     const pool = CLIPS.filter((c) => !c.after).map((c) => ({ c, score: rnd(c.youtubeId) + Math.min(0.8, 0.5 * [].concat(c.topic || []).reduce((m, t) => Math.max(m, likeT[t] || 0), 0)) + Math.min(0.2, 0.1 * (likeS[c.sheikh] || 0)) })).sort((x, y) => y.score - x.score);
     list = []; let last = null, run = 0, sinceQ = 0;
