@@ -1631,6 +1631,16 @@ $("#fbSend").addEventListener("click", async () => {
   $("#fbSend").disabled = false;
 });
 
+// ---------- عدّاد الأجهزة (GoatCounter): مبيستخدمش cookies ومبيعرفش مين الشخص، بيعدّ الفتحات بس ----------
+(function gcCount() {
+  try {
+    const dev = LN() ? "android" : DESKTOP ? "windows" : IOS ? "iphone" : "web";
+    const pwa = matchMedia("(display-mode: standalone)").matches || navigator.standalone ? "-installed" : "";
+    const q = new URLSearchParams({ p: "/app/" + dev + pwa, t: "طُوبَى", s: screen.width + "," + screen.height + "," + (devicePixelRatio || 1), rnd: Math.random().toString(36).slice(2) });
+    new Image().src = "https://tuba-app.goatcounter.com/count?" + q;
+  } catch (e) {}
+})();
+
 // ---------- كارت الدعم في الرئيسية: بعد ٣ أيام استخدام، و"مش دلوقتي" يخفيه أسبوعين ----------
 (function supAsk() {
   const d = todayKey(), days = store.get("useDays", []);
