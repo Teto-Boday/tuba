@@ -953,8 +953,11 @@ const aKey = (rec, g) => `https://cdn.islamic.network/quran/audio/saved/${rec}/$
 let aBlobs = {};
 async function aSrc(el, g) {
   el._g = g; el._bi = aBr[reciter()] || 0; el._saved = false;
-  try { const c = await caches.open(AUDIO_CACHE), hit = await c.match(aKey(reciter(), g));
-    if (hit) { const u = URL.createObjectURL(await hit.blob()); if (el._blob) URL.revokeObjectURL(el._blob); el._blob = u; el._saved = true; el.src = u; return; } } catch (e) {}
+  try { const c = await caches.open(AUDIO_CACHE), rec = reciter();
+    for (let bi = 0; bi < nBr(rec); bi++) { const u0 = srcUrl(rec, g, bi), hit = await c.match(u0);
+      if (!hit) continue; el._saved = true; el._bi = bi;
+      if (hit.type === "opaque") { el.src = u0; return; } // الـ service worker بيشغّله من الجهاز
+      const u = URL.createObjectURL(await hit.blob()); if (el._blob) URL.revokeObjectURL(el._blob); el._blob = u; el.src = u; return; } } catch (e) {}
   el.src = aUrl(g, el._bi);
 }
 aEl.addEventListener("error", () => { if (!aOn || aEl._saved) return; if (aEl._bi < nBr(reciter()) - 1) { aEl._bi++; aEl.src = aUrl(aEl._g, aEl._bi); aEl.play().catch(() => {}); } else { toast("مقدرناش نشغّل التلاوة، اتأكد من النت"); audioStop(); } });
@@ -1008,16 +1011,24 @@ setTimeout(renderRep, 0);
 
 // ---------- تنزيل التلاوة: سورة سورة أو المصحف كله، لكل قارئ ----------
 let aDl = null; // {rec, stop}
+// المواقع دي مش بتسمح بقراية الملف (CORS)، فلو اترفض بنحفظه "مقفول" والمشغّل بياخده عن طريق الـ service worker
+let aNoCors = false;
 async function dlAyah(c, rec, g) {
-  const key = aKey(rec, g); if (await c.match(key)) return;
-  for (let bi = aBr[rec] || 0; bi < nBr(rec); bi++) {
-    const r = await fetch(srcUrl(rec, g, bi), { mode: "cors" });
-    if (r.ok) { aBr[rec] = bi; await c.put(key, r); return; }
-    if (r.status !== 404) throw new Error("http " + r.status);
+  for (let bi = 0; bi < nBr(rec); bi++) if (await c.match(srcUrl(rec, g, bi))) return;
+  if (!aNoCors) {
+    try {
+      for (let bi = aBr[rec] || 0; bi < nBr(rec); bi++) { const u = srcUrl(rec, g, bi), r = await fetch(u, { mode: "cors" });
+        if (r.ok) { aBr[rec] = bi; await c.put(u, r); return; }
+        if (r.status !== 404) throw new Error("http " + r.status); }
+      throw new Error("missing");
+    } catch (e) { if (!(e instanceof TypeError)) throw e; aNoCors = true; }
   }
-  throw new Error("missing");
+  const u = srcUrl(rec, g, aBr[rec] || 0), r = await fetch(u, { mode: "no-cors" });
+  if (r.type !== "opaque" && !r.ok) throw new Error("http " + r.status);
+  await c.put(u, r);
 }
 async function dlRange(list, onProg) {
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {} // عشان الجهاز ميمسحش التنزيل لوحده
   const rec = reciter(), c = await caches.open(AUDIO_CACHE); aDl = { rec, stop: false };
   let done = 0, i = 0, err = null;
   const worker = async () => { while (!aDl.stop && !err && i < list.length) { const g = list[i++]; try { await dlAyah(c, rec, g); } catch (e) { err = e; } done++; onProg(done, list.length); } };
@@ -1025,7 +1036,7 @@ async function dlRange(list, onProg) {
   const stopped = aDl.stop; aDl = null;
   if (err) throw err; return !stopped;
 }
-async function savedCount(rec) { try { const c = await caches.open(AUDIO_CACHE); return (await c.keys()).filter((r) => r.url.includes(`/saved/${rec}/`)).length; } catch (e) { return 0; } }
+async function savedCount(rec) { try { const c = await caches.open(AUDIO_CACHE), tag = EVERYAYAH[rec] ? `/${EVERYAYAH[rec]}/` : `/${rec}/`; return new Set((await c.keys()).filter((r) => r.url.includes(tag) && !r.url.includes("/saved/")).map((r) => r.url.split("/").pop())).size; } catch (e) { return 0; } }
 const recName = () => RECITERS.find((x) => x[0] === reciter())[1];
 async function renderADl() {
   if (!("caches" in window)) { $("#aDlAll").hidden = true; $("#aDlSub").textContent = "التنزيل مش متاح على الجهاز ده"; return; }
@@ -1045,7 +1056,7 @@ $("#aDlAll").addEventListener("click", async () => {
 });
 $("#aDlClear").addEventListener("click", async () => {
   if (!confirm(`تمسح تلاوة ${recName()} المتنزّلة؟`)) return;
-  const c = await caches.open(AUDIO_CACHE), rec = reciter(); for (const r of await c.keys()) if (r.url.includes(`/saved/${rec}/`)) await c.delete(r);
+  const c = await caches.open(AUDIO_CACHE), rec = reciter(), tag = EVERYAYAH[rec] ? `/${EVERYAYAH[rec]}/` : `/${rec}/`; for (const r of await c.keys()) if (r.url.includes(tag)) await c.delete(r);
   toast("اتمسحت"); renderADl();
 });
 $("#mDlSura").addEventListener("click", async () => {
