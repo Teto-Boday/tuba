@@ -1652,10 +1652,11 @@ $("#fbSend").addEventListener("click", async () => {
 })();
 
 // ---------- شرح كل صفحة (إجباري أول مرة لكل صفحة) ----------
-const PG_VERS = { home: 4, settings: 3 }; // زوّد رقم الصفحة لما شرحها يتغير عشان يظهر تاني
+const PG_VERS = { home: 5, settings: 3 }; // زوّد رقم الصفحة لما شرحها يتغير عشان يظهر تاني
 const pgVer = (t) => PG_VERS[t] || 2;
 const PAGE_TOUR = {
   home: [
+    [".top", "ثبّت طُوبَى على موبايلك", "من سفاري دوس زرار المشاركة ⬆️ تحت، واختار «إضافة إلى الشاشة الرئيسية». كده هيفتح زي أي تطبيق وهيشتغل من غير نت.", () => IOS && !(navigator.standalone || matchMedia("(display-mode: standalone)").matches)],
     [".mini-row", "الأذكار والصلاة", "الكروت دي بتوديك للأذكار ولمواقيت الصلاة على طول."],
     [".hero", "المقاطع", "فيديوهات قصيرة من مشايخ معروفين، بتقلّب فيها زي تيك توك."],
     ["#setGear", "الإعدادات", "من هنا تغيّر الوضع الليلي، وحجم الخط، والقارئ، وتنزّل القرآن عشان يشتغل من غير نت، وتشوف الشرح تاني."],
@@ -1692,7 +1693,7 @@ function spotAuto(tab) {
   setTimeout(() => spotStart(tab), 450);
 }
 function spotStart(tab) {
-  spotSteps = PAGE_TOUR[tab].map(([s, t, x]) => ({ el: document.querySelector(`#s-${tab} ${s}`) || document.querySelector(s), t, x }))
+  spotSteps = PAGE_TOUR[tab].filter((st) => !st[3] || st[3]()).map(([s, t, x]) => ({ el: document.querySelector(`#s-${tab} ${s}`) || document.querySelector(s), t, x }))
     .filter((st) => st.el && st.el.offsetParent !== null);
   if (!spotSteps.length) { store.set("pg_" + tab, pgVer(tab)); return; }
   spotPage = tab; spotI = 0; $("#spot").hidden = false; spotShow(0);
