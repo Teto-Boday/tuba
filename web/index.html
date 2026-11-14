@@ -874,11 +874,16 @@ $("#mDlBtn").addEventListener("click", async () => {
 renderMDl();
 
 // ---------- القرآن المسموع: آية آية من شبكة Islamic Network (مجاني لغير الأغراض التجارية) ----------
-const RECITERS = [["ar.alafasy", "مشاري العفاسي"], ["ar.husary", "محمود خليل الحصري"], ["ar.minshawi", "محمد صديق المنشاوي"], ["ar.abdulbasitmurattal", "عبد الباسط عبد الصمد"], ["ar.mahermuaiqly", "ماهر المعيقلي"]];
+// المصحف المعلّم للحصري: الشيخ بيقرأ الآية بالتجويد ويسيب سكتة عشان تردد وراه (ملفات آية آية من EveryAyah)
+const EVERYAYAH = { "husary.muallim": "Husary_Muallim_128kbps" };
+const RECITERS = [["ar.alafasy", "مشاري العفاسي"], ["husary.muallim", "الحصري: المصحف المعلّم (اسمع وردد)"], ["ar.husary", "محمود خليل الحصري"], ["ar.minshawi", "محمد صديق المنشاوي"], ["ar.abdulbasitmurattal", "عبد الباسط عبد الصمد"], ["ar.mahermuaiqly", "ماهر المعيقلي"]];
 const BITRATES = [128, 192, 64, 48, 32];
 let aG = -1, aOn = false; const aEl = new Audio(), aNext = new Audio(); aEl.preload = "auto"; aNext.preload = "auto";
 const reciter = () => { const r = store.get("reciter", "ar.alafasy"); return RECITERS.some((x) => x[0] === r) ? r : "ar.alafasy"; };
-const aUrl = (g, bi) => `https://cdn.islamic.network/quran/audio/${BITRATES[bi]}/${reciter()}/${g + 1}.mp3`;
+const srcUrl = (rec, g, bi) => { if (EVERYAYAH[rec]) { const [s, a] = ayahOf(g); return `https://everyayah.com/data/${EVERYAYAH[rec]}/${String(s + 1).padStart(3, "0")}${String(a + 1).padStart(3, "0")}.mp3`; }
+  return `https://cdn.islamic.network/quran/audio/${BITRATES[bi]}/${rec}/${g + 1}.mp3`; };
+const nBr = (rec) => EVERYAYAH[rec] ? 1 : BITRATES.length;
+const aUrl = (g, bi) => srcUrl(reciter(), g, bi);
 const aBr = {}; // أول bitrate اشتغل لكل قارئ
 const AUDIO_CACHE = "tuba-audio";
 const aKey = (rec, g) => `https://cdn.islamic.network/quran/audio/saved/${rec}/${g + 1}.mp3`;
@@ -889,7 +894,7 @@ async function aSrc(el, g) {
     if (hit) { const u = URL.createObjectURL(await hit.blob()); if (el._blob) URL.revokeObjectURL(el._blob); el._blob = u; el._saved = true; el.src = u; return; } } catch (e) {}
   el.src = aUrl(g, el._bi);
 }
-aEl.addEventListener("error", () => { if (!aOn || aEl._saved) return; if (aEl._bi < BITRATES.length - 1) { aEl._bi++; aEl.src = aUrl(aEl._g, aEl._bi); aEl.play().catch(() => {}); } else { toast("مقدرناش نشغّل التلاوة، اتأكد من النت"); audioStop(); } });
+aEl.addEventListener("error", () => { if (!aOn || aEl._saved) return; if (aEl._bi < nBr(reciter()) - 1) { aEl._bi++; aEl.src = aUrl(aEl._g, aEl._bi); aEl.play().catch(() => {}); } else { toast("مقدرناش نشغّل التلاوة، اتأكد من النت"); audioStop(); } });
 aEl.addEventListener("playing", () => { aBr[reciter()] = aEl._bi; });
 aEl.addEventListener("ended", () => { if (!aOn) return; if (aG + 1 >= 6236) return audioStop(); audioGo(aG + 1); });
 function aMark() {
@@ -926,8 +931,8 @@ renderReciters();
 let aDl = null; // {rec, stop}
 async function dlAyah(c, rec, g) {
   const key = aKey(rec, g); if (await c.match(key)) return;
-  for (let bi = aBr[rec] || 0; bi < BITRATES.length; bi++) {
-    const r = await fetch(`https://cdn.islamic.network/quran/audio/${BITRATES[bi]}/${rec}/${g + 1}.mp3`, { mode: "cors" });
+  for (let bi = aBr[rec] || 0; bi < nBr(rec); bi++) {
+    const r = await fetch(srcUrl(rec, g, bi), { mode: "cors" });
     if (r.ok) { aBr[rec] = bi; await c.put(key, r); return; }
     if (r.status !== 404) throw new Error("http " + r.status);
   }
