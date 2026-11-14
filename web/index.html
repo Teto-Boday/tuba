@@ -165,16 +165,15 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .xrow{display:flex;align-items:center;justify-content:space-between;gap:10px}.xrow>span{display:flex;flex-direction:column;gap:1px;font-weight:600;font-size:15px}.xrow .small{font-weight:400}
 
 /* ===== المصحف (صفحات مصحف المدينة) ===== */
+html{--paper-back:#F1EBDA}html[data-theme="dark"]{--paper-back:#1F2822}
 :root{--paper:#FBF7EA;--paper-ink:#1B1A17;--paper-edge:#E7DEC6;--sel:#DCEBDF}
 html[data-theme="dark"]{--paper:#171E19;--paper-ink:#E9E5D8;--paper-edge:#2B3630;--sel:#2A4034}
 #s-quran.mm{padding-bottom:0}
 #s-quran.mm .h1{font-size:21px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 #s-quran.mm header.top{padding-bottom:8px}
 #mRead{display:flex;flex-direction:column}
-.m-stage{position:relative;perspective:1800px;margin:0 -6px;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+.m-stage{position:relative;margin:0 -6px;touch-action:pan-y;-webkit-user-select:none;user-select:none;overflow:hidden}
 .m-paper{position:absolute;inset:0;background:var(--paper);color:var(--paper-ink);border:1px solid var(--paper-edge);border-radius:6px 14px 14px 6px;box-shadow:0 1px 0 var(--paper-edge),0 6px 18px rgba(0,0,0,.06);display:flex;flex-direction:column;justify-content:center;padding:6px 10px;overflow:hidden;transform-origin:right center;backface-visibility:hidden;-webkit-backface-visibility:hidden;will-change:transform}
-.m-paper::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:var(--shade,0);background:linear-gradient(to left,rgba(0,0,0,.28),rgba(0,0,0,.05) 40%,rgba(255,255,255,.25) 75%,rgba(0,0,0,.18));transition:none}
-.m-paper.under::after{background:linear-gradient(to right,rgba(0,0,0,.35),rgba(0,0,0,0) 35%)}
 .m-ln{display:flex;align-items:center;justify-content:center;white-space:nowrap;line-height:1}
 .m-ln .in{display:inline-block;white-space:nowrap}
 .m-ln.full .in{display:flex;justify-content:space-between;width:100%}
@@ -194,7 +193,15 @@ html[data-theme="dark"]{--paper:#171E19;--paper-ink:#E9E5D8;--paper-edge:#2B3630
 .m-dl{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .m-dl .bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:6px}
 .m-dl .bar i{display:block;height:100%;width:0;background:var(--green);transition:width .2s}
-@media (prefers-reduced-motion:reduce){.m-paper{transition:none!important}}
+.m-strip{position:absolute;left:0;top:0;transform-origin:0 0;pointer-events:none;z-index:5}
+.m-strip.su{background:linear-gradient(to bottom,rgba(0,0,0,.32),rgba(0,0,0,.12) 35%,rgba(0,0,0,0))}
+.m-strip.sc{background:linear-gradient(to top,rgba(0,0,0,.16),rgba(0,0,0,0))}
+.m-strip.sf{background:linear-gradient(to bottom,rgba(0,0,0,.10),rgba(255,255,255,.45) 18%,rgba(255,255,255,.08) 55%,rgba(0,0,0,.06))}
+html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,0,0,.25),rgba(255,255,255,.10) 18%,rgba(255,255,255,0) 55%,rgba(0,0,0,.15))}
+.m-flapw{position:absolute;inset:0;z-index:3;pointer-events:none;filter:drop-shadow(0 0 7px rgba(0,0,0,.28))}
+.m-flap{position:absolute;left:0;top:0;transform-origin:0 0;background:var(--paper-back);overflow:hidden;border-radius:6px 14px 14px 6px}
+.m-ghost{position:absolute;inset:0;opacity:.07;display:flex;flex-direction:column;justify-content:center;padding:6px 10px;color:var(--paper-ink)}
+.m-ghost .m-w.sel,.m-ghost .m-w.mark,.m-ghost .m-w.play{background:none;box-shadow:none}
 @media (max-height:700px){.tour-ic{width:84px;height:84px;border-radius:26px}.tour-ic svg{width:44px;height:44px}.tour h2{font-size:26px}}
 </style>
 </head>
@@ -809,50 +816,101 @@ $("#qMode").addEventListener("click", () => {
   if (!$("#mRead").hidden) { store.set("qMode", "text"); const L = MD && MD.p[mPage - 1]; let g = MD ? MD.ap.indexOf(mPage) : MBASE[curSurah]; if (g < 0) g = MBASE[curSurah]; const [s, a] = ayahOf(g); openSurahText(s, a === 0 ? null : a); }
   else { store.set("qMode", "mushaf"); openMushafAt(curSurah, 0, false); }
 });
-// قلب الصفحات: اسحب من الشمال لليمين للصفحة اللي بعدها (زي المصحف)
+// قلب الصفحات زي الورق بالظبط: الركن بيتطوي ورا صباعك، وضهر الورقة بيبان، والصفحة اللي تحتها بتظهر بضلّها
+// اسحب من الشمال لليمين للصفحة اللي بعدها، ومن اليمين للشمال للي قبلها
 let mDrag = null;
-function turn(dir, from) { // dir: 1 = اللي بعدها، -1 = اللي قبلها
-  if (mBusy) return Promise.resolve(); const to = mPage + dir; if (to < 1 || to > 604) return Promise.resolve();
-  mBusy = true; setSel(-1);
-  return (async () => {
-    const st = $("#mStage"), cur = st.querySelector(".m-paper"), other = await makePage(to);
-    if (dir > 0) { other.classList.add("under"); st.insertBefore(other, cur); }
-    else { other.style.transform = "rotateY(-178deg)"; st.appendChild(other); cur.classList.add("under"); }
-    if (!other.dataset.err) fitPage(other);
-    const flip = dir > 0 ? cur : other, under = dir > 0 ? other : cur;
-    const set = (t) => { flip.style.transform = `rotateY(${-178 * t}deg)`; flip.style.setProperty("--shade", (Math.sin(t * Math.PI) * 0.9).toFixed(3)); under.style.setProperty("--shade", (1 - t).toFixed(3)); };
-    let t0 = from == null ? (dir > 0 ? 0 : 1) : from;
-    set(t0);
-    if (mDrag) { mDrag.set = set; mDrag.flip = flip; mDrag.under = under; mDrag.other = other; mDrag.to = to; mDrag.ready = true; mBusy = false; return; }
-    await animateTo(set, t0, dir > 0 ? 1 : 0);
-    finishTurn(to, other);
-  })();
+function clipPoly(pts, f) { const out = []; for (let i = 0; i < pts.length; i++) { const a = pts[i], b = pts[(i + 1) % pts.length], fa = f(a), fb = f(b);
+  if (fa >= 0) out.push(a); if ((fa >= 0) !== (fb >= 0)) { const t = fa / (fa - fb); out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]); } } return out; }
+const polyCss = (ps) => ps.length > 2 ? `polygon(${ps.map((p) => `${p[0].toFixed(1)}px ${p[1].toFixed(1)}px`).join(",")})` : "polygon(0 0,0 0,0 0)";
+function makeCurl(st, flip, under) {
+  const W = st.clientWidth, H = st.clientHeight, D = Math.hypot(W, H);
+  flip.style.zIndex = 2; under.style.zIndex = 1;
+  const strip = (cls) => { const d = document.createElement("div"); d.className = "m-strip " + cls; d.style.width = 3 * D + "px"; return d; };
+  const shU = strip("su"), shC = strip("sc"); under.appendChild(shU); flip.appendChild(shC);
+  const wrap = document.createElement("div"); wrap.className = "m-flapw";
+  const flap = document.createElement("div"); flap.className = "m-flap"; flap.style.width = W + "px"; flap.style.height = H + "px";
+  const ghost = flip.cloneNode(true); ghost.className = "m-ghost"; ghost.removeAttribute("style"); ghost.querySelectorAll(".m-strip").forEach((x) => x.remove());
+  const shF = strip("sf"); flap.append(ghost, shF); wrap.appendChild(flap); st.appendChild(wrap);
+  const rect = [[0, 0], [W, 0], [W, H], [0, H]];
+  return {
+    W, H,
+    set(C, P) {
+      const dx = P.x - C.x, dy = P.y - C.y, len = Math.hypot(dx, dy);
+      if (len < 0.5) { flip.style.clipPath = ""; wrap.style.display = "none"; shU.style.opacity = shC.style.opacity = 0; return; }
+      wrap.style.display = ""; const n = { x: dx / len, y: dy / len }, M = { x: (C.x + P.x) / 2, y: (C.y + P.y) / 2 }, k = M.x * n.x + M.y * n.y;
+      const side = (p) => p[0] * n.x + p[1] * n.y - k;
+      flip.style.clipPath = polyCss(clipPoly(rect, side));
+      flap.style.clipPath = polyCss(clipPoly(rect, (p) => -side(p)));
+      flap.style.transform = `matrix(${1 - 2 * n.x * n.x},${-2 * n.x * n.y},${-2 * n.x * n.y},${1 - 2 * n.y * n.y},${2 * k * n.x},${2 * k * n.y})`;
+      const phi = Math.atan2(n.x, -n.y), sw = Math.min(70, len * 0.3) + 6, prog = Math.min(1, len / (2 * W));
+      const tf = `translate(${M.x}px,${M.y}px) rotate(${phi}rad) translate(${-1.5 * D}px,0)`;
+      for (const [el, o] of [[shU, 1 - prog * 0.6], [shF, 1], [shC, 1 - prog * 0.5]]) { el.style.height = sw + "px"; el.style.transform = tf + (el === shC ? ` translate(0,${-sw}px)` : ""); el.style.opacity = o; }
+    },
+    done() { wrap.remove(); shU.remove(); shC.remove(); flip.style.clipPath = ""; flip.style.zIndex = under.style.zIndex = ""; },
+  };
 }
-function animateTo(set, a, b, ms) {
-  ms = ms || 380; if (matchMedia("(prefers-reduced-motion: reduce)").matches) { set(b); return Promise.resolve(); }
-  return new Promise((res) => { const t0 = performance.now(); const step = (now) => { const k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3); set(a + (b - a) * e); if (k < 1) requestAnimationFrame(step); else res(); }; requestAnimationFrame(step); });
+// ركن الورقة بيروح فين: الصفحة اللي بعدها بتتقلب من الشمال لحد ما تنطبق على اليمين
+function clampP(P, cy, W, H) {
+  const S = { x: W, y: cy }, d = Math.hypot(P.x - S.x, P.y - S.y); if (d > W) { P.x = S.x + (P.x - S.x) * W / d; P.y = S.y + (P.y - S.y) * W / d; }
+  const S2 = { x: W, y: H - cy }, D = Math.hypot(W, H), d2 = Math.hypot(P.x - S2.x, P.y - S2.y); if (d2 > D) { P.x = S2.x + (P.x - S2.x) * D / d2; P.y = S2.y + (P.y - S2.y) * D / d2; }
+  return P;
+}
+function animP(c, cy, from, to, ms) {
+  ms = ms || 420; if (matchMedia("(prefers-reduced-motion: reduce)").matches) ms = 1;
+  const lift = (cy === 0 ? 1 : -1) * c.H * 0.07;
+  return new Promise((res) => { const t0 = performance.now(); const step = (now) => { const k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+    const P = { x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e + Math.sin(Math.PI * e) * lift * (Math.abs(to.x - from.x) / (2 * c.W)) };
+    c.set({ x: 0, y: cy }, clampP(P, cy, c.W, c.H)); if (k < 1) requestAnimationFrame(step); else res(); }; requestAnimationFrame(step); });
+}
+async function prepTurn(dir) {
+  const to = mPage + dir; if (to < 1 || to > 604) return null;
+  const st = $("#mStage"), cur = st.querySelector(".m-paper"), other = await makePage(to);
+  st.insertBefore(other, dir > 0 ? cur : cur.nextSibling); if (!other.dataset.err) fitPage(other);
+  const flip = dir > 0 ? cur : other, under = dir > 0 ? other : cur;
+  return { to, other, c: makeCurl(st, flip, under) };
+}
+async function turn(dir) {
+  if (mBusy) return; mBusy = true; setSel(-1);
+  const t = await prepTurn(dir); if (!t) { mBusy = false; return; }
+  const W = t.c.W, H = t.c.H, cy = H, C = { x: 0, y: cy }, F = { x: 2 * W, y: cy };
+  if (dir < 0) t.c.set(C, F);
+  await animP(t.c, cy, dir > 0 ? C : F, dir > 0 ? F : C);
+  t.c.done(); finishTurn(t.to, t.other);
 }
 function finishTurn(to, paper) {
-  const st = $("#mStage"); st.innerHTML = ""; paper.classList.remove("under"); paper.style.transform = ""; paper.style.removeProperty("--shade"); st.appendChild(paper);
+  const st = $("#mStage"); st.innerHTML = ""; paper.style.zIndex = ""; paper.style.clipPath = ""; st.appendChild(paper);
   mPage = to; store.set("mPage", to); mTitle(to); $("#mPrev").disabled = to <= 1; $("#mNext").disabled = to >= 604; mBusy = false;
+  if (aOn && aG >= 0) aMark();
   [to + 1, to - 1].forEach((n) => { if (n >= 1 && n <= 604) loadMFont(MD.f[n - 1]).catch(() => {}); });
 }
-$("#mStage").addEventListener("pointerdown", (e) => { if (mBusy || !MD) return; mDrag = { x: e.clientX, y: e.clientY, dir: 0, moved: false, ready: false, id: e.pointerId, w: $("#mStage").clientWidth }; });
-$("#mStage").addEventListener("pointermove", (e) => {
-  if (!mDrag || e.pointerId !== mDrag.id) return; const dx = e.clientX - mDrag.x, dy = e.clientY - mDrag.y;
-  if (!mDrag.dir) { if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy)) { if (Math.abs(dy) > 14) mDrag = null; return; }
-    mDrag.dir = dx > 0 ? 1 : -1; mDrag.moved = true; const to = mPage + mDrag.dir; if (to < 1 || to > 604) { mDrag = null; return; }
-    try { $("#mStage").setPointerCapture(e.pointerId); } catch (_) {} turn(mDrag.dir, mDrag.dir > 0 ? 0 : 1); }
-  if (!mDrag || !mDrag.ready) return; e.preventDefault();
-  const k = Math.max(0, Math.min(1, Math.abs(dx) / (mDrag.w * 0.9))); mDrag.k = k; mDrag.set(mDrag.dir > 0 ? k : 1 - k);
+function dragP(d, x, y) {
+  const W = d.t.c.W, H = d.t.c.H, P = d.dir > 0 ? { x: Math.max(0, (x - d.x) * 2), y: d.cy + (y - d.y) * 0.9 } : { x: 2 * W - Math.max(0, (d.x - x) * 2), y: d.cy + (y - d.y) * 0.9 };
+  return clampP(P, d.cy, W, H);
+}
+$("#mStage").addEventListener("pointerdown", (e) => { if (mBusy || !MD) return; const r = $("#mStage").getBoundingClientRect();
+  mDrag = { x: e.clientX, y: e.clientY, dir: 0, moved: false, id: e.pointerId, cy: e.clientY - r.top > r.height / 2 ? r.height : 0 }; });
+$("#mStage").addEventListener("pointermove", async (e) => {
+  const d = mDrag; if (!d || e.pointerId !== d.id) return; const dx = e.clientX - d.x, dy = e.clientY - d.y;
+  if (!d.dir) {
+    if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy)) { if (Math.abs(dy) > 14) mDrag = null; return; }
+    d.dir = dx > 0 ? 1 : -1; d.moved = true; const to = mPage + d.dir; if (to < 1 || to > 604) { mDrag = null; return; }
+    try { $("#mStage").setPointerCapture(e.pointerId); } catch (_) {}
+    mBusy = true; setSel(-1); d.t = await prepTurn(d.dir); if (!d.t) { mBusy = false; mDrag = null; return; }
+    if (d.dir < 0) d.t.c.set({ x: 0, y: d.cy }, { x: 2 * d.t.c.W, y: d.cy });
+    d.ready = true;
+  }
+  if (!d.ready) return; e.preventDefault(); d.lx = e.clientX; d.ly = e.clientY;
+  d.P = dragP(d, e.clientX, e.clientY); d.t.c.set({ x: 0, y: d.cy }, d.P);
 });
 async function endDrag(e) {
-  if (!mDrag) return; const d = mDrag; if (!d.dir) { mDrag = null; return; }
+  const d = mDrag; if (!d) return; if (!d.dir) { mDrag = null; return; }
   if (!d.ready) { setTimeout(() => endDrag(e), 30); return; }
-  mDrag = null; const k = d.k || 0, go2 = k > 0.22; mBusy = true;
-  const cur = d.dir > 0 ? (k) : (1 - k);
-  if (go2) { await animateTo(d.set, cur, d.dir > 0 ? 1 : 0, 260); finishTurn(d.to, d.other); }
-  else { await animateTo(d.set, cur, d.dir > 0 ? 0 : 1, 200); const st = $("#mStage"); d.other.remove(); const keep = st.querySelector(".m-paper"); keep.classList.remove("under"); keep.style.transform = ""; keep.style.removeProperty("--shade"); mBusy = false; }
+  mDrag = null; const W = d.t.c.W, C = { x: 0, y: d.cy }, F = { x: 2 * W, y: d.cy }, P = d.P || (d.dir > 0 ? C : F);
+  const prog = d.dir > 0 ? P.x / (2 * W) : 1 - P.x / (2 * W), go2 = prog > 0.25;
+  const target = (d.dir > 0) === go2 ? F : C;
+  await animP(d.t.c, d.cy, P, target, go2 ? 340 : 260);
+  d.t.c.done();
+  if (go2) finishTurn(d.t.to, d.t.other); else { d.t.other.remove(); mBusy = false; }
   setTimeout(() => { d.moved = false; }, 0);
 }
 $("#mStage").addEventListener("pointerup", endDrag);
