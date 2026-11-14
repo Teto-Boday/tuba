@@ -158,6 +158,12 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .tour-dots i{width:8px;height:8px;border-radius:4px;background:var(--line);transition:width .2s}
 .tour-dots i.on{width:22px;background:var(--green)}
 .tour-btns{display:flex;gap:10px;max-width:420px;margin:0 auto;width:100%}
+/* شرح كل صفحة: دايرة/إطار حوالين الحاجة اللي بتتشرح */
+.spot{position:fixed;inset:0;z-index:60;background:transparent}
+.spot-ring{position:fixed;border-radius:20px;border:2px solid var(--mint);box-shadow:0 0 0 9999px rgba(10,20,15,.74);transition:all .25s ease;pointer-events:none}
+.spot-card{position:fixed;left:12px;right:12px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:10px;text-align:right;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.spot-card h3{margin:0;font-size:18px}
+.spot-card p{margin:0;line-height:1.7}
 .tour-btns .btn{flex:1}
 .tour-skip{background:none;border:0;color:var(--muted);font-size:15px;min-height:44px;padding:0 6px;cursor:pointer;font-family:inherit}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
@@ -450,6 +456,10 @@ html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,
   <div class="tour-dots" id="tourDots" aria-hidden="true"></div>
   <div class="tour-btns"><button class="btn ghost" id="tourPrev">السابق</button><button class="btn" id="tourNext">التالي</button></div>
 </div>
+<div class="spot" id="spot" hidden role="dialog" aria-modal="true" aria-live="polite">
+  <div class="spot-ring" id="spotRing"></div>
+  <div class="spot-card" id="spotCard"><span class="small" id="spotCount"></span><h3 id="spotT"></h3><p id="spotX"></p><div class="tour-btns"><button class="btn ghost" id="spotSkip">تخطّي</button><button class="btn" id="spotNext">التالي</button></div></div>
+</div>
 <div class="toast" id="toast" role="status"></div>
 </div>
 
@@ -486,6 +496,7 @@ function go(tab) {
     if (b) { if (t === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }
   });
   if (location.hash !== "#" + tab) history.replaceState(null, "", "#" + tab);
+  spotAuto(tab);
   window.scrollTo(0, 0);
   if (tab === "azkar") renderAzkar();
   if (tab === "clips") renderClips(); else stopAllClips();
@@ -1117,14 +1128,29 @@ function tick() {
   if (n.k !== tick.last) { tick.last = n.k; if (tick.ready) renderPrayer(); }
 }
 setInterval(tick, 1000);
-$("#locBtn").addEventListener("click", () => {
-  if (!navigator.geolocation) { toast("الموبايل ده مش بيدعم تحديد الموقع"); return; }
-  toast("بنحدد موقعك…");
+// الموقع بيتحدّث لوحده كل ما التطبيق يتفتح أو يرجع للشاشة، ولو الموبايل اتنقل أكتر من ~٥ كم المواقيت بتتظبط
+function kmBetween(a, b) { const R = 6371, r = Math.PI / 180, dLa = (b.lat - a.lat) * r, dLo = (b.lng - a.lng) * r; const h = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); }
+let locBusy = false;
+function locUpdate(manual) {
+  if (!navigator.geolocation || locBusy) { if (manual && !navigator.geolocation) toast("الموبايل ده مش بيدعم تحديد الموقع"); return; }
+  locBusy = true; if (manual) toast("بنحدد موقعك…");
   navigator.geolocation.getCurrentPosition((p) => {
-    loc = { lat: p.coords.latitude, lng: p.coords.longitude, name: `موقعك الحالي (${p.coords.latitude.toFixed(2)}, ${p.coords.longitude.toFixed(2)})` };
-    store.set("loc", loc); renderPrayer(); scheduleAdhan(true); scheduleDesktop(); toast("تمام، المواقيت اتظبطت على موقعك");
-  }, () => toast("مقدرناش نحدد موقعك، اسمح للتطبيق بالموقع وجرب تاني"), { enableHighAccuracy: false, timeout: 15000, maximumAge: 36e5 });
-});
+    locBusy = false; store.set("locAuto", true);
+    const nl = { lat: p.coords.latitude, lng: p.coords.longitude, name: `موقعك الحالي (${p.coords.latitude.toFixed(2)}, ${p.coords.longitude.toFixed(2)})` };
+    const moved = !store.get("loc", null) || kmBetween(loc, nl) > 5;
+    if (!moved && !manual) return;
+    loc = nl; store.set("loc", loc); renderPrayer(); scheduleAdhan(true); scheduleDesktop();
+    if (typeof scheduleExtra === "function") scheduleExtra();
+    toast(manual ? "تمام، المواقيت اتظبطت على موقعك" : "مكانك اتغيّر، المواقيت اتظبطت عليه");
+  }, () => { locBusy = false; if (!manual) store.set("locAsked", true); if (manual) toast("مقدرناش نحدد موقعك، اسمح للتطبيق بالموقع وجرب تاني"); }, { enableHighAccuracy: false, timeout: 15000, maximumAge: manual ? 0 : 6e5 });
+}
+$("#locBtn").addEventListener("click", () => locUpdate(true));
+// أول مرة: لو لسه على القاهرة الافتراضي نطلب الموقع. بعد كده بيتحدّث في الخلفية بس لو الإذن متاح
+function locAutoCheck() {
+  if (store.get("locAuto", false) || (!store.get("loc", null) && !store.get("locAsked", false))) locUpdate(false);
+}
+setTimeout(locAutoCheck, 1500);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") locAutoCheck(); });
 
 // ---------- تنبيه الأذان (نسخة الأندرويد) ----------
 const LN = () => window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications;
@@ -1566,7 +1592,66 @@ function tourClose() { $("#tour").hidden = true; store.set("tourVer", TOUR_VER);
 $("#tourNext").addEventListener("click", () => { if (tourI === TOUR.length - 1) tourClose(); else tourShow(tourI + 1); });
 $("#tourPrev").addEventListener("click", () => tourShow(tourI - 1));
 $("#tourSkip").addEventListener("click", tourClose);
-$("#tourAgain").addEventListener("click", tourOpen);
+$("#tourAgain").addEventListener("click", () => { TABS.forEach((t) => store.set("pg_" + t, 0)); tourOpen(); });
+
+// ---------- شرح كل صفحة (إجباري أول مرة لكل صفحة) ----------
+const PG_VER = 1; // زوّد الرقم لما الشروح تتغير عشان تظهر تاني
+const PAGE_TOUR = {
+  home: [
+    [".mini-row", "الأذكار والصلاة", "الكروت دي بتوديك للأذكار ولمواقيت الصلاة على طول."],
+    [".hero", "المقاطع", "فيديوهات قصيرة من مشايخ معروفين، بتقلّب فيها زي تيك توك."],
+  ],
+  clips: [
+    ["#clipTopics", "لك والمحفوظة", "«لك» فيها المقاطع مخلوطة، و«المحفوظة» فيها اللي حفظته بالقلب."],
+    ["#feed", "قلّب", "اسحب لفوق عشان تنتقل للمقطع اللي بعده. الفيد بيتعلّم من القلوب اللي بتديها."],
+  ],
+  quran: [
+    ["#qList", "اختار السورة", "اضغط على أي سورة عشان تقراها أو تسمعها."],
+    ["#qSearch", "دوّر", "تقدر تدوّر بالاسم أو برقم السورة."],
+  ],
+  prayer: [
+    ["#ptimes", "مواقيت اليوم", "مواقيت الصلاة في مكانك، ومعاها العدّ التنازلي للصلاة الجاية."],
+    ["#notifCard", "تنبيه الأذان", "فعّل التنبيه عشان يوصلك الأذان في وقته."],
+  ],
+  azkar: [
+    ["#zCats", "الأقسام", "اختار الصباح أو المساء أو النوم، أو أذكار الصلاة."],
+    ["#zAudio", "الصوت", "اسمع الأذكار بصوت الشيخ مشاري العفاسي، ونزّله عشان تسمعه من غير نت."],
+    ["#zList", "اضغط عشان تعدّ", "كل ضغطة بتعدّ، ولما الذكر يخلص بيتعلّم عليه ✓."],
+  ],
+  support: [
+    ["#payList", "طرق الدعم", "لو التطبيق نفعك وحابب تدعمه، الطرق دي موجودة."],
+  ],
+  settings: [
+    ["#tourAgain", "شرح التطبيق", "لو عايز تشوف الشرح تاني في أي وقت، اضغط هنا."],
+  ],
+};
+let spotPage = null, spotSteps = [], spotI = 0;
+function spotAuto(tab) {
+  if (store.get("tourVer", 0) < TOUR_VER || !$("#tour").hidden) return; // الشرح العام الأول يخلص الأول
+  if (store.get("pg_" + tab, 0) >= PG_VER || !PAGE_TOUR[tab]) return;
+  setTimeout(() => spotStart(tab), 450);
+}
+function spotStart(tab) {
+  spotSteps = PAGE_TOUR[tab].map(([s, t, x]) => ({ el: document.querySelector(`#s-${tab} ${s}`) || document.querySelector(s), t, x }))
+    .filter((st) => st.el && st.el.offsetParent !== null);
+  if (!spotSteps.length) { store.set("pg_" + tab, PG_VER); return; }
+  spotPage = tab; spotI = 0; $("#spot").hidden = false; spotShow(0);
+}
+function spotShow(i) {
+  spotI = i; const st = spotSteps[i];
+  st.el.scrollIntoView({ block: "center" });
+  const r = st.el.getBoundingClientRect(), p = 6;
+  const ring = $("#spotRing"); ring.style.left = (r.left - p) + "px"; ring.style.top = (r.top - p) + "px"; ring.style.width = (r.width + 2 * p) + "px"; ring.style.height = (r.height + 2 * p) + "px";
+  const card = $("#spotCard"); const low = r.top + r.height / 2 > innerHeight / 2;
+  card.style.top = low ? "12px" : ""; card.style.bottom = low ? "" : "calc(84px + env(safe-area-inset-bottom))";
+  $("#spotCount").textContent = `${ar(i + 1)} من ${ar(spotSteps.length)}`;
+  $("#spotT").textContent = st.t; $("#spotX").textContent = st.x;
+  $("#spotNext").textContent = i === spotSteps.length - 1 ? "فهمت" : "التالي";
+}
+function spotClose() { $("#spot").hidden = true; store.set("pg_" + spotPage, PG_VER); }
+$("#spotNext").addEventListener("click", () => { if (spotI >= spotSteps.length - 1) spotClose(); else spotShow(spotI + 1); });
+$("#spotSkip").addEventListener("click", spotClose);
+addEventListener("resize", () => { if (!$("#spot").hidden) spotShow(spotI); });
 $("#tour").addEventListener("keydown", (e) => { if (e.key === "Escape") tourClose(); if (e.key === "ArrowLeft") $("#tourNext").click(); if (e.key === "ArrowRight" && tourI) tourShow(tourI - 1); });
 let tsX = null; // السحب يمين وشمال بين الخطوات
 $("#tour").addEventListener("touchstart", (e) => { tsX = e.touches[0].clientX; }, { passive: true });
