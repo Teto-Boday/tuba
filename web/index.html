@@ -443,6 +443,13 @@ html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,
       <div class="xrow"><span>أذكار المساء <span class="small">بعد العصر بنص ساعة</span></span><button class="chip" id="exAzE" aria-pressed="true" aria-label="تذكير أذكار المساء">شغّال</button></div>
       <div class="xrow"><span>سورة الكهف <span class="small">الجمعة الساعة ١٠ الصبح</span></span><button class="chip" id="exKahf" aria-pressed="true" aria-label="تذكير سورة الكهف يوم الجمعة">شغّال</button></div>
     </div>
+    <div class="card stack" id="fbCard" style="gap:10px">
+      <b style="font-size:16px">رأيك يهمنا</b>
+      <span class="muted">عندك اقتراح، أو لقيت مشكلة، أو حابب تقول رأيك؟ اكتبه هنا وهيوصل للمصمم على طول.</span>
+      <textarea id="fbTxt" rows="4" maxlength="1500" placeholder="اكتب رأيك هنا…" style="width:100%;box-sizing:border-box;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:inherit;padding:12px;font:inherit;resize:vertical"></textarea>
+      <input id="fbMail" type="email" inputmode="email" autocomplete="email" placeholder="إيميلك (اختياري، لو عايز رد)" style="width:100%;box-sizing:border-box;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:inherit;padding:12px;font:inherit">
+      <button class="btn" id="fbSend">ابعت</button>
+    </div>
     <button class="row" id="tourAgain"><span class="num" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.8 9.5a2.3 2.3 0 1 1 3.4 2c-.8.5-1.2 1-1.2 2"/><circle cx="12" cy="16.6" r=".6"/></svg></span><span class="grow"><b>إزاي أستخدم طُوبَى؟</b><span class="small">شرح سريع لكل حاجة في التطبيق</span></span></button>
     <button class="row" data-go="support"><span class="num" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><span class="grow"><b>ادعم طُوبَى</b><span class="small">إنستاباي أو فودافون كاش</span></span></button>
   </div>
@@ -1607,6 +1614,23 @@ $("#tourNext").addEventListener("click", () => { if ($("#tourNext").disabled) re
 $("#tourPrev").addEventListener("click", () => tourShow(tourI - 1));
 $("#tourAgain").addEventListener("click", () => { TABS.forEach((t) => store.set("pg_" + t, 0)); tourOpen(); });
 
+// ---------- الآراء: بتوصل لموبايل المصمم عن طريق ntfy ----------
+const FB_TOPIC = "tuba-ara2-a05a5a612f";
+$("#fbSend").addEventListener("click", async () => {
+  const t = $("#fbTxt").value.trim(), m = $("#fbMail").value.trim();
+  if (t.length < 3) { toast("اكتب رأيك الأول"); return; }
+  if (Date.now() - store.get("fbLast", 0) < 60e3) { toast("استنى دقيقة وابعت تاني"); return; }
+  const dev = LN() ? "أندرويد" : DESKTOP ? "ويندوز" : IOS ? "آيفون" : "موقع";
+  const body = t + "\n\n— " + dev + (m ? " · " + m : "");
+  $("#fbSend").disabled = true;
+  try {
+    const r = await fetch("https://ntfy.sh/" + FB_TOPIC, { method: "POST", headers: { Title: "Tuba feedback", Tags: "speech_balloon" }, body: body.slice(0, 1800) });
+    if (!r.ok) throw 0;
+    store.set("fbLast", Date.now()); $("#fbTxt").value = ""; toast("وصل، شكرًا ليك ♡");
+  } catch (e) { toast("ماوصلش، اتأكد من النت وجرّب تاني"); }
+  $("#fbSend").disabled = false;
+});
+
 // ---------- كارت الدعم في الرئيسية: بعد ٣ أيام استخدام، و"مش دلوقتي" يخفيه أسبوعين ----------
 (function supAsk() {
   const d = todayKey(), days = store.get("useDays", []);
@@ -1618,7 +1642,7 @@ $("#tourAgain").addEventListener("click", () => { TABS.forEach((t) => store.set(
 })();
 
 // ---------- شرح كل صفحة (إجباري أول مرة لكل صفحة) ----------
-const PG_VERS = { home: 4 }; // زوّد رقم الصفحة لما شرحها يتغير عشان يظهر تاني
+const PG_VERS = { home: 4, settings: 3 }; // زوّد رقم الصفحة لما شرحها يتغير عشان يظهر تاني
 const pgVer = (t) => PG_VERS[t] || 2;
 const PAGE_TOUR = {
   home: [
@@ -1648,6 +1672,7 @@ const PAGE_TOUR = {
     ["#payList", "طرق الدعم", "لو التطبيق نفعك وحابب تدعمه، الطرق دي موجودة."],
   ],
   settings: [
+    ["#fbCard", "رأيك يهمنا", "أي اقتراح أو مشكلة اكتبها هنا ودوس ابعت، وهتوصل للمصمم على طول."],
     ["#tourAgain", "شرح التطبيق", "لو عايز تشوف الشرح تاني في أي وقت، اضغط هنا."],
   ],
 };
