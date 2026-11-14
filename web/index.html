@@ -183,7 +183,7 @@ html[data-theme="dark"]{--paper:#171E19;--paper-ink:#E9E5D8;--paper-edge:#2B3630
 .m-w.sel{background:var(--sel)}
 .m-w.mark{background:var(--mark)}
 .m-w.play{background:var(--sel);box-shadow:0 2px 0 var(--green)}
-#mPlay[aria-pressed="true"]{background:var(--green);color:var(--on-green);border-color:var(--green)}
+#mPlay[aria-pressed="true"],#mDlSura[aria-pressed="true"]{background:var(--green);color:var(--on-green);border-color:var(--green)}
 .m-hdr{color:var(--green);background:var(--mint);border:1.5px solid var(--green);border-radius:12px;margin:3px 2px;box-sizing:border-box;position:relative}
 .m-hdr::before,.m-hdr::after{content:"۞";position:absolute;top:50%;transform:translateY(-50%);font-size:18px;opacity:.7}.m-hdr::before{right:12px}.m-hdr::after{left:12px}
 .m-msg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px;color:var(--muted)}
@@ -269,7 +269,7 @@ html[data-theme="dark"]{--paper:#171E19;--paper-ink:#E9E5D8;--paper-edge:#2B3630
     <div class="m-stage" id="mStage" dir="ltr" aria-live="polite"></div>
     <div class="m-foot">
       <button class="icon-btn" id="mPrev" aria-label="الصفحة اللي قبلها"><svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-      <span style="display:flex;align-items:center;gap:10px"><button class="icon-btn" id="mPlay" aria-label="اسمع"><svg class="i" viewBox="0 0 24 24" id="mPlayIc"><path d="M8 5l11 7-11 7z"/></svg></button><span class="pg num-font" id="mPageNo"></span></span>
+      <span style="display:flex;align-items:center;gap:10px"><button class="icon-btn" id="mDlSura" aria-label="نزّل تلاوة السورة دي"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button><button class="icon-btn" id="mPlay" aria-label="اسمع"><svg class="i" viewBox="0 0 24 24" id="mPlayIc"><path d="M8 5l11 7-11 7z"/></svg></button><span class="pg num-font" id="mPageNo"></span></span>
       <button class="icon-btn" id="mNext" aria-label="الصفحة اللي بعدها"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
     </div>
     <div class="m-act" id="mAct" hidden role="toolbar" aria-label="الآية">
@@ -400,6 +400,11 @@ html[data-theme="dark"]{--paper:#171E19;--paper-ink:#E9E5D8;--paper-edge:#2B3630
       <b style="font-size:16px">القارئ</b>
       <span class="muted">اللي بتسمعه لما تدوس ▶ في المصحف (محتاج نت)</span>
       <div class="chips" id="reciters" role="group" aria-label="اختار القارئ" style="flex-wrap:wrap"></div>
+      <div class="m-dl" style="margin:0">
+        <span class="grow"><span id="aDlTxt" style="font-weight:600">نزّل التلاوة عشان تسمع من غير نت</span><span class="small" id="aDlSub" style="display:block"></span><span class="bar" id="aDlBar" hidden><i></i></span></span>
+        <button class="btn" id="aDlAll" style="height:42px;padding:0 14px;font-size:14px;white-space:nowrap">نزّل كله</button>
+      </div>
+      <button class="btn ghost" id="aDlClear" style="height:40px;font-size:14px" hidden>امسح التلاوة المتنزّلة للقارئ ده</button>
     </div>
     <div class="card stack" style="gap:10px">
       <b style="font-size:16px">تذكيرات</b>
@@ -455,6 +460,7 @@ function ayaMark(n) { return `<span class="mark-n">﴿${ar(n)}﴾</span>`; }
 const TABS = ["home", "clips", "quran", "prayer", "azkar", "support", "settings"];
 function go(tab) {
   if (!TABS.includes(tab)) tab = "home";
+  if (tab === "settings" && typeof renderADl === "function") setTimeout(renderADl, 0);
   TABS.forEach((t) => {
     $("#s-" + t).classList.toggle("on", t === tab);
     const b = document.querySelector(`.tab[data-tab="${t}"]`);
@@ -874,8 +880,16 @@ let aG = -1, aOn = false; const aEl = new Audio(), aNext = new Audio(); aEl.prel
 const reciter = () => { const r = store.get("reciter", "ar.alafasy"); return RECITERS.some((x) => x[0] === r) ? r : "ar.alafasy"; };
 const aUrl = (g, bi) => `https://cdn.islamic.network/quran/audio/${BITRATES[bi]}/${reciter()}/${g + 1}.mp3`;
 const aBr = {}; // أول bitrate اشتغل لكل قارئ
-function aSrc(el, g) { el._g = g; el._bi = aBr[reciter()] || 0; el.src = aUrl(g, el._bi); }
-aEl.addEventListener("error", () => { if (!aOn) return; if (aEl._bi < BITRATES.length - 1) { aEl._bi++; aEl.src = aUrl(aEl._g, aEl._bi); aEl.play().catch(() => {}); } else { toast("مقدرناش نشغّل التلاوة، اتأكد من النت"); audioStop(); } });
+const AUDIO_CACHE = "tuba-audio";
+const aKey = (rec, g) => `https://cdn.islamic.network/quran/audio/saved/${rec}/${g + 1}.mp3`;
+let aBlobs = {};
+async function aSrc(el, g) {
+  el._g = g; el._bi = aBr[reciter()] || 0; el._saved = false;
+  try { const c = await caches.open(AUDIO_CACHE), hit = await c.match(aKey(reciter(), g));
+    if (hit) { const u = URL.createObjectURL(await hit.blob()); if (el._blob) URL.revokeObjectURL(el._blob); el._blob = u; el._saved = true; el.src = u; return; } } catch (e) {}
+  el.src = aUrl(g, el._bi);
+}
+aEl.addEventListener("error", () => { if (!aOn || aEl._saved) return; if (aEl._bi < BITRATES.length - 1) { aEl._bi++; aEl.src = aUrl(aEl._g, aEl._bi); aEl.play().catch(() => {}); } else { toast("مقدرناش نشغّل التلاوة، اتأكد من النت"); audioStop(); } });
 aEl.addEventListener("playing", () => { aBr[reciter()] = aEl._bi; });
 aEl.addEventListener("ended", () => { if (!aOn) return; if (aG + 1 >= 6236) return audioStop(); audioGo(aG + 1); });
 function aMark() {
@@ -883,7 +897,7 @@ function aMark() {
   if (aG >= 0) document.querySelectorAll(`#mStage .m-w[data-a="${aG}"]`).forEach((w) => w.classList.add("play"));
 }
 async function audioGo(g) {
-  aG = g; if (aNext._g === g && aNext.src) { aEl._g = g; aEl._bi = aNext._bi; aEl.src = aNext.src; } else aSrc(aEl, g);
+  aG = g; if (aNext._g === g && aNext.src) { aEl._g = g; aEl._bi = aNext._bi; aEl._saved = aNext._saved; if (aEl._blob && aEl._blob !== aNext._blob) URL.revokeObjectURL(aEl._blob); aEl._blob = aNext._blob; aNext._blob = null; aEl.src = aNext.src; } else await aSrc(aEl, g);
   aEl.play().catch(() => { toast("دوس ▶ تاني عشان تبدأ"); audioStop(); });
   if (g + 1 < 6236) aSrc(aNext, g + 1);
   const [s, a] = ayahOf(g);
@@ -904,9 +918,62 @@ $("#mPlay").addEventListener("click", () => { if (aOn) audioStop(); else audioPl
 if ("mediaSession" in navigator) try { navigator.mediaSession.setActionHandler("pause", audioStop); navigator.mediaSession.setActionHandler("stop", audioStop); } catch (e) {}
 function renderReciters() {
   $("#reciters").innerHTML = RECITERS.map(([id, n]) => `<button class="chip" data-r="${id}" aria-pressed="${id === reciter()}">${n}</button>`).join("");
-  $("#reciters").querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => { store.set("reciter", b.dataset.r); renderReciters(); if (aOn && aG >= 0) audioGo(aG); toast("القارئ: " + b.textContent); }));
+  $("#reciters").querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => { store.set("reciter", b.dataset.r); renderReciters(); renderADl(); if (aOn && aG >= 0) audioGo(aG); toast("القارئ: " + b.textContent); }));
 }
 renderReciters();
+
+// ---------- تنزيل التلاوة: سورة سورة أو المصحف كله، لكل قارئ ----------
+let aDl = null; // {rec, stop}
+async function dlAyah(c, rec, g) {
+  const key = aKey(rec, g); if (await c.match(key)) return;
+  for (let bi = aBr[rec] || 0; bi < BITRATES.length; bi++) {
+    const r = await fetch(`https://cdn.islamic.network/quran/audio/${BITRATES[bi]}/${rec}/${g + 1}.mp3`, { mode: "cors" });
+    if (r.ok) { aBr[rec] = bi; await c.put(key, r); return; }
+    if (r.status !== 404) throw new Error("http " + r.status);
+  }
+  throw new Error("missing");
+}
+async function dlRange(list, onProg) {
+  const rec = reciter(), c = await caches.open(AUDIO_CACHE); aDl = { rec, stop: false };
+  let done = 0, i = 0, err = null;
+  const worker = async () => { while (!aDl.stop && !err && i < list.length) { const g = list[i++]; try { await dlAyah(c, rec, g); } catch (e) { err = e; } done++; onProg(done, list.length); } };
+  await Promise.all([worker(), worker(), worker(), worker()]);
+  const stopped = aDl.stop; aDl = null;
+  if (err) throw err; return !stopped;
+}
+async function savedCount(rec) { try { const c = await caches.open(AUDIO_CACHE); return (await c.keys()).filter((r) => r.url.includes(`/saved/${rec}/`)).length; } catch (e) { return 0; } }
+const recName = () => RECITERS.find((x) => x[0] === reciter())[1];
+async function renderADl() {
+  if (!("caches" in window)) { $("#aDlAll").hidden = true; $("#aDlSub").textContent = "التنزيل مش متاح على الجهاز ده"; return; }
+  if (aDl) return; const n = await savedCount(reciter());
+  $("#aDlTxt").textContent = n >= 6236 ? `تلاوة ${recName()} متنزّلة كلها ✓` : "نزّل التلاوة عشان تسمع من غير نت";
+  $("#aDlSub").textContent = n >= 6236 ? "بتشتغل من غير نت" : n ? `متنزّل ${n < 63 ? ar(n) + " آية" : ar(Math.round(n / 6236 * 100)) + "٪"} من المصحف بصوت ${recName()}` : `المصحف كله بصوت ${recName()} حوالي ٦٠٠ ميجا أو أكتر، أو نزّل سورة سورة من زرار ⬇ في المصحف`;
+  $("#aDlAll").hidden = n >= 6236; $("#aDlAll").textContent = n ? "كمّل التنزيل" : "نزّل كله"; $("#aDlClear").hidden = !n; $("#aDlBar").hidden = true;
+}
+const dlFail = (e) => toast(String(e && e.message).startsWith("http") || (e && e.message) === "missing" ? "في ملفات مش موجودة عند القارئ ده، جرّب قارئ تاني" : "النت فصل أو التنزيل مش متاح دلوقتي، جرّب تاني وهيكمّل من مكانه");
+$("#aDlAll").addEventListener("click", async () => {
+  if (aDl) { aDl.stop = true; $("#aDlAll").textContent = "بيوقف…"; return; }
+  $("#aDlAll").textContent = "وقّف"; $("#aDlBar").hidden = false; $("#aDlClear").hidden = true;
+  try { const ok = await dlRange([...Array(6236).keys()], (d, t) => { $("#aDlBar").firstElementChild.style.width = (d / t * 100) + "%"; $("#aDlSub").textContent = `${ar(Math.floor(d / t * 100))}٪ · سيب التطبيق مفتوح لحد ما يخلص`; });
+    if (ok) toast(`تلاوة ${recName()} اتنزّلت كلها`); }
+  catch (e) { dlFail(e); }
+  renderADl();
+});
+$("#aDlClear").addEventListener("click", async () => {
+  if (!confirm(`تمسح تلاوة ${recName()} المتنزّلة؟`)) return;
+  const c = await caches.open(AUDIO_CACHE), rec = reciter(); for (const r of await c.keys()) if (r.url.includes(`/saved/${rec}/`)) await c.delete(r);
+  toast("اتمسحت"); renderADl();
+});
+$("#mDlSura").addEventListener("click", async () => {
+  if (aDl) { aDl.stop = true; return; }
+  const s = pageSurah(mPage), list = []; for (let g = MBASE[s]; g < MBASE[s + 1]; g++) list.push(g);
+  const lbl = $("#mPageNo"), b = $("#mDlSura"); b.setAttribute("aria-pressed", "true");
+  try { const ok = await dlRange(list, (d, t) => { lbl.textContent = `تنزيل ${ar(Math.floor(d / t * 100))}٪`; });
+    if (ok) toast(`تلاوة سورة ${QURAN[s][0]} اتنزّلت بصوت ${recName()}`); }
+  catch (e) { dlFail(e); }
+  b.setAttribute("aria-pressed", "false"); mTitle(mPage);
+});
+renderADl();
 let qSize = store.get("qSize", 26);
 function applySize() { document.documentElement.style.setProperty("--quran-size", qSize + "px"); store.set("qSize", qSize); }
 $("#fPlus").addEventListener("click", () => { qSize = Math.min(40, qSize + 2); applySize(); });
