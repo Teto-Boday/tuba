@@ -175,7 +175,8 @@ html[data-theme="dark"]{--paper:#171E19;--paper-ink:#E9E5D8;--paper-edge:#2B3630
 .m-stage{position:relative;margin:0 -6px;touch-action:pan-y;-webkit-user-select:none;user-select:none;overflow:hidden}
 .m-paper{position:absolute;inset:0;background:var(--paper);color:var(--paper-ink);border:1px solid var(--paper-edge);border-radius:6px 14px 14px 6px;box-shadow:0 1px 0 var(--paper-edge),0 6px 18px rgba(0,0,0,.06);display:flex;flex-direction:column;justify-content:center;padding:6px 10px;overflow:hidden;transform-origin:right center;backface-visibility:hidden;-webkit-backface-visibility:hidden;will-change:transform}
 .m-ln{display:flex;align-items:center;justify-content:center;white-space:nowrap;line-height:1}
-.m-ln .in{display:inline-block;white-space:nowrap}
+/* حروف خط المصحف من نوع "شمال لليمين" في اليونيكود، فلازم flex عشان الكلمات تترتب من اليمين */
+.m-ln .in{display:inline-flex;direction:rtl;white-space:nowrap}
 .m-ln.full .in{display:flex;justify-content:space-between;width:100%}
 .m-w{cursor:pointer;border-radius:6px;transition:background .15s}
 .m-w.e,.m-w.q{color:var(--green)}
