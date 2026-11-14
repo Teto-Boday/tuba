@@ -182,6 +182,8 @@ html[data-theme="dark"]{--paper:#171E19;--paper-ink:#E9E5D8;--paper-edge:#2B3630
 .m-w.e,.m-w.q{color:var(--green)}
 .m-w.sel{background:var(--sel)}
 .m-w.mark{background:var(--mark)}
+.m-w.play{background:var(--sel);box-shadow:0 2px 0 var(--green)}
+#mPlay[aria-pressed="true"]{background:var(--green);color:var(--on-green);border-color:var(--green)}
 .m-hdr{color:var(--green);background:var(--mint);border:1.5px solid var(--green);border-radius:12px;margin:3px 2px;box-sizing:border-box;position:relative}
 .m-hdr::before,.m-hdr::after{content:"۞";position:absolute;top:50%;transform:translateY(-50%);font-size:18px;opacity:.7}.m-hdr::before{right:12px}.m-hdr::after{left:12px}
 .m-msg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px;color:var(--muted)}
@@ -267,11 +269,12 @@ html[data-theme="dark"]{--paper:#171E19;--paper-ink:#E9E5D8;--paper-edge:#2B3630
     <div class="m-stage" id="mStage" dir="ltr" aria-live="polite"></div>
     <div class="m-foot">
       <button class="icon-btn" id="mPrev" aria-label="الصفحة اللي قبلها"><svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-      <span class="pg num-font" id="mPageNo"></span>
+      <span style="display:flex;align-items:center;gap:10px"><button class="icon-btn" id="mPlay" aria-label="اسمع"><svg class="i" viewBox="0 0 24 24" id="mPlayIc"><path d="M8 5l11 7-11 7z"/></svg></button><span class="pg num-font" id="mPageNo"></span></span>
       <button class="icon-btn" id="mNext" aria-label="الصفحة اللي بعدها"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
     </div>
     <div class="m-act" id="mAct" hidden role="toolbar" aria-label="الآية">
       <button class="btn" id="mActMark">علامة هنا</button>
+      <button class="btn ghost" id="mActPlay">اسمع</button>
       <button class="btn ghost" id="mActCopy">انسخ الآية</button>
       <button class="btn ghost" id="mActClose" aria-label="اقفل" style="width:42px;padding:0">✕</button>
     </div>
@@ -386,12 +389,17 @@ html[data-theme="dark"]{--paper:#171E19;--paper-ink:#E9E5D8;--paper-edge:#2B3630
       </div>
     </div>
     <div class="card stack" style="gap:10px">
-      <b style="font-size:16px">حجم خط المصحف</b>
+      <b style="font-size:16px">حجم خط النص العادي</b>
       <div style="display:flex;align-items:center;gap:10px">
         <button class="icon-btn" id="sMinus" aria-label="صغّر الخط"><span style="font-size:18px;font-weight:600">أ-</span></button>
         <span class="mushaf" id="sSample" style="flex:1;text-align:center;line-height:1.8">ٱلۡحَمۡدُ لِلَّهِ</span>
         <button class="icon-btn" id="sPlus" aria-label="كبّر الخط"><span style="font-size:18px;font-weight:600">أ+</span></button>
       </div>
+    </div>
+    <div class="card stack" style="gap:10px">
+      <b style="font-size:16px">القارئ</b>
+      <span class="muted">اللي بتسمعه لما تدوس ▶ في المصحف (محتاج نت)</span>
+      <div class="chips" id="reciters" role="group" aria-label="اختار القارئ" style="flex-wrap:wrap"></div>
     </div>
     <div class="card stack" style="gap:10px">
       <b style="font-size:16px">تذكيرات</b>
@@ -735,6 +743,7 @@ function fitPage(paper) {
   const lr = store.get("lastRead", null);
   if (lr && lr.g != null) paper.querySelectorAll(`.m-w[data-a="${lr.g}"]`).forEach((w) => w.classList.add("mark"));
   if (mSel >= 0) paper.querySelectorAll(`.m-w[data-a="${mSel}"]`).forEach((w) => w.classList.add("sel"));
+  if (aG >= 0) paper.querySelectorAll(`.m-w[data-a="${aG}"]`).forEach((w) => w.classList.add("play"));
 }
 async function makePage(p) {
   const paper = buildPage(p);
@@ -753,7 +762,7 @@ async function showPage(p, mark) {
   if (mark != null) { setSel(mark); }
   [p + 1, p - 1].forEach((n) => { if (n >= 1 && n <= 604) loadMFont(MD.f[n - 1]).catch(() => {}); });
 }
-function closeMushaf() { $("#mRead").hidden = true; $("#mAct").hidden = true; $("#s-quran").classList.remove("mm"); mSel = -1; }
+function closeMushaf() { audioStop(); $("#mRead").hidden = true; $("#mAct").hidden = true; $("#s-quran").classList.remove("mm"); mSel = -1; }
 async function openMushafAt(s, a, mark) {
   $("#qList").hidden = true; $("#qRead").hidden = true; $("#mRead").hidden = false; $("#qBack").hidden = false; $("#s-quran").classList.add("mm");
   $("#qMode").hidden = false; $("#qModeTxt").textContent = "نص"; $("#qMode").setAttribute("aria-label", "اعرض النص العادي");
@@ -780,6 +789,7 @@ $("#mActMark").addEventListener("click", () => {
   document.querySelectorAll(`#mStage .m-w[data-a="${mSel}"]`).forEach((w) => w.classList.add("mark"));
   toast(`حطّينا علامة عند سورة ${QURAN[s][0]}، آية ${ar(a + 1)}`); setSel(-1);
 });
+$("#mActPlay").addEventListener("click", () => { const g = mSel; setSel(-1); audioPlay(g); });
 $("#mActCopy").addEventListener("click", async () => {
   const [s, a] = ayahOf(mSel), t = `﴿${QURAN[s][2][a]}﴾ [${QURAN[s][0]}: ${ar(a + 1)}]`;
   try { await navigator.clipboard.writeText(t); toast("اتنسخت الآية"); } catch (e) { toast("مقدرناش ننسخ"); } setSel(-1);
@@ -856,6 +866,47 @@ $("#mDlBtn").addEventListener("click", async () => {
   b.disabled = false;
 });
 renderMDl();
+
+// ---------- القرآن المسموع: آية آية من شبكة Islamic Network (مجاني لغير الأغراض التجارية) ----------
+const RECITERS = [["ar.alafasy", "مشاري العفاسي"], ["ar.husary", "محمود خليل الحصري"], ["ar.minshawi", "محمد صديق المنشاوي"], ["ar.abdulbasitmurattal", "عبد الباسط عبد الصمد"], ["ar.mahermuaiqly", "ماهر المعيقلي"]];
+const BITRATES = [128, 192, 64, 48, 32];
+let aG = -1, aOn = false; const aEl = new Audio(), aNext = new Audio(); aEl.preload = "auto"; aNext.preload = "auto";
+const reciter = () => { const r = store.get("reciter", "ar.alafasy"); return RECITERS.some((x) => x[0] === r) ? r : "ar.alafasy"; };
+const aUrl = (g, bi) => `https://cdn.islamic.network/quran/audio/${BITRATES[bi]}/${reciter()}/${g + 1}.mp3`;
+const aBr = {}; // أول bitrate اشتغل لكل قارئ
+function aSrc(el, g) { el._g = g; el._bi = aBr[reciter()] || 0; el.src = aUrl(g, el._bi); }
+aEl.addEventListener("error", () => { if (!aOn) return; if (aEl._bi < BITRATES.length - 1) { aEl._bi++; aEl.src = aUrl(aEl._g, aEl._bi); aEl.play().catch(() => {}); } else { toast("مقدرناش نشغّل التلاوة، اتأكد من النت"); audioStop(); } });
+aEl.addEventListener("playing", () => { aBr[reciter()] = aEl._bi; });
+aEl.addEventListener("ended", () => { if (!aOn) return; if (aG + 1 >= 6236) return audioStop(); audioGo(aG + 1); });
+function aMark() {
+  document.querySelectorAll("#mStage .m-w.play").forEach((w) => w.classList.remove("play"));
+  if (aG >= 0) document.querySelectorAll(`#mStage .m-w[data-a="${aG}"]`).forEach((w) => w.classList.add("play"));
+}
+async function audioGo(g) {
+  aG = g; if (aNext._g === g && aNext.src) { aEl._g = g; aEl._bi = aNext._bi; aEl.src = aNext.src; } else aSrc(aEl, g);
+  aEl.play().catch(() => { toast("دوس ▶ تاني عشان تبدأ"); audioStop(); });
+  if (g + 1 < 6236) aSrc(aNext, g + 1);
+  const [s, a] = ayahOf(g);
+  if ("mediaSession" in navigator) try { navigator.mediaSession.metadata = new MediaMetadata({ title: `سورة ${QURAN[s][0]} · آية ${ar(a + 1)}`, artist: RECITERS.find((x) => x[0] === reciter())[1], album: "طُوبَى" }); } catch (e) {}
+  if (MD && !$("#mRead").hidden && MD.ap[g] !== mPage) { const to = MD.ap[g]; if (to === mPage + 1 && !mBusy) await turn(1); else await showPage(to); }
+  aMark();
+}
+function audioPlay(g) {
+  if (!MD) return; if (g == null || g < 0) { g = MD.ap.indexOf(mPage); if (g < 0) g = 0; }
+  aOn = true; $("#mPlay").setAttribute("aria-pressed", "true"); $("#mPlay").setAttribute("aria-label", "وقّف");
+  $("#mPlayIc").innerHTML = '<path d="M8 5v14M16 5v14"/>'; audioGo(g);
+}
+function audioStop() {
+  aOn = false; try { aEl.pause(); } catch (e) {} aG = -1; aMark();
+  const b = $("#mPlay"); if (b) { b.setAttribute("aria-pressed", "false"); b.setAttribute("aria-label", "اسمع"); $("#mPlayIc").innerHTML = '<path d="M8 5l11 7-11 7z"/>'; }
+}
+$("#mPlay").addEventListener("click", () => { if (aOn) audioStop(); else audioPlay(mSel >= 0 ? mSel : null); });
+if ("mediaSession" in navigator) try { navigator.mediaSession.setActionHandler("pause", audioStop); navigator.mediaSession.setActionHandler("stop", audioStop); } catch (e) {}
+function renderReciters() {
+  $("#reciters").innerHTML = RECITERS.map(([id, n]) => `<button class="chip" data-r="${id}" aria-pressed="${id === reciter()}">${n}</button>`).join("");
+  $("#reciters").querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => { store.set("reciter", b.dataset.r); renderReciters(); if (aOn && aG >= 0) audioGo(aG); toast("القارئ: " + b.textContent); }));
+}
+renderReciters();
 let qSize = store.get("qSize", 26);
 function applySize() { document.documentElement.style.setProperty("--quran-size", qSize + "px"); store.set("qSize", qSize); }
 $("#fPlus").addEventListener("click", () => { qSize = Math.min(40, qSize + 2); applySize(); });
