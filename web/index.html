@@ -940,7 +940,7 @@ renderMDl();
 // ---------- القرآن المسموع: آية آية من شبكة Islamic Network (مجاني لغير الأغراض التجارية) ----------
 // المصحف المعلّم للحصري: الشيخ بيقرأ الآية بالتجويد ويسيب سكتة عشان تردد وراه (ملفات آية آية من EveryAyah)
 const EVERYAYAH = { "husary.muallim": "Husary_Muallim_128kbps" };
-const RECITERS = [["ar.alafasy", "مشاري العفاسي"], ["husary.muallim", "الحصري: المصحف المعلّم (اسمع وردد)"], ["ar.husary", "محمود خليل الحصري"], ["ar.minshawi", "محمد صديق المنشاوي"], ["ar.abdulbasitmurattal", "عبد الباسط عبد الصمد"], ["ar.mahermuaiqly", "ماهر المعيقلي"]];
+const RECITERS = [["ar.alafasy", "مشاري العفاسي"], ["ar.abdurrahmaansudais", "السديس"], ["husary.muallim", "الحصري: المصحف المعلّم (اسمع وردد)"], ["ar.husary", "محمود خليل الحصري"], ["ar.minshawi", "محمد صديق المنشاوي"], ["ar.abdulbasitmurattal", "عبد الباسط عبد الصمد"], ["ar.mahermuaiqly", "ماهر المعيقلي"]];
 const BITRATES = [128, 192, 64, 48, 32];
 let aG = -1, aOn = false; const aEl = new Audio(), aNext = new Audio(); aEl.preload = "auto"; aNext.preload = "auto";
 const reciter = () => { const r = store.get("reciter", "ar.alafasy"); return RECITERS.some((x) => x[0] === r) ? r : "ar.alafasy"; };
