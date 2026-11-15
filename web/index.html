@@ -455,6 +455,7 @@ html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,
   </div>
 </section>
 
+<div id="boot" style="position:fixed;inset:0 0 90px 0;display:grid;place-items:center;text-align:center;padding:24px;opacity:.75;font-size:15px;line-height:2;pointer-events:none">بيحمّل…<br>لو النت ضعيف ممكن ياخد شوية</div>
 <nav class="tabs" aria-label="التنقل الرئيسي"><div class="in">
   <button class="tab" data-tab="home"><svg class="i" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6h-6v6H4z"/></svg>الرئيسية</button>
   <button class="tab" data-tab="clips"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M10 8.5v7l5.5-3.5z"/></svg>المقاطع</button>
@@ -500,6 +501,7 @@ function ayaMark(n) { return `<span class="mark-n">﴿${ar(n)}﴾</span>`; }
 // ---------- التنقل ----------
 const TABS = ["home", "clips", "quran", "prayer", "azkar", "support", "settings"];
 function go(tab) {
+  { const bt = document.getElementById("boot"); if (bt) bt.remove(); }
   if (!TABS.includes(tab)) tab = "home";
   if (tab === "settings" && typeof renderADl === "function") setTimeout(renderADl, 0);
   TABS.forEach((t) => {

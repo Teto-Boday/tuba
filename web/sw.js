@@ -31,9 +31,16 @@ self.addEventListener("fetch", (e) => {
     })));
     return;
   }
-  // ملفات التطبيق: من النت الأول عشان التعديلات توصل على طول، ولو مفيش نت من الكاش
-  e.respondWith(fetch(e.request, { cache: "no-cache" }).then((res) => {
-    if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); }
+  // ملفات التطبيق: من النت الأول عشان التعديلات توصل على طول. ولو النت فاصل أو بطيء (أكتر من ٢٫٥ ثانية) نفتح من الكاش، والنسخة الجديدة تتحفظ في الخلفية للمرة الجاية
+  const fromCache = () => caches.match(e.request, { ignoreSearch: true }).then((hit) => hit || caches.match("index.html"));
+  const net = fetch(e.request, { cache: "no-cache" }).then((res) => {
+    if (res && res.ok) { const copy = res.clone(); return caches.open(CACHE).then((c) => c.put(e.request, copy)).then(() => res); }
     return res;
-  }).catch(() => caches.match(e.request, { ignoreSearch: true }).then((hit) => hit || caches.match("index.html"))));
+  });
+  e.waitUntil(net.catch(() => {}));
+  e.respondWith(new Promise((done) => {
+    let settled = false; const finish = (r) => { if (!settled && r) { settled = true; done(r); } };
+    const timer = setTimeout(() => fromCache().then(finish), 2500);
+    net.then((res) => { clearTimeout(timer); finish(res); }, () => { clearTimeout(timer); fromCache().then((r) => finish(r || Response.error())); });
+  }));
 });
