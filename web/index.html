@@ -286,6 +286,7 @@ html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,
       <span class="grow"><span id="mDlTxt" style="font-weight:600">نزّل المصحف عشان يشتغل من غير نت</span><span class="small" id="mDlSub" style="display:block">مرة واحدة بس، حوالي ٣٧ ميجا</span><span class="bar" id="mDlBar" hidden><i></i></span></span>
       <button class="btn" id="mDlBtn" style="height:42px;padding:0 16px;font-size:14px">نزّل</button>
     </div>
+    <button class="row" id="qFontBtn" style="margin-bottom:12px"><span class="num" aria-hidden="true" style="font-family:'Amiri',serif;font-size:20px">ق</span><span class="grow"><b>شكل المصحف والخط</b><span class="small" id="qFontTxt" style="display:block"></span></span></button>
     <button class="row" id="lastRead" hidden style="margin-bottom:12px;background:var(--mint);border-color:var(--green)">
       <span class="num" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M6 4h12v16l-6-4-6 4z"/></svg></span>
       <span class="grow"><span class="small">كمّل من آخر مكان</span><span id="lastReadTxt" style="font-weight:600"></span></span>
@@ -728,6 +729,7 @@ function applyQFont() {
   const f = QFONTS.find((x) => x[0] === qFontNow()) || QFONTS[0];
   document.documentElement.style.setProperty("--quran-font", f[3] || "'Tuba Quran'");
   const t = $("#fontRowTxt"); if (t) t.textContent = f[1];
+  const q = $("#qFontTxt"); if (q) q.textContent = store.get("qFont", null) ? f[1] : "اختار الشكل اللي يريّحك";
 }
 function fontPickOpen(then) {
   const now = qFontNow(), sample = QURAN[0][2][1];
@@ -1149,6 +1151,7 @@ $("#fMinus").addEventListener("click", () => { qSize = Math.max(18, qSize - 2); 
 applySize();
 applyQFont();
 $("#fontRow").addEventListener("click", () => fontPickOpen(null));
+$("#qFontBtn").addEventListener("click", () => fontPickOpen(null));
 
 // ---------- الصلاة ----------
 const PNAMES = { fajr: "الفجر", sunrise: "الشروق", dhuhr: "الظهر", asr: "العصر", maghrib: "المغرب", isha: "العشاء" };
@@ -1695,7 +1698,8 @@ $("#fbSend").addEventListener("click", async () => {
 })();
 
 // ---------- شرح كل صفحة (إجباري أول مرة لكل صفحة) ----------
-const PG_VERS = { home: 5, settings: 3 }; // زوّد رقم الصفحة لما شرحها يتغير عشان يظهر تاني
+const PG_VERS = { home: 5, settings: 3, quran: 3 }; // زوّد رقم الصفحة لما شرحها يتغير عشان يظهر تاني
+// الخطوة اللي في آخرها رقم (since) جديدة من النسخة دي: اللي شاف الشرح قبل كده بيشوف الجديد بس، واللي أول مرة يشوف الكل
 const pgVer = (t) => PG_VERS[t] || 2;
 const PAGE_TOUR = {
   home: [
@@ -1712,6 +1716,7 @@ const PAGE_TOUR = {
   quran: [
     ["#qList", "اختار السورة", "اضغط على أي سورة عشان تقراها أو تسمعها."],
     ["#qSearch", "دوّر", "تقدر تدوّر بالاسم أو برقم السورة."],
+    ["#qFontBtn", "شكل المصحف 🆕", "اختار بين صفحات المصحف، أو نص بخط من ٣ خطوط. لو الخط مش مريّحك غيّره من هنا في أي وقت.", null, 3],
   ],
   prayer: [
     ["#ptimes", "مواقيت اليوم", "مواقيت الصلاة في مكانك، ومعاها العدّ التنازلي للصلاة الجاية."],
@@ -1736,7 +1741,8 @@ function spotAuto(tab) {
   setTimeout(() => spotStart(tab), 450);
 }
 function spotStart(tab) {
-  spotSteps = PAGE_TOUR[tab].filter((st) => !st[3] || st[3]()).map(([s, t, x]) => ({ el: document.querySelector(`#s-${tab} ${s}`) || document.querySelector(s), t, x }))
+  const seen = store.get("pg_" + tab, 0);
+  spotSteps = PAGE_TOUR[tab].filter((st) => (!st[3] || st[3]()) && (!seen || (st[4] || 0) > seen)).map(([s, t, x]) => ({ el: document.querySelector(`#s-${tab} ${s}`) || document.querySelector(s), t, x }))
     .filter((st) => st.el && st.el.offsetParent !== null);
   if (!spotSteps.length) { store.set("pg_" + tab, pgVer(tab)); return; }
   spotPage = tab; spotI = 0; $("#spot").hidden = false; spotShow(0);
