@@ -518,6 +518,17 @@ html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,
 <script src="config.js"></script>
 <script src="azkar.js"></script>
 <div class="updbar" id="updBar" role="status" hidden><span>فيه تحديث جديد لطُوبَى</span><button class="btn" id="updGo">حدّث</button></div>
+<div class="fpick rpick" id="ntfAsk" role="dialog" aria-modal="true" aria-labelledby="ntfAskT" hidden>
+  <div class="rsheet" style="text-align:center">
+    <div style="font-size:44px;line-height:1">🔔</div>
+    <h2 id="ntfAskT" style="margin:0">عايز الأذان يوصلك والتطبيق مقفول؟</h2>
+    <p class="muted" style="margin:0">الموبايل مش بيسمح لطُوبَى يبعت تنبيهات وهو مقفول، فبنستخدم تطبيق مجاني صغير اسمه <b>ntfy</b>. بتظبّطه مرة واحدة بس في دقيقة.</p>
+    <button class="btn" id="ntfAskGo">ظبّطها دلوقتي</button>
+    <button class="btn ghost" id="ntfAskLater">بعدين</button>
+    <button class="btn ghost" id="ntfAskNonos">Nono's World بيأذّنلي</button>
+    <button class="btn ghost" id="ntfAskNo" style="border:0">مش عايز تنبيهات</button>
+  </div>
+</div>
 <div class="fpick" id="fontPick" role="dialog" aria-modal="true" aria-labelledby="fontPickT" hidden>
   <h2 id="fontPickT">اختار شكل المصحف اللي يريّحك</h2>
   <span class="muted">تقدر تغيّره في أي وقت من الإعدادات.</span>
@@ -1328,15 +1339,21 @@ async function scheduleDesktop() {
   }
 }
 if (DESKTOP) setInterval(scheduleDesktop, 6 * 36e5);
-// ---------- الآيفون: الأذان عن طريق تطبيق ntfy ----------
+// ---------- الآيفون والأندرويد (من المتصفح): الأذان عن طريق تطبيق ntfy المجاني ----------
+// نسخة الأندرويد المتنزّلة (APK) بتأذّن لوحدها، فدي للي فاتح طُوبَى من المتصفح أو من الشاشة الرئيسية
 const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
-const NTFY_APP = "https://apps.apple.com/app/ntfy/id1625396347";
+const ANDROID = /Android/i.test(navigator.userAgent);
+const NTFY_APP = IOS ? "https://apps.apple.com/app/ntfy/id1625396347" : "https://play.google.com/store/apps/details?id=io.heckel.ntfy";
+const ntfyPhone = () => (IOS || ANDROID) && !LN();
 function ntfyTopic() {
   let t = store.get("ntfyTopic", "");
   if (!t) { const a = "abcdefghijkmnpqrstuvwxyz23456789"; t = "tuba-"; for (let i = 0; i < 14; i++) t += a[Math.floor(Math.random() * a.length)]; store.set("ntfyTopic", t); }
   return t;
 }
-const ntfyActive = () => IOS && !LN() && store.get("ntfyOk", false) && !store.get("nonosHandles", false);
+// لو Nono's World بيبعت الأذان على نفس الموبايل (بنعرف ده لما الاتنين مفتوحين من نفس المتصفح)، طُوبَى يسكت عشان الأذان ميجيش مرتين
+const nonosPushing = () => { try { return +localStorage.getItem("nw-ntfy-h2") > Date.now(); } catch (e) { return false; } };
+if (nonosPushing()) store.set("nonosHandles", true);
+const ntfyActive = () => ntfyPhone() && store.get("ntfyOk", false) && !store.get("nonosHandles", false);
 function ntfyPost(title, body, atMs) {
   const q = `title=${encodeURIComponent(title)}` + (atMs ? `&delay=${Math.floor(atMs / 1000)}` : "");
   return fetch(`https://ntfy.sh/${ntfyTopic()}?${q}`, { method: "POST", body: String(body || "").slice(0, 400) });
@@ -1370,14 +1387,15 @@ function renderNtfy() {
     return;
   }
   if (!store.get("ntfyOk", false)) {
-    $("#notifTxt").textContent = "على الآيفون، الأذان بيوصلك عن طريق تطبيق مجاني اسمه ntfy. ظبّطه مرة واحدة بس:";
+    $("#notifTxt").textContent = `عشان الأذان يوصلك والتطبيق مقفول، محتاج تطبيق مجاني اسمه ntfy. ظبّطه مرة واحدة بس:`;
     box.innerHTML = `<ol class="muted" style="margin:0;padding-inline-start:20px;line-height:1.9;font-size:14px">
-        <li>نزّل تطبيق <b>ntfy</b> من الآب ستور وافتحه، ووافق على الإشعارات.</li>
-        <li>دوس <b>+</b>، واكتب الاسم ده بالظبط، ودوس <b>Subscribe</b>:</li></ol>
+        <li>نزّل تطبيق <b>ntfy</b> من ${IOS ? "الآب ستور" : "جوجل بلاي"} وافتحه، ووافق على الإشعارات.</li>
+        <li>دوس <b>+</b> ${IOS ? "اللي فوق" : "اللي تحت"}، والزق الاسم ده في <b>Topic</b>، ودوس <b>Subscribe</b>:</li></ol>
       <div style="display:flex;align-items:center;gap:8px"><b dir="ltr" style="flex:1;text-align:center;background:var(--mint);color:var(--green);border-radius:14px;padding:10px;font-size:15px;user-select:all">${topic}</b><button class="btn ghost" id="nfCopy" style="height:44px;padding:0 14px">انسخ</button></div>
       <a class="btn ghost" href="${NTFY_APP}" target="_blank" rel="noopener">نزّل ntfy</a>
       <button class="btn" id="nfDone">خلّصت، ابعتلي تنبيه تجربة</button>
-      <button class="btn ghost" id="nfNonos">Nono's World بيأذّنلي، مش محتاج</button>`;
+      <button class="btn ghost" id="nfNonos">Nono's World بيأذّنلي، مش محتاج</button>
+      ${ANDROID ? `<a class="btn ghost" href="../#download">أو نزّل نسخة الأندرويد</a>` : ""}`;
     $("#nfCopy").onclick = async () => { try { await navigator.clipboard.writeText(topic); toast("اتنسخ"); } catch (e) { toast(topic); } };
     $("#nfNonos").onclick = () => { store.set("nonosHandles", true); renderNtfy(); };
     $("#nfDone").onclick = async () => {
@@ -1397,8 +1415,20 @@ function renderNtfy() {
   $("#nfReset").onclick = () => { store.set("ntfyOk", false); renderNtfy(); };
 }
 
+// أول ما حد يفتح طُوبَى من الموبايل ومش مظبّط التنبيهات، نسأله مرة (ولو قال بعدين نسأله بعد يومين)
+function ntfyAsk() {
+  if (!ntfyPhone() || store.get("ntfyOk", false) || store.get("nonosHandles", false) || store.get("ntfyNever", false) || Date.now() < +store.get("ntfyAskAt", 0)) return;
+  if (!$("#spot").hidden || !$("#fontPick").hidden || !$("#recPick").hidden) { setTimeout(ntfyAsk, 8000); return; } // منقاطعش شرح أو اختيار مفتوح
+  $("#ntfAsk").hidden = false;
+}
+$("#ntfAskGo").addEventListener("click", () => { $("#ntfAsk").hidden = true; store.set("ntfyAskAt", Date.now() + 2 * 864e5); go("prayer"); setTimeout(() => $("#notifCard").scrollIntoView({ block: "center", behavior: "smooth" }), 350); });
+$("#ntfAskLater").addEventListener("click", () => { $("#ntfAsk").hidden = true; store.set("ntfyAskAt", Date.now() + 2 * 864e5); });
+$("#ntfAskNonos").addEventListener("click", () => { $("#ntfAsk").hidden = true; store.set("nonosHandles", true); renderNotif(); toast("تمام، Nono's World هو اللي هيأذّن"); });
+$("#ntfAskNo").addEventListener("click", () => { $("#ntfAsk").hidden = true; store.set("ntfyNever", true); });
+setTimeout(ntfyAsk, 7000);
+
 async function renderNotif() {
-  if (IOS && !LN()) { renderNtfy(); return; }
+  if (ntfyPhone()) { renderNtfy(); return; }
   const ln = LN(); const on = store.get("adhanOn", true);
   if ((ln || DESKTOP) && await nonosNotifies()) {
     $("#notifToggle").hidden = true; $("#exactBtn").hidden = true; $("#getApk").hidden = true;
@@ -1822,7 +1852,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261116125331";
+const BUILD = "20261116145351";
 let updLast = 0;
 async function checkUpdate() {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
