@@ -36,8 +36,10 @@ html[data-theme="dark"]{
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 /* no-copy: the app's text can't be selected or copied, except Quran verses and hadiths (and anything you type) */
-html{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-input,textarea,[contenteditable],.copyable,.mushaf,.basmala,.ayah-day{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+/* no copying anywhere except the Quran text, hadith and text boxes; and no zoom on a double tap (pinching to zoom still works) */
+*{touch-action:manipulation} /* on every element so iPhone respects it; anything with its own touch-action (page swipe, games) keeps it */
+*,*::before,*::after{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,[contenteditable],.copyable,.copyable *,.mushaf,.mushaf *,.basmala,.basmala *,.ayah-day,.ayah-day *{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 img,svg{-webkit-user-drag:none}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:'Readex Pro',system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 button{font-family:inherit;color:inherit}
@@ -1605,7 +1607,7 @@ $("#sMinus").addEventListener("click", () => { qSize = Math.max(18, qSize - 2); 
   const SEL = "input,textarea,[contenteditable],.copyable,.mushaf,.basmala,.ayah-day";
   const inOk = (n) => { while (n && n.nodeType !== 1) n = n.parentNode; return !!(n && n.closest && n.closest(SEL)); };
   const ok = (e) => { if (e.type === "copy" || e.type === "cut") { const s = getSelection(); return inOk(e.target) || (s && s.rangeCount > 0 && inOk(s.anchorNode) && inOk(s.focusNode)); } return inOk(e.target); };
-  ["copy", "cut", "contextmenu", "dragstart"].forEach((ev) => document.addEventListener(ev, (e) => { if (!ok(e)) e.preventDefault(); }));
+  ["copy", "cut", "contextmenu", "dragstart", "selectstart"].forEach((ev) => document.addEventListener(ev, (e) => { if (!ok(e)) e.preventDefault(); }));
 })();
 
 // ---------- الشرح التعليمي (أول مرة تفتح التطبيق) ----------
