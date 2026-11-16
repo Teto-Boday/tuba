@@ -781,7 +781,7 @@ function openSurahText(i, markAya, keepAudio) {
   $("#rText").innerHTML = s[2].map((t, a) => `<span class="aya" data-a="${a}" tabindex="0">${esc(t)}</span> ${ayaMark(a + 1)} `).join("");
   $("#rText").querySelectorAll(".aya").forEach((el) => {
     const mark = () => {
-      store.set("lastRead", { s: i, a: +el.dataset.a, g: MBASE[i] + +el.dataset.a });
+      store.set("lastRead", { s: i, a: +el.dataset.a, g: MBASE[i] + +el.dataset.a }); aResume = -1;
       $("#rText").querySelectorAll(".aya.mark").forEach((x) => x.classList.remove("mark"));
       el.classList.add("mark"); toast(`حطّينا علامة عند آية ${ar(+el.dataset.a + 1)}`);
     };
@@ -897,7 +897,7 @@ async function openMushafAt(s, a, mark) {
 function openMushafPage(p) { openMushafAt(0, 0, false).then(() => showPage(p)); }
 // اختيار آية: علامة أو نسخ
 function setSel(g) {
-  mSel = g; document.querySelectorAll("#mStage .m-w.sel").forEach((w) => w.classList.remove("sel"));
+  mSel = g; aResume = -1; document.querySelectorAll("#mStage .m-w.sel").forEach((w) => w.classList.remove("sel"));
   if (g < 0) { $("#mAct").hidden = true; return; }
   document.querySelectorAll(`#mStage .m-w[data-a="${g}"]`).forEach((w) => w.classList.add("sel"));
   $("#mAct").hidden = false;
@@ -1055,7 +1055,7 @@ const AUDIO_CACHE = "tuba-audio";
 const aKey = (rec, g) => `https://cdn.islamic.network/quran/audio/saved/${rec}/${g + 1}.mp3`;
 let aBlobs = {};
 async function aSrc(el, g) {
-  el._g = g; el._bi = aBr[reciter()] || 0; el._saved = false;
+  el._g = g; el._rec = reciter(); // عشان لو القارئ اتغيّر، الآية اللي متحضّرة بالصوت القديم متتشغلش el._bi = aBr[reciter()] || 0; el._saved = false;
   try { const c = await caches.open(AUDIO_CACHE), rec = reciter();
     for (let bi = 0; bi < nBr(rec); bi++) { const u0 = srcUrl(rec, g, bi), hit = await c.match(u0);
       if (!hit) continue; el._saved = true; el._bi = bi;
@@ -1090,7 +1090,7 @@ function aMark() {
   if (el){ el.classList.add("play"); const r = el.getBoundingClientRect(); if (r.top < 90 || r.bottom > innerHeight - 170) el.scrollIntoView({ block: "center", behavior: "smooth" }); }
 }
 async function audioGo(g) {
-  aG = g; aRepDone = 0; if (aNext._g === g && aNext.src) { aEl._g = g; aEl._bi = aNext._bi; aEl._saved = aNext._saved; if (aEl._blob && aEl._blob !== aNext._blob) URL.revokeObjectURL(aEl._blob); aEl._blob = aNext._blob; aNext._blob = null; aEl.src = aNext.src; } else await aSrc(aEl, g);
+  aG = g; aRepDone = 0; if (aNext._g === g && aNext.src && aNext._rec === reciter()) { aEl._g = g; aEl._bi = aNext._bi; aEl._saved = aNext._saved; if (aEl._blob && aEl._blob !== aNext._blob) URL.revokeObjectURL(aEl._blob); aEl._blob = aNext._blob; aNext._blob = null; aEl.src = aNext.src; } else await aSrc(aEl, g);
   aEl.play().catch(() => { toast("دوس ▶ تاني عشان تبدأ"); audioStop(); });
   if (g + 1 < 6236) aSrc(aNext, g + 1);
   const [s, a] = ayahOf(g);
@@ -1101,13 +1101,16 @@ async function audioGo(g) {
 }
 function audioPlay(g) {
   if (g == null || g < 0) {
-    if (!$("#qRead").hidden) { const m = $("#rText .aya.mark"); g = MBASE[curSurah] + (m ? +m.dataset.a : 0); } // من العلامة، أو من أول السورة
-    else if (MD) { g = MD.ap.indexOf(mPage); if (g < 0) g = 0; } else return;
+    // يكمّل من المكان اللي وقف عنده، ولو مفيش فمن العلامة، ولو مفيش فمن أول السورة أو الصفحة
+    if (!$("#qRead").hidden) { const m = $("#rText .aya.mark"); g = aResume >= 0 && ayahOf(aResume)[0] === curSurah ? aResume : MBASE[curSurah] + (m ? +m.dataset.a : 0); }
+    else if (MD) { g = aResume >= 0 && MD.ap[aResume] === mPage ? aResume : MD.ap.indexOf(mPage); if (g < 0) g = 0; } else return;
   }
   aOn = true; $("#mPlay").setAttribute("aria-pressed", "true"); $("#mPlay").setAttribute("aria-label", "وقّف");
   $("#mPlayIc").innerHTML = '<path d="M8 5v14M16 5v14"/>'; audioGo(g);
 }
+let aResume = -1; // آخر آية كانت بتتقري لما وقفت، عشان ▶ يكمّل منها
 function audioStop() {
+  if (aG >= 0) aResume = aG;
   aOn = false; try { aEl.pause(); } catch (e) {} aG = -1; aMark();
   const b = $("#mPlay"); if (b) { b.setAttribute("aria-pressed", "false"); b.setAttribute("aria-label", "اسمع"); $("#mPlayIc").innerHTML = '<path d="M8 5l11 7-11 7z"/>'; }
 }
@@ -1118,7 +1121,7 @@ function renderRecPick() {
   $("#recList").innerHTML = RECITERS.map(([id, n]) => `<button class="row" data-r="${id}" aria-pressed="${id === reciter()}" style="${id === reciter() ? "border-color:var(--green);background:var(--mint)" : ""}"><span class="grow"><b>${n}</b></span>${id === reciter() ? "✓" : ""}</button>`).join("");
   $("#recList").querySelectorAll("[data-r]").forEach((b) => b.addEventListener("click", () => { pickReciter(b.dataset.r); $("#recPick").hidden = true; }));
 }
-function pickReciter(id) { store.set("reciter", id); renderReciters(); renderADl(); renderRep(); renderRecPick(); if (aOn && aG >= 0) audioGo(aG); toast("القارئ: " + recName()); }
+function pickReciter(id) { store.set("reciter", id); aNext._g = -1; renderReciters(); renderADl(); renderRep(); renderRecPick(); if (aOn && aG >= 0) audioGo(aG); toast("القارئ: " + recName()); }
 $("#qRec").addEventListener("click", () => { renderRecPick(); $("#recPick").hidden = false; });
 $("#recClose").addEventListener("click", () => { $("#recPick").hidden = true; });
 $("#recPick").addEventListener("click", (e) => { if (e.target.id === "recPick") $("#recPick").hidden = true; });
@@ -1819,7 +1822,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261116124717";
+const BUILD = "20261116125331";
 let updLast = 0;
 async function checkUpdate() {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
