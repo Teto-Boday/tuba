@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#F7F4EC">
 <title>طُوبَى</title>
 <script>(function(){try{var t=JSON.parse(localStorage.getItem("tuba:theme")||'"auto"');var d=t==="dark"||(t==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
@@ -168,6 +168,9 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .spot-ring{position:fixed;border-radius:20px;border:2px solid var(--mint);box-shadow:0 0 0 9999px rgba(10,20,15,.74);transition:all .25s ease;pointer-events:none}
 .spot-card{position:fixed;left:12px;right:12px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:10px;text-align:right;box-shadow:0 10px 30px rgba(0,0,0,.25)}
 .spot-card h3{margin:0;font-size:18px}
+.updbar{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:55;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--green);color:var(--on-green);border-radius:20px;padding:10px 10px 10px 16px;box-shadow:0 8px 24px rgba(0,0,0,.25);font-weight:600}
+.updbar[hidden]{display:none}
+.updbar .btn{background:var(--on-green);color:var(--green);height:40px;padding:0 18px;font-size:15px}
 /* شريط التشغيل تحت القراية: القارئ + ردد + تشغيل، ثابت فوق شريط التنقل */
 .qplayer{position:sticky;bottom:calc(78px + env(safe-area-inset-bottom));z-index:5;margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:8px 8px 8px 10px;box-shadow:0 6px 20px rgba(0,0,0,.12)}
 #qList:not([hidden]) ~ .qplayer{display:none}
@@ -514,6 +517,7 @@ html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,
 </script>
 <script src="config.js"></script>
 <script src="azkar.js"></script>
+<div class="updbar" id="updBar" role="status" hidden><span>فيه تحديث جديد لطُوبَى</span><button class="btn" id="updGo">حدّث</button></div>
 <div class="fpick" id="fontPick" role="dialog" aria-modal="true" aria-labelledby="fontPickT" hidden>
   <h2 id="fontPickT">اختار شكل المصحف اللي يريّحك</h2>
   <span class="muted">تقدر تغيّره في أي وقت من الإعدادات.</span>
@@ -1812,6 +1816,29 @@ $("#tour").addEventListener("keydown", (e) => { if ($("#tourNext").disabled) ret
 let tsX = null; // السحب يمين وشمال بين الخطوات
 $("#tour").addEventListener("touchstart", (e) => { tsX = e.touches[0].clientX; }, { passive: true });
 $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const dx = e.changedTouches[0].clientX - tsX; tsX = null; if (!$("#tourNext").disabled && dx > 60 && tourI < TOUR.length - 1) tourShow(tourI + 1); else if (dx < -60 && tourI) tourShow(tourI - 1); }, { passive: true });
+
+// ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
+// الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
+const BUILD = "20261116124717";
+let updLast = 0;
+async function checkUpdate() {
+  if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
+  try {
+    const v = (await (await fetch("version.txt?t=" + Date.now(), { cache: "no-store" })).text()).trim();
+    if (!/^\d{14}$/.test(v) || v <= BUILD) return;
+    const res = await fetch("index.html?t=" + Date.now(), { cache: "no-store" }); if (!res.ok) return;
+    const body = await res.text(); if (!body.includes(`const BUILD = "${v}"`)) return;
+    const names = await caches.keys(), name = names.find((n) => n.startsWith("tuba-") && n !== "tuba-mushaf" && n !== "tuba-audio") || "tuba-__BUILD__", c = await caches.open(name);
+    const here = location.href.split("#")[0].split("?")[0], mk = () => new Response(body, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+    await c.put(here, mk()); await c.put(new URL("index.html", here).href, mk());
+    $("#updBar").hidden = false;
+  } catch (e) {}
+}
+$("#updGo").addEventListener("click", () => location.reload());
+setTimeout(checkUpdate, 4000);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkUpdate(); });
+// iPhone بيكبّر بصباعين حتى مع منع الزووم في الصفحة، فبنوقف الحركة دي (حجم الخط بيتغيّر من أ+ و أ-)
+["gesturestart", "gesturechange"].forEach((ev) => document.addEventListener(ev, (e) => e.preventDefault(), { passive: false }));
 
 // ---------- البداية ----------
 renderClips(); renderSurahList(""); renderPrayer(); tick.ready = true;
