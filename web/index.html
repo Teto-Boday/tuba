@@ -93,15 +93,6 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .reel .meta{position:absolute;bottom:0;right:0;left:64px;padding:16px 16px 18px;display:flex;flex-direction:column;gap:6px;pointer-events:none;background:linear-gradient(transparent,#111813dd)}
 .reel .meta b{font-size:16px}
 .reel .badge{background:rgba(228,238,231,.9)}
-.reel.pause{background:#111813;align-items:center}
-.pz{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:24px 22px;width:100%;max-width:440px;max-height:100%;overflow:auto}
-.pz textarea{width:100%;border-radius:16px;border:1px solid #3a4a40;background:#1b261f;color:#F7F4EC;font:inherit;font-size:16px;padding:12px;resize:none}
-.pz .btn.ghost{background:transparent;color:#F7F4EC;border-color:#3a4a40}
-.pz-z{font-family:'Amiri',serif;font-size:20px;color:#A9D6BE;padding:8px 0}
-.pz-link{border:0;background:none;color:#A9D6BE;font:inherit;text-decoration:underline;cursor:pointer}
-#pzNotes{width:100%;display:flex;flex-direction:column;gap:8px;text-align:start}
-.pz-n{background:#1b261f;border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
-.pz-n small{color:#8fa096}
 .reel .side{position:absolute;left:10px;bottom:24px;display:flex;flex-direction:column;gap:14px;z-index:2}
 .reel .side a,.reel .side button{width:48px;height:48px;border-radius:24px;border:0;background:rgba(255,255,255,.14);color:#F7F4EC;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none}
 .reel .side svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
@@ -388,9 +379,6 @@ html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,
   </div>
 </section>
 
-<div class="fpick rpick" id="shPick" role="dialog" aria-modal="true" aria-labelledby="shPickT" hidden>
-  <div class="rsheet"><h2 id="shPickT">اختار الشيخ</h2><span class="muted">هتشوف مقاطعه هو بس.</span><div id="shList" class="stack" style="gap:8px;max-height:60vh;overflow:auto"></div><button class="btn ghost" id="shClose" style="margin-top:4px">اقفل</button></div>
-</div>
 <!-- ===== الصلاة ===== -->
 <section class="screen" id="s-prayer" aria-label="مواقيت الصلاة">
   <header class="top">
@@ -680,80 +668,11 @@ window.addEventListener("message", (e) => {
     }
   }
 });
-// ---------- اختيار شيخ معيّن في المقاطع ----------
-function shPickOpen() {
-  const cnt = {}; CLIPS.forEach((c) => { if (c.sheikh) cnt[c.sheikh] = (cnt[c.sheikh] || 0) + 1; });
-  const cur = clipTopic.startsWith("شيخ:") ? clipTopic.slice(4) : "";
-  $("#shList").innerHTML = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]).map((n) => `<button class="row" data-sh="${esc(n)}" aria-pressed="${n === cur}" style="${n === cur ? "border-color:var(--green);background:var(--mint)" : ""}"><span class="grow"><b>${esc(n)}</b></span><span class="small">${ar(cnt[n])} ${cnt[n] >= 3 && cnt[n] <= 10 ? "مقاطع" : "مقطع"}</span></button>`).join("");
-  $("#shList").querySelectorAll("[data-sh]").forEach((b) => b.addEventListener("click", () => { clipTopic = "شيخ:" + b.dataset.sh; clipShown = PAGE; $("#shPick").hidden = true; renderClips(); $("#feed").scrollTop = 0; }));
-  $("#shPick").hidden = false;
-}
-$("#shClose").addEventListener("click", () => { $("#shPick").hidden = true; });
-$("#shPick").addEventListener("click", (e) => { if (e.target.id === "shPick") $("#shPick").hidden = true; });
-// ---------- وقفة كل ١٠ مقاطع ----------
-const PAGE = 10; let clipShown = PAGE;
-const PAUSE_ZIKR = [
-  "سبحان الله وبحمده، سبحان الله العظيم",
-  "لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير",
-  "أستغفر الله العظيم وأتوب إليه",
-  "اللهم صلِّ وسلم على نبينا محمد",
-  "لا حول ولا قوة إلا بالله",
-  "الحمد لله رب العالمين",
-  "سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر",
-  "حسبي الله لا إله إلا هو، عليه توكلت وهو رب العرش العظيم",
-  "رضيت بالله ربًّا، وبالإسلام دينًا، وبمحمد ﷺ نبيًّا",
-  "اللهم إنك عفوٌّ تحب العفو فاعفُ عني",
-  "يا مقلّب القلوب ثبّت قلبي على دينك",
-  "ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار",
-  "لا إله إلا أنت سبحانك إني كنت من الظالمين",
-  "سبحان الله وبحمده، عدد خلقه، ورضا نفسه، وزنة عرشه، ومداد كلماته",
-  "اللهم أعنّي على ذكرك وشكرك وحسن عبادتك",
-  "ربِّ اغفر لي وتب عليّ إنك أنت التواب الرحيم",
-  "اللهم إني أسألك الهدى والتقى والعفاف والغنى",
-  "اللهم آتِ نفسي تقواها، وزكّها أنت خير من زكّاها",
-  "ربِّ زدني علمًا",
-  "اللهم اغفر لي ولوالديّ وللمؤمنين والمؤمنات",
-];
-function pauseCard() {
-  const notes = store.get("learned", []), z = PAUSE_ZIKR[(clipShown / PAGE - 1 + LAUNCH_SALT) % PAUSE_ZIKR.length];
-  return `<article class="reel pause" aria-label="وقفة">
-    <div class="pz">
-      <span style="font-size:40px" aria-hidden="true">🌿</span>
-      <b style="font-size:22px">خلّصت ${ar(clipShown)} ${clipShown <= 10 ? "مقاطع" : "مقطع"}</b>
-      <span style="color:#C9D4CD;line-height:1.8">وقفة صغيرة قبل ما تكمّل: إيه أكتر حاجة استفدتها من اللي شفته؟</span>
-      <textarea id="pzNote" rows="3" maxlength="300" placeholder="اكتب فايدة واحدة… (اختياري)"></textarea>
-      <button class="btn ghost" id="pzSave" type="button">احفظ الفايدة</button>
-      <div class="pz-z copyable">${z}</div>
-      <div style="display:flex;gap:10px;width:100%"><button class="btn" id="pzMore" type="button" style="flex:1">كمّل ${ar(PAGE)} كمان</button><button class="btn ghost" id="pzStop" type="button" style="flex:1">كفاية كده</button></div>
-      ${notes.length ? `<button class="pz-link" id="pzList" type="button" aria-expanded="false">فوايدك اللي كتبتها (${ar(notes.length)})</button><div id="pzNotes" hidden></div>` : ""}
-    </div>
-  </article>`;
-}
-function pauseWire() {
-  const card = $("#feed").querySelector(".reel.pause"); if (!card) return;
-  const notesHtml = () => store.get("learned", []).slice().reverse().map((n) => `<div class="pz-n"><span class="copyable">${esc(n.t)}</span><small>${esc(n.d)}</small></div>`).join("");
-  $("#pzSave").onclick = () => {
-    const t = $("#pzNote").value.trim(); if (!t) { toast("اكتب الفايدة الأول"); return; }
-    const l = store.get("learned", []); l.push({ t, d: todayKey() }); store.set("learned", l.slice(-200)); $("#pzNote").value = ""; toast("اتحفظت، ربنا ينفعك بيها 🤍");
-    if ($("#pzNotes")) { $("#pzNotes").innerHTML = notesHtml(); $("#pzList").textContent = `فوايدك اللي كتبتها (${ar(l.length)})`; }
-  };
-  if ($("#pzList")) $("#pzList").onclick = () => { const box = $("#pzNotes"), open = box.hidden; box.innerHTML = notesHtml(); box.hidden = !open; $("#pzList").setAttribute("aria-expanded", String(open)); };
-  $("#pzStop").onclick = () => { toast("بارك الله فيك 🌿"); go("home"); };
-  $("#pzMore").onclick = () => {
-    const at = [...$("#feed").querySelectorAll(".reel")].indexOf(card);
-    clipShown += PAGE; renderClips();
-    const f = $("#feed"); f.scrollTop = at * f.clientHeight;
-  };
-}
 function renderClips() {
-  if (!["لك", "التلاوات", "المحفوظة"].includes(clipTopic) && !clipTopic.startsWith("شيخ:")) clipTopic = "لك";
-  const shSel = clipTopic.startsWith("شيخ:") ? clipTopic.slice(4) : "";
-  const topics = [["لك", "لك"], ["التلاوات", "التلاوات"], ["المشايخ", shSel ? `${shSel} ▾` : "المشايخ ▾"], ["المحفوظة", "المحفوظة"]];
-  $("#clipTopics").innerHTML = topics.map(([t, label]) => `<button class="chip" aria-pressed="${t === clipTopic || (t === "المشايخ" && !!shSel)}" data-t="${esc(t)}"${t === "المشايخ" ? ' aria-haspopup="dialog"' : ""}>${esc(label)}</button>`).join("");
-  $("#clipTopics").querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => {
-    if (b.dataset.t === "المشايخ") { shPickOpen(); return; }
-    clipTopic = b.dataset.t; clipShown = PAGE; renderClips(); $("#feed").scrollTop = 0;
-  }));
+  if (clipTopic !== "المحفوظة") clipTopic = "لك";
+  const topics = ["لك", "المحفوظة"];
+  $("#clipTopics").innerHTML = topics.map((t) => `<button class="chip" aria-pressed="${t === clipTopic}" data-t="${esc(t)}">${esc(t)}</button>`).join("");
+  $("#clipTopics").querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => { clipTopic = b.dataset.t; renderClips(); }));
   $("#clipsTeaser").textContent = CLIPS.length ? `${ar(CLIPS.length)} مقطع قصير مستنيك` : "جاية قريب إن شاء الله";
   const sv = saved();
   let list;
@@ -792,13 +711,6 @@ function renderClips() {
     if (new Date().getDay() === 5) { const fr = list.filter((c) => c.friday); list = fr.concat(list.filter((c) => !c.friday)); }
   }
   if (feedIO) { feedIO.disconnect(); feedIO = null; }
-  // التلاوات بس، أو شيخ معيّن بس
-  if (clipTopic === "التلاوات") list = list.filter((c) => [].concat(c.topic || []).includes("القرآن"));
-  else if (shSel) list = list.filter((c) => c.sheikh === shSel);
-  // صفحات بدل تقليب مالوش آخر: كل ١٠ مقاطع وقفة صغيرة
-  const paged = clipTopic !== "المحفوظة";
-  const more = paged && list.length > clipShown;
-  if (paged) list = list.slice(0, clipShown);
   if (!list.length) {
     $("#feed").innerHTML = clipTopic === "المحفوظة"
       ? `<div class="feed-empty"><b style="font-size:18px">لسه محفظتش مقاطع</b><p>دوس على القلب جنب أي مقطع عشان يتحفظ هنا.</p></div>`
@@ -823,7 +735,7 @@ function renderClips() {
       </div>
       ${i === 0 && list.length > 1 && !store.get("hintSeen", false) ? '<div class="hint">اسحب لفوق للمقطع اللي بعده</div>' : ""}
     </article>`;
-  }).join("") + (more ? pauseCard() : "");
+  }).join("");
   // كل مقطع بيتحمّل قبل ما توصله: الحالي بيشتغل، واللي بعده بيجهز مكتوم وواقف، والباقي بيتشال
   const load = (reel, auto) => {
     const id = encodeURIComponent(reel.dataset.id); reel._yt = null; reel._kick = false; soundPill(reel, false);
@@ -838,9 +750,8 @@ function renderClips() {
     reel._kick = true; ytCmd(ifr, "playVideo"); // كان متحمّل من قبل: شغّله على طول
   };
   const stop = (reel) => { reel.querySelector(".player").innerHTML = ""; reel._playing = false; reel._kick = false; soundPill(reel, false); };
-  const reels = [...$("#feed").querySelectorAll(".reel:not(.pause)")];
+  const reels = [...$("#feed").querySelectorAll(".reel")];
   const setActive = (reel) => {
-    if (reel.classList.contains("pause")) { reels.forEach((r) => { if (r.querySelector("iframe")) stop(r); }); return; }
     const i = reels.indexOf(reel);
     reels.forEach((r, j) => {
       if (j === i) { play(r); r._playing = true; }
@@ -853,7 +764,6 @@ function renderClips() {
     if (e.intersectionRatio >= 0.6) setActive(e.target);
   }), { root: $("#feed"), threshold: [0.6] });
   $("#feed").querySelectorAll(".reel").forEach((r) => feedIO.observe(r));
-  pauseWire();
   const hint = $("#feed").querySelector(".hint");
   if (hint) { const kill = () => { hint.remove(); store.set("hintSeen", true); }; setTimeout(kill, 4200); $("#feed").addEventListener("scroll", kill, { once: true, passive: true }); }
   $("#feed").querySelectorAll("[data-save]").forEach((b) => b.addEventListener("click", () => {
@@ -874,7 +784,7 @@ function renderClips() {
       if (muted) ytCmd(f, "mute"); else { ytCmd(f, "unMute"); ytCmd(f, "setVolume", [100]); ytCmd(f, "playVideo"); } }
   }));
 }
-function stopAllClips() { $("#feed").querySelectorAll(".reel:not(.pause)").forEach((r) => { r.querySelector(".player").innerHTML = ""; r._playing = false; r._kick = false; }); }
+function stopAllClips() { $("#feed").querySelectorAll(".reel").forEach((r) => { r.querySelector(".player").innerHTML = ""; r._playing = false; r._kick = false; }); }
 
 // ---------- القرآن ----------
 let curSurah = 0;
@@ -2127,7 +2037,7 @@ $("#fbSend").addEventListener("click", async () => {
 })();
 
 // ---------- شرح كل صفحة (إجباري أول مرة لكل صفحة) ----------
-const PG_VERS = { clips: 3, home: 6, settings: 3, quran: 3, qread: 3, prayer: 3 }; // زوّد رقم الصفحة لما شرحها يتغير عشان يظهر تاني
+const PG_VERS = { home: 6, settings: 3, quran: 3, qread: 3, prayer: 3 }; // زوّد رقم الصفحة لما شرحها يتغير عشان يظهر تاني
 // الخطوة اللي في آخرها رقم (since) جديدة من النسخة دي: اللي شاف الشرح قبل كده بيشوف الجديد بس، واللي أول مرة يشوف الكل
 const pgVer = (t) => PG_VERS[t] || 2;
 const PAGE_TOUR = {
@@ -2156,8 +2066,6 @@ const PAGE_TOUR = {
   clips: [
     ["#clipTopics", "لك والمحفوظة", "«لك» فيها المقاطع مخلوطة، و«المحفوظة» فيها اللي حفظته بالقلب."],
     ["#feed", "قلّب", "اسحب لفوق عشان تنتقل للمقطع اللي بعده. الفيد بيتعلّم من القلوب اللي بتديها."],
-    ["#clipTopics", "التلاوات والمشايخ 🆕", "«التلاوات» فيها مقاطع القرآن بس، و«المشايخ» تختار منها شيخ معيّن وتشوف مقاطعه هو بس.", null, 3],
-    ["#feed", "وقفة كل ١٠ مقاطع 🆕", "بعد كل ١٠ مقاطع هتلاقي وقفة صغيرة: تكتب أكتر حاجة استفدتها لو حابب، وتختار تكمّل ١٠ كمان أو تقول كفاية كده.", null, 3],
   ],
   quran: [
     ["#qList", "اختار السورة", "اضغط على أي سورة عشان تقراها أو تسمعها."],
@@ -2223,7 +2131,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261117222625";
+const BUILD = "20261117215748";
 let updLast = 0;
 async function checkUpdate(auto) {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
