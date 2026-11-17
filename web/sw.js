@@ -12,6 +12,7 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET") return;
+  if (url.searchParams.has("fresh")) return; // فحص التحديث: من النت على طول، من غير الكاش
   if (url.hostname.includes("youtube") || url.hostname.includes("ytimg")) return; // الفيديو دايمًا من يوتيوب
   if (url.origin === location.origin && url.pathname.includes("/mushaf/")) {
     e.respondWith(caches.open(MUSHAF).then((c) => c.match(e.request, { ignoreSearch: true }).then((hit) => hit || fetch(e.request).then((res) => { if (res && res.ok) c.put(e.request, res.clone()); return res; }))));

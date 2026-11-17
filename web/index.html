@@ -1852,24 +1852,32 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261116145351";
+const BUILD = "20261117152939";
 let updLast = 0;
-async function checkUpdate() {
+async function checkUpdate(auto) {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
   try {
-    const v = (await (await fetch("version.txt?t=" + Date.now(), { cache: "no-store" })).text()).trim();
+    const v = (await (await fetch("version.txt?fresh=" + Date.now(), { cache: "no-store" })).text()).trim();
     if (!/^\d{14}$/.test(v) || v <= BUILD) return;
-    const res = await fetch("index.html?t=" + Date.now(), { cache: "no-store" }); if (!res.ok) return;
-    const body = await res.text(); if (!body.includes(`const BUILD = "${v}"`)) return;
+    let body = "";
+    for (let k = 0; k < 3 && !body.includes(`const BUILD = "${v}"`); k++) { // النت البطيء ممكن يرجّع النسخة المحفوظة، فنحاول تاني
+      if (k) await new Promise((r) => setTimeout(r, 8000));
+      const res = await fetch("index.html?fresh=" + Date.now(), { cache: "no-store" }); if (res.ok) body = await res.text();
+    }
+    if (!body.includes(`const BUILD = "${v}"`)) return;
     const names = await caches.keys(), name = names.find((n) => n.startsWith("tuba-") && n !== "tuba-mushaf" && n !== "tuba-audio") || "tuba-__BUILD__", c = await caches.open(name);
     const here = location.href.split("#")[0].split("?")[0], mk = () => new Response(body, { headers: { "Content-Type": "text/html; charset=utf-8" } });
     await c.put(here, mk()); await c.put(new URL("index.html", here).href, mk());
+    // وهو بيتفتح أو راجع من الخلفية، ومش بيسمع تلاوة ولا فاتح حاجة: نحدّث لوحده. غير كده نعرض زرار "حدّث"
+    let tried = ""; try { tried = sessionStorage.getItem("tuba-upd") || ""; } catch (e) {}
+    const busy = (typeof aOn !== "undefined" && aOn) || !$("#fontPick").hidden || !$("#recPick").hidden || !$("#ntfAsk").hidden || (document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName));
+    if (auto && !busy && tried !== v) { try { sessionStorage.setItem("tuba-upd", v); } catch (e) {} location.reload(); return; }
     $("#updBar").hidden = false;
   } catch (e) {}
 }
 $("#updGo").addEventListener("click", () => location.reload());
-setTimeout(checkUpdate, 4000);
-document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkUpdate(); });
+setTimeout(() => checkUpdate(true), 2500);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { updLast = 0; checkUpdate(true); } });
 // iPhone بيكبّر بصباعين حتى مع منع الزووم في الصفحة، فبنوقف الحركة دي (حجم الخط بيتغيّر من أ+ و أ-)
 ["gesturestart", "gesturechange"].forEach((ev) => document.addEventListener(ev, (e) => e.preventDefault(), { passive: false }));
 
