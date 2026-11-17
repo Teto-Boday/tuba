@@ -854,14 +854,14 @@ function qadaRender(view) {
       if (!days) { toast("اكتب المدة الأول"); return; }
       const n = {}; QD_P.forEach(([k]) => { if (k !== "witr" || $("#qdW").checked) n[k] = days; });
       store.set("qada", { n, tot: { ...n }, days }); qadaCardTxt(); qadaRender("track"); spotAuto("qdtrack");
-      toast(`عليك ${nAr(days)} يوم، يعني ${nAr(days)} من كل صلاة`);
+      toast(`عليك ${nAr(Object.values(n).reduce((a, b) => a + b, 0))} صلاة فايتة`);
     };
   } else {
     const tot = Object.values(q.tot).reduce((a, b) => a + b, 0), left = Object.values(q.n).reduce((a, b) => a + b, 0), pc = tot ? Math.round((tot - left) / tot * 100) : 100;
     B.innerHTML = `
-      <div class="hero" style="text-align:center"><small>فاضل عليك</small><div class="big">${nAr(left)}</div><div>صلاة من ${nAr(tot)}، خلّصت ${nAr(pc)}٪</div></div>
+      <div class="hero" style="text-align:center"><small>عدد الصلوات اللي فاضل تقضيها</small><div class="big">${nAr(left)} صلاة</div><div>${left < tot ? `من ${nAr(tot)} صلاة، قضيت ${nAr(tot - left)} (${nAr(pc)}٪)` : `${QD_P.filter(([k]) => k in q.n).map(([k, name]) => `${nAr(q.n[k])} ${name}`).join(" + ")}`}</div></div>
       <div class="qd-bar" role="progressbar" aria-valuenow="${pc}" aria-valuemin="0" aria-valuemax="100" aria-label="نسبة القضاء"><i style="width:${pc}%"></i></div>
-      ${QD_P.filter(([k]) => k in q.n).map(([k, name]) => `<div class="card qd-row"><b style="flex:1">${name}</b><span class="n" aria-label="فاضل ${q.n[k]}">${nAr(q.n[k])}</span><button class="undo" data-u="${k}" aria-label="رجّع واحدة ${name}">↶</button><button class="done" data-k="${k}" ${q.n[k] ? "" : "disabled style=\"opacity:.5\""}>قضيت ✓</button></div>`).join("")}
+      ${QD_P.filter(([k]) => k in q.n).map(([k, name]) => `<div class="card qd-row"><span class="stack" style="flex:1;gap:0"><b>${name}</b><span class="small">${nAr(q.n[k])} صلاة ${name}</span></span><span class="n" aria-label="فاضل ${q.n[k]} صلاة ${name}">${nAr(q.n[k])}</span><button class="undo" data-u="${k}" aria-label="رجّع واحدة ${name}">↶</button><button class="done" data-k="${k}" ${q.n[k] ? "" : "disabled style=\"opacity:.5\""}>قضيت ✓</button></div>`).join("")}
       <button class="btn" id="qdDay">قضيت يوم كامل</button>
       <p class="muted" style="margin:0;text-align:center">طريقة سهلة: مع كل فرض حاضر صلّي فرض قضاء 🤍</p>
       <button class="btn ghost" id="qdWhy">رأي المذاهب الأربعة</button>
@@ -2028,7 +2028,7 @@ const PAGE_TOUR = {
     ["#qdY", "اكتب المدة", "اكتب كام سنة وكام شهر وكام يوم مكنتش بتصلي فيهم من بعد البلوغ. سيب أي خانة فاضية لو مش محتاجها."],
     [".qd-f", "أيام العذر الشرعي", "أيام العذر الشرعي مش بتتقضى، فاكتبي متوسط أيامها في الشهر وهنطرحها من الحساب."],
     ["#qdW", "الوتر", "علّم هنا لو عايز تحسب الوتر كمان، لأنه واجب يتقضى عند الحنفية."],
-    ["#qdCalc", "احسب", "هيطلعلك كام فجر وظهر وعصر ومغرب وعشاء عليك."],
+    ["#qdCalc", "احسب", "هيطلعلك عدد الصلوات اللي فاتتك كلها، وكام صلاة فجر وظهر وعصر ومغرب وعشاء."],
   ],
   qdtrack: [
     [".hero", "اللي فاضل عليك", "هنا مجموع الصلوات اللي لسه عليك، ونسبة اللي خلّصته."],
@@ -2106,7 +2106,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261117213349";
+const BUILD = "20261117213613";
 let updLast = 0;
 async function checkUpdate(auto) {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
