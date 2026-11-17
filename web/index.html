@@ -273,6 +273,14 @@ html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,
       <button type="button" id="newQadaGo" style="flex:1;border:0;background:none;padding:0;text-align:start;font:inherit;color:inherit;cursor:pointer" class="stack"><b style="font-size:16px;color:var(--green)">جديد: احسب صلاتك الفايتة</b><span class="muted">اعرف كام صلاة فاتتك من كل فرض واقضيها واحدة واحدة، ومعاها رأي المذاهب الأربعة.</span></button>
       <button class="icon-btn" id="newQadaX" aria-label="اقفل الإشعار" style="flex:none"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
+    <div class="card stack" id="apkCard" role="status" style="gap:10px" hidden>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="num" aria-hidden="true" style="font-size:20px">📱</span>
+        <span class="stack" style="gap:2px;flex:1"><b style="font-size:16px" id="apkT"></b><span class="muted" id="apkX"></span></span>
+        <button class="icon-btn" id="apkClose" aria-label="اقفل" style="flex:none"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <a class="btn" id="apkGo" href="https://github.com/Teto-Boday/tuba/releases/latest/download/Tuba.apk" target="_blank" rel="noopener"></a>
+    </div>
     <div class="card">
       <span class="small">آية اليوم</span>
       <p class="ayah-day" id="ayahDay"></p>
@@ -875,6 +883,18 @@ function qadaRender(view) {
   }
 }
 let qadaBack = null;
+// ---------- تطبيق الأندرويد في الرئيسية: تحديث للي عنده نسخة قديمة، أو تنزيل للي فاتح من المتصفح ----------
+setTimeout(function apkCard() {
+  const nat = !!LN(), old = nat && !(window.Capacitor.Plugins && window.Capacitor.Plugins.KeepAlive);
+  const web = !nat && ANDROID && /^https?:/.test(location.protocol) && location.hostname !== "claude.ai";
+  const key = old ? "apkUpd1" : "apkWeb";
+  if (!(old || web) || store.get(key, 0)) return;
+  $("#apkT").textContent = old ? "فيه نسخة جديدة من تطبيق طُوبَى" : "نزّل تطبيق طُوبَى للأندرويد";
+  $("#apkX").textContent = old ? "النسخة الجديدة بتخلّي القرآن شغال والشاشة مطفية. نزّلها وسطّبها فوق القديمة، وحاجاتك المتحفظة هتفضل زي ما هي." : "الأذان بييجي في معاده بالظبط، والقرآن بيفضل شغال والشاشة مطفية.";
+  $("#apkGo").textContent = old ? "نزّل التحديث" : "نزّل التطبيق";
+  $("#apkCard").hidden = false;
+  $("#apkClose").addEventListener("click", () => { store.set(key, 1); $("#apkCard").hidden = true; });
+}, 0);
 // ---------- استبيان ولد ولا بنت (بيظهر مرة لكل الناس) ----------
 const whoNeed = () => !store.get("who", "");
 function whoRender() { document.querySelectorAll("#whoChips [data-who]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.who === store.get("who", "")))); }
@@ -2111,7 +2131,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261117215227";
+const BUILD = "20261117215748";
 let updLast = 0;
 async function checkUpdate(auto) {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
