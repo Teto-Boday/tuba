@@ -164,7 +164,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .tour-dots i.on{width:22px;background:var(--green)}
 .tour-btns{display:flex;gap:10px;max-width:420px;margin:0 auto;width:100%}
 /* شرح كل صفحة: دايرة/إطار حوالين الحاجة اللي بتتشرح */
-.spot{position:fixed;inset:0;z-index:60;background:transparent}
+.spot{position:fixed;inset:0;z-index:70;background:transparent}
 .spot-ring{position:fixed;border-radius:20px;border:2px solid var(--mint);box-shadow:0 0 0 9999px rgba(10,20,15,.74);transition:all .25s ease;pointer-events:none}
 .spot-card{position:fixed;left:12px;right:12px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:10px;text-align:right;box-shadow:0 10px 30px rgba(0,0,0,.25)}
 .spot-card h3{margin:0;font-size:18px}
@@ -185,6 +185,18 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .rsheet{background:var(--bg);border-radius:24px 24px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;max-height:85vh;overflow:auto}
 .fpick{position:fixed;inset:0;z-index:60;background:var(--bg);overflow:auto;padding:calc(18px + env(safe-area-inset-top)) 18px calc(22px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px}
 .fpick[hidden]{display:none}
+.qd-m{border-inline-start:4px solid var(--green);padding:10px 14px}
+.qd-m b{display:block;margin-bottom:4px;color:var(--green)}
+.qd-m p{margin:0;line-height:1.8}
+.qd-in{display:flex;gap:8px}
+.qd-in label{flex:1;display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:600}
+.qd-in input,.qd-f input[type=number]{height:48px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:18px;text-align:center;width:100%;min-width:0}
+.qd-row{display:flex;align-items:center;gap:10px;padding:12px 14px}
+.qd-row .n{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;min-width:64px;text-align:center}
+.qd-row .done{flex:none;height:44px;border-radius:22px;border:none;background:var(--green);color:var(--on-green);font:inherit;font-weight:600;padding:0 14px;cursor:pointer}
+.qd-row .undo{flex:none;width:40px;height:40px;border-radius:20px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:16px;cursor:pointer}
+.qd-bar{height:10px;border-radius:5px;background:var(--mint);overflow:hidden}
+.qd-bar i{display:block;height:100%;background:var(--green);border-radius:5px}
 .fpick h2{margin:0;font-family:'Amiri',serif;font-size:28px;line-height:1.4}
 .fopt{width:100%;text-align:right;border:2px solid var(--line);background:var(--card);border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;cursor:pointer}
 .fopt[aria-pressed="true"]{border-color:var(--green)}
@@ -256,6 +268,11 @@ html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,
   </header>
 
   <div class="stack">
+    <div class="card" id="newQada" role="status" style="display:flex;align-items:center;gap:12px;background:var(--mint);border-color:var(--green)" hidden>
+      <span class="num" aria-hidden="true" style="font-size:20px;background:var(--card)">🆕</span>
+      <button type="button" id="newQadaGo" style="flex:1;border:0;background:none;padding:0;text-align:start;font:inherit;color:inherit;cursor:pointer" class="stack"><b style="font-size:16px;color:var(--green)">جديد: احسب صلاتك الفايتة</b><span class="muted">اعرف كام صلاة فاتتك من كل فرض واقضيها واحدة واحدة، ومعاها رأي المذاهب الأربعة.</span></button>
+      <button class="icon-btn" id="newQadaX" aria-label="اقفل الإشعار" style="flex:none"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
     <div class="card">
       <span class="small">آية اليوم</span>
       <p class="ayah-day" id="ayahDay"></p>
@@ -378,6 +395,11 @@ html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,
       <a class="btn ghost" id="getApk" href="../#download" hidden>نزّل نسخة الأندرويد</a>
       <div class="stack" id="ntfyBox" style="gap:10px" hidden></div>
     </div>
+    <button class="card" id="qadaCard" type="button" style="display:flex;align-items:center;gap:12px;text-align:start;width:100%;border:1px solid var(--line);cursor:pointer;font:inherit;color:inherit">
+      <span class="num" aria-hidden="true" style="font-size:20px">🧮</span>
+      <span class="stack" style="gap:2px;flex:1"><b style="font-size:16px">احسب صلاتك الفايتة</b><span class="muted" id="qadaTxt">لو فاتتك صلوات، احسبها واقضيها واحدة واحدة</span></span>
+      <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+    </button>
     <div class="card qibla">
       <div class="dial" aria-hidden="true"><span class="n">ش</span><div class="arrow" id="qArrow"><svg width="22" height="40" viewBox="0 0 22 40"><path d="M11 0 L20 16 L13 14 L13 40 L9 40 L9 14 L2 16 Z" fill="currentColor"/></svg></div></div>
       <div class="stack" style="gap:4px">
@@ -446,6 +468,14 @@ html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,
         <button class="chip" data-theme-v="light">فاتح</button>
         <button class="chip" data-theme-v="dark">ليلي</button>
         <button class="chip" data-theme-v="auto">زي الموبايل</button>
+      </div>
+    </div>
+    <div class="card stack" style="gap:10px">
+      <b style="font-size:16px">إنت</b>
+      <span class="muted">بيفرق في حاجات زي حساب الصلوات الفايتة.</span>
+      <div class="chips" id="whoChips" role="group" aria-label="ولد ولا بنت" style="padding:0">
+        <button class="chip" data-who="m">👦 ولد</button>
+        <button class="chip" data-who="f">👧 بنت</button>
       </div>
     </div>
     <div class="card stack" style="gap:10px">
@@ -528,6 +558,17 @@ html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,
     <button class="btn ghost" id="ntfAskNonos">Nono's World بيأذّنلي</button>
     <button class="btn ghost" id="ntfAskNo" style="border:0">مش عايز تنبيهات</button>
   </div>
+</div>
+<div class="fpick" id="who" role="dialog" aria-modal="true" aria-labelledby="whoT" hidden style="justify-content:center;text-align:center">
+  <span style="font-size:44px" aria-hidden="true">🌿</span>
+  <h2 id="whoT">إنت ولد ولا بنت؟</h2>
+  <span class="muted" style="line-height:1.8">عشان نظبطلك حاجات بتفرق بين الولاد والبنات، زي حساب الصلوات الفايتة. اختيارك بيفضل على موبايلك بس.</span>
+  <div style="display:flex;gap:10px;margin-top:8px"><button class="btn" id="whoM" style="flex:1;height:64px;font-size:18px">👦 ولد</button><button class="btn" id="whoF" style="flex:1;height:64px;font-size:18px">👧 بنت</button></div>
+  <span class="small">تقدر تغيّره في أي وقت من الإعدادات.</span>
+</div>
+<div class="fpick" id="qada" role="dialog" aria-modal="true" aria-labelledby="qadaT" hidden>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><h2 id="qadaT">قضاء الصلوات الفايتة</h2><button class="icon-btn" id="qadaX" aria-label="اقفل"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div id="qadaBody" class="stack" style="gap:12px"></div>
 </div>
 <div class="fpick" id="fontPick" role="dialog" aria-modal="true" aria-labelledby="fontPickT" hidden>
   <h2 id="fontPickT">اختار شكل المصحف اللي يريّحك</h2>
@@ -767,6 +808,96 @@ function applyQFont() {
   const t = $("#fontRowTxt"); if (t) t.textContent = f[1];
   const q = $("#qFontTxt"); if (q) q.textContent = store.get("qFont", null) ? f[1] : "اختار الشكل اللي يريّحك";
 }
+
+// ---------- قضاء الصلوات الفايتة ----------
+const QD_P = [["fajr", "الفجر"], ["dhuhr", "الظهر"], ["asr", "العصر"], ["maghrib", "المغرب"], ["isha", "العشاء"], ["witr", "الوتر"]];
+const nAr = (n) => Number(n).toLocaleString("ar-EG");
+const qdGet = () => store.get("qada", null);
+function qadaCardTxt() {
+  const q = qdGet(), el = $("#qadaTxt"); if (!el) return;
+  if (!q) { el.textContent = "لو فاتتك صلوات، احسبها واقضيها واحدة واحدة"; return; }
+  const left = Object.values(q.n).reduce((a, b) => a + b, 0);
+  el.textContent = left ? `فاضل عليك ${nAr(left)} صلاة` : "خلّصت القضاء كله، تقبّل الله 🤍";
+}
+function qadaIntro() {
+  return `
+  <p class="muted" style="margin:0">قبل ما تحسب، اعرف العلماء قالوا إيه في الصلوات اللي فاتت:</p>
+  <div class="card qd-m"><b>اللي اتفقوا عليه</b><p>الأئمة الأربعة (أبو حنيفة ومالك والشافعي وأحمد) متفقين إن الصلاة الفايتة دَين لازم يتقضى، سواء فاتت بنوم أو نسيان أو تكاسل. ودليلهم قول النبي صلى الله عليه وسلم:</p><p class="copyable" style="font-family:'Amiri',serif;font-size:18px;margin:6px 0">«مَنْ نَسِيَ صَلَاةً فَلْيُصَلِّ إِذَا ذَكَرَهَا، لَا كَفَّارَةَ لَهَا إِلَّا ذَلِكَ» <span class="small">(متفق عليه)</span></p><p>فلو اللي معذور بيقضي، يبقى اللي سابها من غير عذر أولى.</p></div>
+  <div class="card qd-m"><b>الحنفية</b><p>القضاء فرض. والترتيب بين الفايتة والحاضرة واجب لو الفوائت أقل من ٦ صلوات، ولو ٦ أو أكتر الترتيب بيسقط. تقضي في أي وقت ما عدا أوقات الكراهة التلاتة: وقت الشروق، ووقت الاستواء (قبل الظهر بشوية)، ووقت الغروب. والوتر عندهم واجب فبيتقضى كمان.</p></div>
+  <div class="card qd-m"><b>المالكية</b><p>القضاء واجب على الفور على قد ما تقدر، من غير ما تضيّع شغلك وأكل عيشك. ويجوز تقضي في أي وقت حتى أوقات النهي.</p></div>
+  <div class="card qd-m"><b>الشافعية</b><p>لو الصلاة فاتت بعذر زي النوم أو النسيان، يُستحب تقضيها بسرعة. لو فاتت من غير عذر يجب تقضيها على الفور. والترتيب بين الفوائت سُنّة، ويجوز القضاء في أي وقت.</p></div>
+  <div class="card qd-m"><b>الحنابلة</b><p>القضاء واجب على الفور طول ما ميضرّكش في صحتك أو أكل عيشك. والترتيب واجب، إلا لو نسيت أو خفت وقت الصلاة الحاضرة يخلص.</p></div>
+  <div class="card qd-m"><b>رأي تاني</b><p>بعض العلماء زي ابن حزم وابن تيمية قالوا اللي ساب الصلاة عمدًا مينفعش يقضيها، وعليه التوبة والإكثار من النوافل. لكن المذاهب الأربعة وجمهور العلماء على وجوب القضاء، وده الأحوط.</p></div>
+  <div class="card qd-m"><b>مهم تعرفه</b><p>• الحساب بيبدأ من سن البلوغ.<br>• البنات مش بيقضوا صلاة أيام الدورة والنفاس، بإجماع العلماء.<br>• لو مش متأكد من العدد، خد باللي غالب على ظنك وزوّد شوية للاحتياط.<br>• طريقة سهلة: مع كل فرض حاضر صلّي فرض قضاء.<br>• لو عندك سؤال في حالتك اسأل عالم أو دار الإفتاء.</p></div>`;
+}
+function qadaRender(view) {
+  const q = qdGet(), B = $("#qadaBody");
+  if (!view) view = !store.get("qadaRead", false) ? "intro" : q ? "track" : "form";
+  if (view === "intro") {
+    B.innerHTML = qadaIntro() + `<button class="btn" id="qdGo">${q ? "رجوع للحساب" : "فهمت، يلا نحسب"}</button>`;
+    $("#qdGo").onclick = () => { store.set("qadaRead", true); qadaRender(); $("#qada").scrollTop = 0; };
+  } else if (view === "form") {
+    B.innerHTML = `
+      <p class="muted" style="margin:0">${store.get("who", "") === "f" ? "اكتبي المدة اللي مكنتيش بتصلي فيها (من بعد البلوغ). سيبي أي خانة فاضية لو مش محتاجاها." : "اكتب المدة اللي مكنتش بتصلي فيها (من بعد البلوغ). سيب أي خانة فاضية لو مش محتاجها."}</p>
+      <div class="qd-in"><label>سنين<input id="qdY" type="number" inputmode="numeric" min="0" max="90" placeholder="٠"></label><label>شهور<input id="qdM" type="number" inputmode="numeric" min="0" max="11" placeholder="٠"></label><label>أيام<input id="qdD" type="number" inputmode="numeric" min="0" max="31" placeholder="٠"></label></div>
+      ${store.get("who", "") === "f" ? `<div class="card qd-f stack" style="gap:8px"><b>أيام العذر الشرعي</b><span class="muted">أيام العذر الشرعي (الدورة والنفاس) مش بتتقضى. اكتبي متوسط أيامها في الشهر عشان نطرحها من الحساب.</span><input id="qdP" type="number" inputmode="numeric" min="0" max="15" placeholder="مثلًا ٧"></div>` : ""}
+      <label class="card" style="display:flex;align-items:center;gap:10px;cursor:pointer"><input id="qdW" type="checkbox" style="width:22px;height:22px;accent-color:var(--green)"><span class="stack" style="gap:2px"><b>احسب الوتر كمان</b><span class="muted">الوتر واجب يتقضى عند الحنفية.</span></span></label>
+      <button class="btn" id="qdCalc">احسب</button>
+      <button class="btn ghost" id="qdWhy">رأي المذاهب الأربعة</button>`;
+    $("#qdWhy").onclick = () => { qadaRender("intro"); $("#qada").scrollTop = 0; };
+    spotAuto("qdform");
+    $("#qdCalc").onclick = () => {
+      const v = (id) => Math.max(0, Math.floor(+$(id).value || 0));
+      const y = v("#qdY"), m = v("#qdM"), d = v("#qdD"), per = $("#qdP") ? Math.min(15, v("#qdP")) : 0;
+      const months = y * 12 + m + d / 30.44;
+      const days = Math.max(0, Math.round(y * 365.25 + m * 30.44 + d - per * months));
+      if (!days) { toast("اكتب المدة الأول"); return; }
+      const n = {}; QD_P.forEach(([k]) => { if (k !== "witr" || $("#qdW").checked) n[k] = days; });
+      store.set("qada", { n, tot: { ...n }, days }); qadaCardTxt(); qadaRender("track"); spotAuto("qdtrack");
+      toast(`عليك ${nAr(days)} يوم، يعني ${nAr(days)} من كل صلاة`);
+    };
+  } else {
+    const tot = Object.values(q.tot).reduce((a, b) => a + b, 0), left = Object.values(q.n).reduce((a, b) => a + b, 0), pc = tot ? Math.round((tot - left) / tot * 100) : 100;
+    B.innerHTML = `
+      <div class="hero" style="text-align:center"><small>فاضل عليك</small><div class="big">${nAr(left)}</div><div>صلاة من ${nAr(tot)}، خلّصت ${nAr(pc)}٪</div></div>
+      <div class="qd-bar" role="progressbar" aria-valuenow="${pc}" aria-valuemin="0" aria-valuemax="100" aria-label="نسبة القضاء"><i style="width:${pc}%"></i></div>
+      ${QD_P.filter(([k]) => k in q.n).map(([k, name]) => `<div class="card qd-row"><b style="flex:1">${name}</b><span class="n" aria-label="فاضل ${q.n[k]}">${nAr(q.n[k])}</span><button class="undo" data-u="${k}" aria-label="رجّع واحدة ${name}">↶</button><button class="done" data-k="${k}" ${q.n[k] ? "" : "disabled style=\"opacity:.5\""}>قضيت ✓</button></div>`).join("")}
+      <button class="btn" id="qdDay">قضيت يوم كامل</button>
+      <p class="muted" style="margin:0;text-align:center">طريقة سهلة: مع كل فرض حاضر صلّي فرض قضاء 🤍</p>
+      <button class="btn ghost" id="qdWhy">رأي المذاهب الأربعة</button>
+      <button class="btn ghost" id="qdReset">احسب من الأول</button>`;
+    const save = () => { store.set("qada", q); qadaCardTxt(); const y = $("#qada").scrollTop; qadaRender("track"); $("#qada").scrollTop = y; };
+    B.querySelectorAll("[data-k]").forEach((b) => b.onclick = () => { const k = b.dataset.k; if (q.n[k] > 0) { q.n[k]--; save(); if (!Object.values(q.n).some(Boolean)) toast("خلّصت القضاء كله، تقبّل الله 🤍"); } });
+    B.querySelectorAll("[data-u]").forEach((b) => b.onclick = () => { const k = b.dataset.u; if (q.n[k] < q.tot[k]) { q.n[k]++; save(); } });
+    $("#qdDay").onclick = () => { let any = false; for (const k in q.n) if (q.n[k] > 0) { q.n[k]--; any = true; } if (any) { save(); toast("تقبّل الله، اتشال يوم كامل"); } };
+    $("#qdWhy").onclick = () => { qadaRender("intro"); $("#qada").scrollTop = 0; };
+    $("#qdReset").onclick = () => { if (!confirm("متأكد؟ العدّ اللي فات هيتمسح.")) return; store.set("qada", null); qadaCardTxt(); qadaRender("form"); };
+  }
+}
+let qadaBack = null;
+// ---------- استبيان ولد ولا بنت (بيظهر مرة لكل الناس) ----------
+const whoNeed = () => !store.get("who", "");
+function whoRender() { document.querySelectorAll("#whoChips [data-who]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.who === store.get("who", "")))); }
+function whoSet(v) {
+  store.set("who", v); whoRender(); $("#who").hidden = true;
+  if (!$("#qada").hidden && $("#qdCalc")) qadaRender("form");
+  setTimeout(() => spotAuto((location.hash || "#home").slice(1)), 300);
+}
+$("#whoM").addEventListener("click", () => whoSet("m"));
+$("#whoF").addEventListener("click", () => whoSet("f"));
+document.querySelectorAll("#whoChips [data-who]").forEach((b) => b.addEventListener("click", () => { store.set("who", b.dataset.who); whoRender(); toast("اتحفظ"); }));
+whoRender();
+if (!store.get("who", "")) { $("#who").hidden = false; setTimeout(() => $("#whoM").focus(), 50); }
+function qadaOpen() { qadaBack = document.activeElement; newQadaSeen(); qadaRender(); $("#qada").hidden = false; $("#qada").scrollTop = 0; $("#qadaX").focus(); if (qdGet() && store.get("qadaRead", false)) spotAuto("qdtrack"); }
+function newQadaSeen() { store.set("newQada", 1); $("#newQada").hidden = true; }
+$("#newQada").hidden = !!store.get("newQada", 0);
+$("#newQadaGo").addEventListener("click", () => qadaOpen());
+$("#newQadaX").addEventListener("click", () => { newQadaSeen(); toast("تلاقيها في صفحة الصلاة"); });
+function qadaClose() { $("#qada").hidden = true; if (qadaBack && qadaBack.focus) qadaBack.focus(); }
+$("#qadaCard").addEventListener("click", qadaOpen);
+$("#qadaX").addEventListener("click", qadaClose);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#qada").hidden) qadaClose(); });
+qadaCardTxt();
 function fontPickOpen(then) {
   const now = qFontNow(), sample = QURAN[0][2][1];
   $("#fontOpts").innerHTML = QFONTS.map(([k, name, sub, fam]) => `<button class="fopt" data-f="${k}" aria-pressed="${k === now}"><b>${name}</b><span class="small">${sub}</span>${fam ? `<span class="pv" style="font-family:${fam},'Tuba Quran',serif">${esc(sample)}</span>` : ""}</button>`).join("");
@@ -1881,7 +2012,7 @@ $("#fbSend").addEventListener("click", async () => {
 })();
 
 // ---------- شرح كل صفحة (إجباري أول مرة لكل صفحة) ----------
-const PG_VERS = { home: 5, settings: 3, quran: 3, qread: 3 }; // زوّد رقم الصفحة لما شرحها يتغير عشان يظهر تاني
+const PG_VERS = { home: 6, settings: 3, quran: 3, qread: 3, prayer: 3 }; // زوّد رقم الصفحة لما شرحها يتغير عشان يظهر تاني
 // الخطوة اللي في آخرها رقم (since) جديدة من النسخة دي: اللي شاف الشرح قبل كده بيشوف الجديد بس، واللي أول مرة يشوف الكل
 const pgVer = (t) => PG_VERS[t] || 2;
 const PAGE_TOUR = {
@@ -1890,7 +2021,22 @@ const PAGE_TOUR = {
     [".mini-row", "الأذكار والصلاة", "الكروت دي بتوديك للأذكار ولمواقيت الصلاة على طول."],
     [".hero", "المقاطع", "فيديوهات قصيرة من مشايخ معروفين، بتقلّب فيها زي تيك توك."],
     ["#setGear", "الإعدادات", "من هنا تغيّر الوضع الليلي، وحجم الخط، والقارئ، وتنزّل القرآن عشان يشتغل من غير نت، وتشوف الشرح تاني."],
+    ["#newQada", "جديد: احسب صلاتك الفايتة 🆕", "دوس هنا عشان تحسب الصلوات اللي فاتتك من كل فرض وتقضيها واحدة واحدة، ومعاها شرح رأي المذاهب الأربعة في القضاء. وتلاقيها كمان في صفحة الصلاة.", null, 6],
     ["#supHeart", "ادعم طُوبَى ♡", "القلب ده مش المفضلة، ده زرار الدعم. طُوبَى مجاني ومن غير إعلانات، ولو حابب تدعمه تلاقي الطرق هنا."],
+  ],
+  qdform: [
+    ["#qdY", "اكتب المدة", "اكتب كام سنة وكام شهر وكام يوم مكنتش بتصلي فيهم من بعد البلوغ. سيب أي خانة فاضية لو مش محتاجها."],
+    [".qd-f", "أيام العذر الشرعي", "أيام العذر الشرعي مش بتتقضى، فاكتبي متوسط أيامها في الشهر وهنطرحها من الحساب."],
+    ["#qdW", "الوتر", "علّم هنا لو عايز تحسب الوتر كمان، لأنه واجب يتقضى عند الحنفية."],
+    ["#qdCalc", "احسب", "هيطلعلك كام فجر وظهر وعصر ومغرب وعشاء عليك."],
+  ],
+  qdtrack: [
+    [".hero", "اللي فاضل عليك", "هنا مجموع الصلوات اللي لسه عليك، ونسبة اللي خلّصته."],
+    [".qd-row .n", "كل صلاة لوحدها", "الرقم ده اللي فاضل عليك من الصلاة دي."],
+    [".qd-row .done", "قضيت ✓", "كل ما تقضي صلاة دوس هنا، والرقم ينقص واحد. كل حاجة بتتحفظ على موبايلك."],
+    [".qd-row .undo", "رجّع ↶", "لو دوست بالغلط، ده بيرجّع الرقم واحد."],
+    ["#qdDay", "قضيت يوم كامل", "لو قضيت الخمس صلوات مرة واحدة دوس هنا، وهتنقص واحدة من كل صلاة."],
+    ["#qdWhy", "رأي المذاهب", "ترجع تقرا رأي المذاهب الأربعة في القضاء في أي وقت."],
   ],
   clips: [
     ["#clipTopics", "لك والمحفوظة", "«لك» فيها المقاطع مخلوطة، و«المحفوظة» فيها اللي حفظته بالقلب."],
@@ -1909,6 +2055,7 @@ const PAGE_TOUR = {
   prayer: [
     ["#ptimes", "مواقيت اليوم", "مواقيت الصلاة في مكانك، ومعاها العدّ التنازلي للصلاة الجاية."],
     ["#notifCard", "تنبيه الأذان", "فعّل التنبيه عشان يوصلك الأذان في وقته."],
+    ["#qadaCard", "احسب صلاتك الفايتة 🆕", "لو في سنين مكنتش بتصلي فيها، اكتب المدة وهنحسبلك كام فجر وظهر وعصر ومغرب وعشاء عليك، وتعلّم على كل صلاة بتقضيها. وقبلها هنشرحلك المذاهب الأربعة قالت إيه في القضاء.", null, 3],
   ],
   azkar: [
     ["#zCats", "الأقسام", "اختار الصباح أو المساء أو النوم، أو أذكار الصلاة."],
@@ -1925,10 +2072,12 @@ const PAGE_TOUR = {
 };
 let spotPage = null, spotSteps = [], spotI = 0;
 function spotAuto(tab) {
+  if (whoNeed()) return; // الاستبيان الأول
   if (store.get("pg_" + tab, 0) >= pgVer(tab) || !PAGE_TOUR[tab]) return;
   setTimeout(() => spotStart(tab), 450);
 }
 function spotStart(tab) {
+  if (whoNeed()) return;
   const seen = store.get("pg_" + tab, 0);
   spotSteps = PAGE_TOUR[tab].filter((st) => (!st[3] || st[3]()) && (!seen || (st[4] || 0) > seen)).map(([s, t, x]) => ({ el: document.querySelector(`#s-${tab} ${s}`) || document.querySelector(s), t, x }))
     .filter((st) => st.el && st.el.offsetParent !== null);
@@ -1957,7 +2106,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261117175419";
+const BUILD = "20261117213349";
 let updLast = 0;
 async function checkUpdate(auto) {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
