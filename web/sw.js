@@ -9,6 +9,14 @@ self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c
 self.addEventListener("activate", (e) => {
   e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE && k !== MUSHAF && k !== AUDIO).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
+// الأيفون بيطلب الصوت حتة حتة (Range)، فبنرجّعله الحتة اللي طلبها من الملف المحفوظ
+async function ranged(hit, req) {
+  const rg = req.headers.get("range"); if (!rg || hit.type === "opaque") return hit;
+  const buf = await hit.arrayBuffer(), n = buf.byteLength, m = /bytes=(\d*)-(\d*)/.exec(rg);
+  let a = m && m[1] ? +m[1] : 0, b = m && m[2] ? +m[2] : n - 1; if (m && !m[1] && m[2]) { a = Math.max(0, n - +m[2]); b = n - 1; }
+  b = Math.min(b, n - 1); if (a > b) return new Response(null, { status: 416, headers: { "Content-Range": `bytes */${n}` } });
+  return new Response(buf.slice(a, b + 1), { status: 206, headers: { "Content-Type": hit.headers.get("Content-Type") || "audio/mpeg", "Content-Range": `bytes ${a}-${b}/${n}`, "Content-Length": String(b - a + 1), "Accept-Ranges": "bytes" } });
+}
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET") return;
@@ -19,7 +27,8 @@ self.addEventListener("fetch", (e) => {
     return;
   }
   if (url.hostname === "cdn.islamic.network" || url.hostname === "everyayah.com" || url.hostname === "archive.org") {
-    e.respondWith(caches.open(AUDIO).then((c) => c.match(url.href, { ignoreVary: true }).then((hit) => hit || fetch(e.request))));
+    if (url.searchParams.has("s")) return; // تشغيل من النت: المتصفح يتعامل معاه لوحده عشان الصوت ميعلقش
+    e.respondWith(caches.open(AUDIO).then((c) => c.match(url.href, { ignoreVary: true }).then((hit) => hit ? ranged(hit, e.request) : fetch(e.request))));
     return;
   }
   const isFont = url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com" || url.pathname.endsWith(".woff2");
