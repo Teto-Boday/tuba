@@ -7,6 +7,7 @@ on:
       - "capacitor.config.json"
       - "assets/**"
       - "electron/**"
+      - "android-extra/**"
       - ".github/workflows/apps.yml"
 permissions:
   contents: write
@@ -32,6 +33,12 @@ jobs:
         run: sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />#' android/app/src/main/AndroidManifest.xml
       - name: Let Tuba see if Nono's World is installed
         run: sed -i 's#<application#<queries>\n        <package android:name="world.nonos.app" />\n    </queries>\n    <application#' android/app/src/main/AndroidManifest.xml
+      - name: Keep the Quran playing with the screen off
+        run: |
+          cp android-extra/*.java android/app/src/main/java/app/tuba/teto/
+          sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />\n    <uses-permission android:name="android.permission.WAKE_LOCK" />#' android/app/src/main/AndroidManifest.xml
+          sed -i 's#</application>#    <service android:name=".AudioKeepService" android:exported="false" android:foregroundServiceType="mediaPlayback" />\n    </application>#' android/app/src/main/AndroidManifest.xml
+          grep -n "AudioKeepService\|FOREGROUND" android/app/src/main/AndroidManifest.xml
       - run: npx cap sync android
       - run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
       - run: cp android/app/build/outputs/apk/debug/app-debug.apk Tuba.apk
