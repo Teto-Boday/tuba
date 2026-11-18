@@ -1514,7 +1514,27 @@ async function corsGet(u) {
   }
   throw new TypeError("cors");
 }
+// ملف السورة الكاملة كبير: بنقرأه حتة حتة عشان نعرض نسبة السورة اللي بتتنزّل دلوقتي
+let dlBytes = null;
+async function dlSurahFile(c, rec, s) {
+  const u = srcUrl(rec, s, 0), hit = await c.match(u); if (goodHit(hit, u)) return;
+  const h = hostOf(u); let r = null;
+  if (aCors[h] !== false) { try { r = await fetch(u, { mode: "cors", cache: "no-store" }); } catch (e) { if (!(e instanceof TypeError)) throw e; r = null; } }
+  if (r) {
+    if (!r.ok) throw new Error(r.status === 404 ? "missing" : "http " + r.status);
+    const tot = +r.headers.get("content-length") || 0, rd = r.body && r.body.getReader();
+    if (!rd) { await c.put(u, r); setCors(h, true); return; }
+    const parts = []; let got = 0;
+    try { for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; if (dlBytes) dlBytes(s, got, tot); if (aDl && aDl.stop) { rd.cancel().catch(() => {}); return; } } }
+    catch (e) { throw new Error("net"); } // النت فصل في النص: هيكمّل من الأول للسورة دي المرة الجاية
+    await c.put(u, new Response(new Blob(parts, { type: "audio/mpeg" }), { headers: { "Content-Type": "audio/mpeg" } })); setCors(h, true); return;
+  }
+  if (aCors[h] === true) throw new Error("net");
+  // الموقع مش بيسمح نقرا الملف: بنحفظه "مقفول" كحل أخير
+  const o = await fetch(u, { mode: "no-cors" }); setCors(h, false); await c.put(u, o);
+}
 async function dlAyah(c, rec, g) {
+  if (isSurahOnly(rec)) return dlSurahFile(c, rec, g);
   let old = null;
   for (let bi = 0; bi < nBr(rec); bi++) { const u = srcUrl(rec, g, bi), hit = await c.match(u); if (goodHit(hit, u)) return; if (hit) old = u; }
   const h = hostOf(srcUrl(rec, g, 0));
@@ -1539,8 +1559,9 @@ async function dlRange(list, onProg) {
   try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {} // عشان الجهاز ميمسحش التنزيل لوحده
   const rec = reciter(), c = await caches.open(AUDIO_CACHE); aDl = { rec, stop: false };
   let done = 0, i = 0, err = null;
-  const worker = async () => { while (!aDl.stop && !err && i < list.length) { const g = list[i++]; try { await dlAyah(c, rec, g); } catch (e) { err = e; } done++; onProg(done, list.length); } };
-  await Promise.all([worker(), worker(), worker(), worker()]);
+  const big = isSurahOnly(rec); // ملفات السور الكاملة كبيرة: واحدة ورا التانية، ونقول شغالين على أنهي سورة
+  const worker = async () => { while (!aDl.stop && !err && i < list.length) { const g = list[i++]; if (big) onProg(done, list.length, g); try { await dlAyah(c, rec, g); } catch (e) { err = e; } done++; onProg(done, list.length, null, g); } };
+  await Promise.all(big ? [worker(), worker()] : [worker(), worker(), worker(), worker()]);
   const stopped = aDl.stop; aDl = null;
   if (err) throw err; return !stopped;
 }
@@ -1552,7 +1573,7 @@ async function renderADl() {
   if (aDl) return;
   if (isSurahOnly(reciter())) { const n = await savedCount(reciter());
     $("#aDlTxt").textContent = n >= 114 ? `تلاوة ${recShort()} متنزّلة كلها ✓` : `نزّل تلاوة ${recShort()} عشان تسمع من غير نت`;
-    $("#aDlSub").textContent = n >= 114 ? "بتشتغل من غير نت" : n ? `متنزّل ${ar(n)} سورة من ١١٤` : "المصحف كله بصوته حجمه كبير (حوالي جيجا). ممكن تنزّل السور اللي بتحبها بس من زرار ⬇ جوه المصحف";
+    $("#aDlSub").textContent = n >= 114 ? "بتشتغل من غير نت" : n ? `متنزّل ${ar(n)} سورة من ١١٤` : "";
     $("#aDlAll").hidden = n >= 114; $("#aDlAll").textContent = n ? "كمّل التنزيل" : "نزّل كله"; $("#aDlClear").hidden = !n; $("#aDlBar").hidden = true; return; }
   const n = await savedCount(reciter());
   $("#aDlTxt").textContent = n >= 6236 ? `تلاوة ${recName()} متنزّلة كلها ✓` : "نزّل التلاوة عشان تسمع من غير نت";
@@ -1563,9 +1584,17 @@ const dlFail = (e) => toast(String(e && e.message).startsWith("http") || (e && e
 $("#aDlAll").addEventListener("click", async () => {
   if (aDl) { aDl.stop = true; $("#aDlAll").textContent = "بيوقف…"; return; }
   $("#aDlAll").textContent = "وقّف"; $("#aDlBar").hidden = false; $("#aDlClear").hidden = true;
-  try { const ok = await dlRange([...Array(recTotal(reciter())).keys()], (d, t) => { $("#aDlBar").firstElementChild.style.width = (d / t * 100) + "%"; $("#aDlSub").textContent = `${ar(Math.floor(d / t * 100))}٪ · سيب التطبيق مفتوح لحد ما يخلص`; });
-    if (ok) toast(`تلاوة ${recName()} اتنزّلت كلها`); }
+  $("#aDlSub").textContent = "بيبدأ التنزيل… سيب التطبيق مفتوح";
+  let doneN = 0; const cur = new Map();
+  const show = () => { const [s0, pc] = [...cur.entries()].sort((a, b) => a[0] - b[0])[0] || [];
+    $("#aDlSub").textContent = `${s0 != null ? `بينزّل سورة ${QURAN[s0][0]}${pc != null ? " " + ar(pc) + "٪" : "…"} · ` : ""}خلص ${ar(doneN)} سورة من ١١٤ · سيب التطبيق مفتوح`; };
+  if (isSurahOnly(reciter())) dlBytes = (s, got, tot) => { cur.set(s, tot ? Math.floor(got / tot * 100) : null); const now = Date.now(); if (now - (dlBytes.t || 0) > 400) { dlBytes.t = now; show(); } };
+  try { const ok = await dlRange([...Array(recTotal(reciter())).keys()], (d, t, now, fin) => { $("#aDlBar").firstElementChild.style.width = Math.max(2, d / t * 100) + "%";
+      if (isSurahOnly(reciter())) { doneN = d; if (now != null) cur.set(now, null); if (fin != null) cur.delete(fin); show(); }
+      else $("#aDlSub").textContent = `${ar(Math.floor(d / t * 100))}٪ · سيب التطبيق مفتوح لحد ما يخلص`; });
+    if (ok) toast(`تلاوة ${recShort()} اتنزّلت كلها`); }
   catch (e) { dlFail(e); }
+  dlBytes = null;
   renderADl();
 });
 $("#aDlClear").addEventListener("click", async () => {
@@ -2264,7 +2293,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261118024502";
+const BUILD = "20261118025258";
 let updLast = 0;
 async function checkUpdate(auto) {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
