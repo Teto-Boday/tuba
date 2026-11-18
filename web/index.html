@@ -538,6 +538,7 @@ html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,
     <button class="row" id="fontRow"><span class="num" aria-hidden="true" style="font-family:'Amiri',serif;font-size:20px">ق</span><span class="grow"><b>شكل المصحف والخط</b><span class="small" id="fontRowTxt"></span></span></button>
     <button class="row" id="tourAgain"><span class="num" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.8 9.5a2.3 2.3 0 1 1 3.4 2c-.8.5-1.2 1-1.2 2"/><circle cx="12" cy="16.6" r=".6"/></svg></span><span class="grow"><b>إزاي أستخدم طُوبَى؟</b><span class="small">شرح سريع لكل حاجة في التطبيق</span></span></button>
     <button class="row" data-go="support"><span class="num" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><span class="grow"><b>ادعم طُوبَى</b><span class="small">إنستاباي أو فودافون كاش</span></span></button>
+    <p class="small" style="margin:4px 6px 0;line-height:1.8">🔒 طُوبَى بيعدّ مرات فتح التطبيق والمقاطع اللي عليها ♡ عشان نعرف المحتوى اللي بيفيد الناس ونزوّد منه. العدّ من غير أي بيانات عنك: لا اسم ولا إيميل ولا مكان، ومن غير cookies.</p>
   </div>
 </section>
 
@@ -861,7 +862,7 @@ function renderClips() {
   $("#feed").querySelectorAll("[data-save]").forEach((b) => b.addEventListener("click", () => {
     const id = b.dataset.save; let s2 = saved();
     s2 = s2.includes(id) ? s2.filter((x) => x !== id) : [...s2, id]; store.set("savedClips", s2);
-    const on = s2.includes(id); b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on));
+    const on = s2.includes(id); gcLike(id, on); b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on));
     b.setAttribute("aria-label", on ? "شيل من المحفوظة" : "احفظ المقطع"); toast(on ? "اتحفظ في المحفوظة" : "اتشال من المحفوظة");
   }));
   $("#feed").querySelectorAll("[data-share]").forEach((b) => b.addEventListener("click", async () => {
@@ -2108,6 +2109,17 @@ $("#fbSend").addEventListener("click", async () => {
   $("#fbSend").disabled = false;
 });
 
+// ---------- عدّاد اللايكات (GoatCounter): بيعدّ المقطع والشيخ والموضوع بس، من غير أي بيانات عن الشخص ----------
+function gcEvent(path, title) {
+  try { new Image().src = "https://tuba-app.goatcounter.com/count?" + new URLSearchParams({ p: path, t: title || path, e: "true", rnd: Math.random().toString(36).slice(2) }); } catch (e) {}
+}
+function gcLike(id, on) {
+  const c = CLIPS.find((x) => x.youtubeId === id); if (!c) return;
+  const k = on ? "♡" : "✕ شال ♡", sh = c.sheikh || "بدون اسم", tp = [].concat(c.topic || []).filter(Boolean);
+  gcEvent(`${k} مقطع: ${id}`, `${sh} — ${tp.join("، ") || "بدون موضوع"} — youtu.be/${id}`);
+  gcEvent(`${k} شيخ: ${sh}`);
+  tp.forEach((t) => gcEvent(`${k} موضوع: ${t}`));
+}
 // ---------- عدّاد الأجهزة (GoatCounter): مبيستخدمش cookies ومبيعرفش مين الشخص، بيعدّ الفتحات بس ----------
 (function gcCount() {
   try {
@@ -2225,7 +2237,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261118004928";
+const BUILD = "20261118005657";
 let updLast = 0;
 async function checkUpdate(auto) {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
