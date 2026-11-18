@@ -1522,13 +1522,14 @@ async function aSrc(el, g) {
       const u = URL.createObjectURL(await hit.blob()); if (el._blob) URL.revokeObjectURL(el._blob); el._blob = u; el.src = u; return; } } catch (e) {}
   el.src = aUrl(g, el._bi);
 }
+function bgArm() { const tok = aEl._tok = (aEl._tok || 0) + 1, s0 = bgSur; aEl._got = false; setTimeout(() => { if (aEl._tok === tok && aOn && aEl._bg && bgSur === s0 && !aEl._got) aEl.dispatchEvent(new Event("error")); }, 15000); }
 aEl.addEventListener("error", () => { if (!aOn || aEl._unlock) return;
-  if (aEl._bg) { if (aEl._bgLocal) { aEl._bgLocal = false; aEl._bgbi = 0; aEl.src = bgUrl(bgSur, 0); aEl.play().catch(() => {}); return; }
+  if (aEl._bg) { bgArm(); if (aEl._bgLocal) { aEl._bgLocal = false; aEl._bgbi = 0; aEl.src = bgUrl(bgSur, 0); aEl.play().catch(() => {}); return; }
     if (++aEl._bgbi < BG_BR.length) { aEl.src = bgUrl(bgSur, aEl._bgbi); aEl.play().catch(() => {}); } else bgFail(); return; }
   if (aEl._saved) { aEl._saved = false; aEl.src = aUrl(aEl._g, aEl._bi); aEl.play().catch(() => {}); return; } // النسخة المحفوظة مرضيتش تشتغل: من النت
   if ((aEl._nerr = (aEl._nerr || 0) + 1) <= 2) { const g0 = aEl._g; setTimeout(() => { if (aOn && aEl._g === g0) { aEl.src = aUrl(aEl._g, aEl._bi); aEl.play().catch(() => {}); } }, 1500); return; } // النت قطع لحظة: نجرّب تاني قبل ما نغيّر الجودة
   aEl._nerr = 0; if (aEl._bi < nBr(reciter()) - 1) { aEl._bi++; aEl.src = aUrl(aEl._g, aEl._bi); aEl.play().catch(() => {}); } else { toast("مقدرناش نشغّل التلاوة، اتأكد من النت"); audioStop(); } });
-aEl.addEventListener("playing", () => { aBr[reciter()] = aEl._bi; wakeOn(); if (aOn) keepOn(`سورة ${QURAN[aEl._bg ? bgSur : ayahOf(aG)[0]][0]}`); });
+aEl.addEventListener("playing", () => { aEl._got = true; aBr[reciter()] = aEl._bi; wakeOn(); if (aOn) keepOn(`سورة ${QURAN[aEl._bg ? bgSur : ayahOf(aG)[0]][0]}`); });
 // تطبيق الأندرويد: خدمة بتخلّي التلاوة شغالة والشاشة مطفية (وإشعار "التلاوة شغالة")
 const KA = () => window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.KeepAlive;
 let kaLast = "";
@@ -1628,7 +1629,8 @@ function noTags(b) {
 }
 async function bgLocal(s) {
   if (isSurahOnly(reciter())) { try { const u = SURAH_ONLY[reciter()](s + 1), hit = await (await caches.open(AUDIO_CACHE)).match(u); if (!hit) return null;
-    return hit.type === "opaque" ? u : URL.createObjectURL(await hit.blob()); } catch (e) { return null; } } // السورة متنزّلة: تشتغل من الجهاز
+    if (hit.type === "opaque") return navigator.onLine ? null : u; // الملف "المقفول" مش بيشتغل كويس على الأيفون: لو فيه نت نشغّل من النت
+    return URL.createObjectURL(await hit.blob()); } catch (e) { return null; } } // السورة متنزّلة: تشتغل من الجهاز
   try { const c = await caches.open(AUDIO_CACHE), rec = reciter(), parts = [];
     for (let g = MBASE[s]; g < MBASE[s + 1]; g++) { let hit = null;
       for (let bi = 0; bi < nBr(rec) && !hit; bi++) { const h = await c.match(srcUrl(rec, g, bi)); if (h && h.type !== "opaque") hit = h; }
@@ -1650,6 +1652,9 @@ async function bgPlay(s, at) {
   // نرجع لنفس الثانية: بنستنى ملف السورة نفسه (مش لحظة الصمت اللي قبله)
   if (at) { const want = aEl.src, seek = () => { if (aEl.src !== want) return; if (aEl.currentSrc !== want || aEl.readyState < 1) { aEl.addEventListener("loadedmetadata", seek, { once: true }); return; } try { aEl.currentTime = at; } catch (e) {} }; seek(); }
   aEl.play().catch((e) => { if (e && e.name === "NotAllowedError") { toast("دوس ▶ تاني عشان تبدأ"); audioStop(); } });
+  // لو التلاوة مابدأتش خلال ١٥ ثانية (بيحصل على الأيفون)، نجرّب المصدر اللي بعده بدل ما تفضل واقفة
+  const tok = aEl._tok = (aEl._tok || 0) + 1; aEl._got = false;
+  setTimeout(() => { if (aEl._tok === tok && aOn && aEl._bg && bgSur === s && !aEl._got) aEl.dispatchEvent(new Event("error")); }, 15000);
   if ("mediaSession" in navigator) try { navigator.mediaSession.metadata = new MediaMetadata({ title: `سورة ${QURAN[s][0]}`, artist: recName(), album: "طُوبَى", artwork: [{ src: "icon-512.png", sizes: "512x512", type: "image/png" }] }); } catch (e) {}
   if (!$("#qRead").hidden && s !== curSurah) openSurahText(s, null, true);
   else if (MD && !$("#mRead").hidden && pageSurah(mPage) !== s) showPage(MD.ap[MBASE[s]]);
@@ -2525,7 +2530,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261118034351";
+const BUILD = "20261118115637";
 let updLast = 0;
 async function checkUpdate(auto) {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
