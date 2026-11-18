@@ -26,7 +26,7 @@ self.addEventListener("fetch", (e) => {
     e.respondWith(caches.open(MUSHAF).then((c) => c.match(e.request, { ignoreSearch: true }).then((hit) => hit || fetch(e.request).then((res) => { if (res && res.ok) c.put(e.request, res.clone()); return res; }))));
     return;
   }
-  if (url.hostname === "cdn.islamic.network" || url.hostname === "everyayah.com" || url.hostname === "archive.org") {
+  if (url.hostname === "cdn.islamic.network" || url.hostname === "everyayah.com" || url.hostname === "archive.org" || url.hostname.endsWith(".mp3quran.net")) {
     if (url.searchParams.has("s")) return; // تشغيل من النت: المتصفح يتعامل معاه لوحده عشان الصوت ميعلقش
     e.respondWith(caches.open(AUDIO).then((c) => c.match(url.href, { ignoreVary: true }).then((hit) => hit ? ranged(hit, e.request) : fetch(e.request))));
     return;
