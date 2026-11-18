@@ -1300,7 +1300,11 @@ mushafDownloaded().then((d) => { if (d) try { navigator.storage.persist(); } cat
 // ---------- القرآن المسموع: آية آية من شبكة Islamic Network (مجاني لغير الأغراض التجارية) ----------
 // المصحف المعلّم للحصري: الشيخ بيقرأ الآية بالتجويد ويسيب سكتة عشان تردد وراه (ملفات آية آية من EveryAyah)
 const EVERYAYAH = { "husary.muallim": "Husary_Muallim_128kbps" };
-const RECITERS = [["ar.alafasy", "مشاري العفاسي"], ["ar.abdurrahmaansudais", "السديس"], ["husary.muallim", "الحصري: المصحف المعلّم (اسمع وردد)"], ["ar.husary", "محمود خليل الحصري"], ["ar.minshawi", "محمد صديق المنشاوي"], ["ar.abdulbasitmurattal", "عبد الباسط عبد الصمد"], ["ar.mahermuaiqly", "ماهر المعيقلي"]];
+// قرّاء عندهم السورة كاملة بس (مفيش آية آية): بيشتغلوا زي وضع 🎧 على طول، من غير تلوين الآية
+const SURAH_ONLY = { "mp3q.kamel": (n) => `https://server16.mp3quran.net/kamel/Rewayat-Hafs-A-n-Assem/${String(n).padStart(3, "0")}.mp3` };
+const isSurahOnly = (rec) => !!SURAH_ONLY[rec];
+const recShort = () => recName().replace(/\s*\(.*\)$/, "");
+const RECITERS = [["ar.alafasy", "مشاري العفاسي"], ["ar.abdurrahmaansudais", "السديس"], ["husary.muallim", "الحصري: المصحف المعلّم (اسمع وردد)"], ["ar.husary", "محمود خليل الحصري"], ["ar.minshawi", "محمد صديق المنشاوي"], ["ar.abdulbasitmurattal", "عبد الباسط عبد الصمد"], ["ar.mahermuaiqly", "ماهر المعيقلي"], ["mp3q.kamel", "عبدالله كامل (السورة كاملة)"]];
 const BITRATES = [128, 192, 64, 48, 32];
 let aG = -1, aOn = false; const aEl = new Audio(), aNext = new Audio(); aEl.preload = "auto"; aNext.preload = "auto";
 const reciter = () => { const r = store.get("reciter", "ar.alafasy"); return RECITERS.some((x) => x[0] === r) ? r : "ar.alafasy"; };
@@ -1395,7 +1399,7 @@ function audioPlay(g) {
     if (!$("#qRead").hidden) { const m = $("#rText .aya.mark"); g = aResume >= 0 && ayahOf(aResume)[0] === curSurah ? aResume : MBASE[curSurah] + (m ? +m.dataset.a : 0); }
     else if (MD) { g = aResume >= 0 && MD.ap[aResume] === mPage ? aResume : MD.ap.indexOf(mPage); if (g < 0) g = 0; } else return;
   }
-  if (bgOn()) { const s = ayahOf(g)[0]; return bgPlay(s, bgPos.s === s && g === MBASE[s] ? bgPos.t : 0); }
+  if (bgOn()) { const s = ayahOf(g)[0]; if (isSurahOnly(reciter()) && g !== MBASE[s] && !(bgPos.s === s)) toast(`${recShort()} بيقرا السورة من أولها`); return bgPlay(s, bgPos.s === s && g === MBASE[s] ? bgPos.t : 0); }
   aEl._bg = false;
   aOn = true; $("#mPlay").setAttribute("aria-pressed", "true"); $("#mPlay").setAttribute("aria-label", "وقّف");
   $("#mPlayIc").innerHTML = '<path d="M8 5v14M16 5v14"/>'; audioGo(g);
@@ -1411,10 +1415,10 @@ function audioStop() {
 $("#mPlay").addEventListener("click", () => { if (aOn) audioStop(); else audioPlay(mSel >= 0 ? mSel : null); });
 // ---------- السماع في الخلفية: السورة كلها ملف واحد، عشان التلاوة تكمّل والشاشة مقفولة أو وانت في برنامج تاني ----------
 const BG_BR = [128, 192, 64];
-const bgOn = () => !!store.get("bgl", false) && !EVERYAYAH[reciter()];
-const bgUrl = (s, bi) => `https://cdn.islamic.network/quran/audio-surah/${BG_BR[bi]}/${reciter()}/${s + 1}.mp3?s=1`;
+const bgOn = () => isSurahOnly(reciter()) || (!!store.get("bgl", false) && !EVERYAYAH[reciter()]);
+const bgUrl = (s, bi) => isSurahOnly(reciter()) ? SURAH_ONLY[reciter()](s + 1) : `https://cdn.islamic.network/quran/audio-surah/${BG_BR[bi]}/${reciter()}/${s + 1}.mp3?s=1`;
 let bgSur = -1, bgPos = { s: -1, t: 0 };
-function renderBg() { const on = !!store.get("bgl", false), b = $("#mBg"); b.setAttribute("aria-pressed", String(on)); b.style.background = on ? "var(--mint)" : ""; b.style.outline = on ? "2px solid var(--green)" : ""; }
+function renderBg() { const on = !!store.get("bgl", false) || isSurahOnly(reciter()), b = $("#mBg"); b.setAttribute("aria-pressed", String(on)); b.style.background = on ? "var(--mint)" : ""; b.style.outline = on ? "2px solid var(--green)" : ""; }
 // من غير نت: لو آيات السورة كلها متنزّلة بنلزقها ورا بعض في ملف واحد، فتشتغل في الخلفية من غير ما تنزّل حاجة تاني
 function noTags(b) {
   let a = 0, e = b.length;
@@ -1423,6 +1427,7 @@ function noTags(b) {
   return a < e ? b.subarray(a, e) : b;
 }
 async function bgLocal(s) {
+  if (isSurahOnly(reciter())) return null;
   try { const c = await caches.open(AUDIO_CACHE), rec = reciter(), parts = [];
     for (let g = MBASE[s]; g < MBASE[s + 1]; g++) { let hit = null;
       for (let bi = 0; bi < nBr(rec) && !hit; bi++) { const h = await c.match(srcUrl(rec, g, bi)); if (h && h.type !== "opaque") hit = h; }
@@ -1435,6 +1440,7 @@ async function bgPlay(s, at) {
   // الأيفون مش بيسمح بالتشغيل بعد ما نستنى؛ فبنشغّل لحظة صمت دلوقتي والتلاوة تكمّل عليها
   aEl._unlock = true; aEl.src = SILENT; aEl.play().catch(() => {});
   const local = await bgLocal(s); aEl._unlock = false;
+  if (!local && !navigator.onLine && isSurahOnly(reciter())) { aEl._unlock = false; toast(`${recShort()} محتاج نت عشان يشتغل`); audioStop(); return; }
   if (!local && !navigator.onLine) { aEl._bg = false; bgSur = -1; toast("السورة دي مش متنزّلة كلها، نزّلها من ⬇ عشان تشتغل في الخلفية من غير نت"); aOn = true; return audioGo(MBASE[s]); }
   aOn = true; bgSur = s; aG = MBASE[s]; aEl._bg = true; aEl._bgbi = 0; aEl._nerr = 0; aEl._retry = 0; aEl._saved = false;
   $("#mPlay").setAttribute("aria-pressed", "true"); $("#mPlay").setAttribute("aria-label", "وقّف"); $("#mPlayIc").innerHTML = '<path d="M8 5v14M16 5v14"/>';
@@ -1448,8 +1454,11 @@ async function bgPlay(s, at) {
   aMark();
 }
 // لو ملف السورة مش موجود للقارئ ده أو النت مش سامح، نرجع للتشغيل آية آية (بيشتغل من التلاوة المتنزّلة كمان)
-function bgFail() { aEl._bg = false; const s = bgSur; bgSur = -1; toast("السورة دي هتشتغل آية آية"); audioGo(MBASE[s]); }
+function bgFail() {
+  if (isSurahOnly(reciter())) { toast(`مقدرناش نشغّل ${recShort()} دلوقتي، جرّب قارئ تاني`); audioStop(); return; }
+  aEl._bg = false; const s = bgSur; bgSur = -1; toast("السورة دي هتشتغل آية آية"); audioGo(MBASE[s]); }
 $("#mBg").addEventListener("click", () => {
+  if (isSurahOnly(reciter())) { toast(`${recShort()} بيشغّل السورة كاملة على طول، وبتكمّل والشاشة مقفولة`); return; }
   if (EVERYAYAH[reciter()]) { toast("المصحف المعلّم بيشتغل آية آية بس، اختار قارئ تاني للسماع في الخلفية"); return; }
   const on = !store.get("bgl", false); store.set("bgl", on); renderBg();
   toast(on ? "🎧 السماع في الخلفية شغال: دوس ▶ وتقدر تقفل الشاشة أو تفتح أي برنامج والتلاوة تكمّل" : "رجعنا للتشغيل آية آية مع تلوين الآية");
@@ -1527,7 +1536,9 @@ async function savedCount(rec) { try { const c = await caches.open(AUDIO_CACHE),
 const recName = () => RECITERS.find((x) => x[0] === reciter())[1];
 async function renderADl() {
   if (!("caches" in window)) { $("#aDlAll").hidden = true; $("#aDlSub").textContent = "التنزيل مش متاح على الجهاز ده"; return; }
-  if (aDl) return; const n = await savedCount(reciter());
+  if (aDl) return;
+  if (isSurahOnly(reciter())) { $("#aDlTxt").textContent = `${recShort()} بيشتغل من النت بس`; $("#aDlSub").textContent = "التلاوة دي سورة كاملة من موقع تاني، ومفيش تنزيل ليها لسه"; $("#aDlAll").hidden = true; $("#aDlClear").hidden = true; $("#aDlBar").hidden = true; return; }
+  const n = await savedCount(reciter());
   $("#aDlTxt").textContent = n >= 6236 ? `تلاوة ${recName()} متنزّلة كلها ✓` : "نزّل التلاوة عشان تسمع من غير نت";
   $("#aDlSub").textContent = n >= 6236 ? "بتشتغل من غير نت" : n ? `متنزّل ${n < 63 ? ar(n) + " آية" : ar(Math.round(n / 6236 * 100)) + "٪"} من المصحف بصوت ${recName()}` : `المصحف كله بصوت ${recName()} حوالي ٦٠٠ ميجا أو أكتر، أو نزّل سورة سورة من زرار ⬇ في المصحف`;
   $("#aDlAll").hidden = n >= 6236; $("#aDlAll").textContent = n ? "كمّل التنزيل" : "نزّل كله"; $("#aDlClear").hidden = !n; $("#aDlBar").hidden = true;
@@ -1547,6 +1558,7 @@ $("#aDlClear").addEventListener("click", async () => {
   toast("اتمسحت"); renderADl();
 });
 $("#mDlSura").addEventListener("click", async () => {
+  if (isSurahOnly(reciter())) { toast(`${recShort()} بيشتغل من النت بس`); return; }
   if (aDl) { aDl.stop = true; return; }
   const s = pageSurah(mPage), list = []; for (let g = MBASE[s]; g < MBASE[s + 1]; g++) list.push(g);
   const lbl = $("#mPageNo"), b = $("#mDlSura"); b.setAttribute("aria-pressed", "true");
@@ -2237,7 +2249,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261118010432";
+const BUILD = "20261118022519";
 let updLast = 0;
 async function checkUpdate(auto) {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
