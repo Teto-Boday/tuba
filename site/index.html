@@ -55,6 +55,9 @@ header nav a:hover{color:var(--green)}
 .chipbtn{background:var(--green);color:var(--bg);text-decoration:none;font-weight:600;border-radius:14px;padding:7px 16px;font-size:15px;white-space:nowrap}
 .chipbtn.ghost{background:var(--card);color:var(--green);border:1px solid var(--line)}
 section[id]{scroll-margin-top:80px}
+.langbtn{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:6px 12px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+html[lang="en"] body{font-family:'Readex Pro',system-ui,sans-serif}
+html[lang="en"] h1,html[lang="en"] h2,html[lang="en"] h3{font-family:'Readex Pro',system-ui,sans-serif;font-weight:700}
 @media (max-width:400px){.chipbtn{padding:6px 11px;font-size:14px}.brand{font-size:22px}}
 
 /* buttons */
@@ -149,32 +152,32 @@ img,svg{-webkit-user-drag:none;user-drag:none}
 <div class="blobs" aria-hidden="true"><i></i><i></i><i></i></div>
 
 <header><div class="wrap">
-  <a class="brand" href="#"><img src="app/icon-192.png" alt="">طُوبَى</a>
-  <nav aria-label="أقسام الصفحة"><a href="#features">المميزات</a><a href="#download">التحميل</a><a href="#maker">المصمم</a><a href="#faq">أسئلة</a></nav>
-  <div style="display:flex;gap:8px"><a class="chipbtn ghost" href="#maker">عملنا إيه تاني؟</a><a class="chipbtn" href="#download">حمّل</a></div>
+  <a class="brand" href="#"><img src="app/icon-192.png" alt=""><span data-en="Tuba">طُوبَى</span></a>
+  <nav aria-label="أقسام الصفحة" data-en-aria="Page sections"><a href="#features" data-en="Features">المميزات</a><a href="#listen" data-en="Listen">التلاوة</a><a href="#download" data-en="Download">التحميل</a><a href="#maker" data-en="Designer">المصمم</a><a href="#faq" data-en="FAQ">أسئلة</a></nav>
+  <div style="display:flex;gap:8px;align-items:center"><a class="chipbtn ghost" href="#maker" data-en="What else?">عملنا إيه تاني؟</a><a class="chipbtn" href="#download" data-en="Get it">حمّل</a><button class="langbtn" id="langBtn" type="button" aria-label="English">EN</button></div>
 </div></header>
 
 <main>
   <div class="wrap">
     <section class="hero">
       <div>
-        <h1>طُوبَى</h1>
-        <p class="tag">قصيرة. إسلامية. مفيدة.</p>
-        <p class="lead">بدل ما تقلّب في اللي مالوش لازمة، قلّب في اللي ينفعك. مقاطع قصيرة من مصادر موثوقة، والقرآن الكريم، ومواقيت الصلاة، والأذكار في تطبيق واحد. مجاني بالكامل ومن غير إعلانات.</p>
+        <h1 data-en="Tuba">طُوبَى</h1>
+        <p class="tag" data-en="Short. Islamic. Beneficial.">قصيرة. إسلامية. مفيدة.</p>
+        <p class="lead" data-en="Instead of scrolling through things that don't matter, scroll through what benefits you. Short clips from trusted sources, the Holy Quran with famous reciters, prayer times and adhkar in one app. Completely free, with no ads.">بدل ما تقلّب في اللي مالوش لازمة، قلّب في اللي ينفعك. مقاطع قصيرة من مصادر موثوقة، والقرآن الكريم بأصوات أشهر القرّاء، ومواقيت الصلاة، والأذكار في تطبيق واحد. مجاني بالكامل ومن غير إعلانات.</p>
         <div class="btns">
-          <a class="btn main" href="app/"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>افتح طُوبَى</a>
-          <a class="btn alt" href="#download"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19h14"/></svg>نزّله على موبايلك</a>
+          <a class="btn main" href="app/"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg><span data-en="Open Tuba">افتح طُوبَى</span></a>
+          <a class="btn alt" href="#download"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19h14"/></svg><span data-en="Get it on your phone">نزّله على موبايلك</span></a>
         </div>
-        <div class="badges"><span>مجاني</span><span>من غير إعلانات</span><span>بيشتغل من غير نت</span><span>أندرويد · آيفون · ويندوز</span></div>
+        <div class="badges"><span data-en="Free">مجاني</span><span data-en="No ads">من غير إعلانات</span><span data-en="Works offline">بيشتغل من غير نت</span><span data-en="Arabic · English">عربي · English</span><span data-en="Android · iPhone · Windows">أندرويد · آيفون · ويندوز</span></div>
       </div>
       <div class="hero-phone">
         <div class="phone float"><div class="screen" id="carousel">
-          <img src="img/home.jpg" class="on" alt="الشاشة الرئيسية في طُوبَى">
-          <img src="img/kahf.jpg" alt="قراءة سورة الكهف">
-          <img src="img/prayer.jpg" alt="مواقيت الصلاة">
-          <img src="img/azkar.jpg" alt="الأذكار بالعدّاد">
-          <img src="img/quran.jpg" alt="قايمة سور القرآن">
-          <img src="img/dark.jpg" alt="الوضع الليلي">
+          <img src="img/home.jpg" class="on" alt="الشاشة الرئيسية في طُوبَى" data-en-alt="Tuba home screen">
+          <img src="img/kahf.jpg" alt="قراءة سورة الكهف" data-en-alt="Reading Surat Al-Kahf">
+          <img src="img/prayer.jpg" alt="مواقيت الصلاة" data-en-alt="Prayer times">
+          <img src="img/azkar.jpg" alt="الأذكار بالعدّاد" data-en-alt="Adhkar with a counter">
+          <img src="img/quran.jpg" alt="قايمة سور القرآن" data-en-alt="List of surahs">
+          <img src="img/dark.jpg" alt="الوضع الليلي" data-en-alt="Dark mode">
         </div></div>
         <div class="stickers" aria-hidden="true">
           <b><svg viewBox="0 0 24 24"><path d="M12 6.5C10 5 7 4.5 4 5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5c-3-.5-6 0-8 1.5z"/><path d="M12 6.5V19"/></svg></b>
@@ -188,88 +191,104 @@ img,svg{-webkit-user-drag:none;user-drag:none}
 
   <section class="block" id="features">
     <div class="wrap">
-      <div class="sec-title reveal"><h2>كل اللي محتاجه في مكان واحد</h2><p>من غير تشتيت، ومن غير إعلانات، ومن غير ما تقلق من مصدر الكلام.</p></div>
+      <div class="sec-title reveal"><h2 data-en="Everything you need in one place">كل اللي محتاجه في مكان واحد</h2><p data-en="No distractions, no ads, and no worrying about where the words come from.">من غير تشتيت، ومن غير إعلانات، ومن غير ما تقلق من مصدر الكلام.</p></div>
       <div class="features">
         <div class="feature reveal">
           <div class="f-media"><div class="phone sm"><div class="screen"><img src="img/home.jpg" class="on" alt="" loading="lazy"></div></div></div>
           <div><div class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M10 8.5v7l5.5-3.5z"/></svg></div>
-            <h3>كل يوم حاجة تنفعك</h3>
-            <p>أول ما تفتح التطبيق تلاقي آية اليوم، والصلاة الجاية والوقت الباقي عليها، وأذكار الوقت اللي انت فيه. والمقاطع القصيرة بتقلّب فيها لفوق زي تيك توك، من القنوات الرسمية للمشايخ.</p>
-            <ul><li>آية جديدة كل يوم</li><li>تذكير بصيام الاثنين والخميس لو حابب</li><li>مقاطع بتشتغل لوحدها وانت بتقلّب</li><li>احفظ المقاطع اللي عجبتك وشاركها</li></ul>
+            <h3 data-en="Something beneficial every day">كل يوم حاجة تنفعك</h3>
+            <p data-en="Open the app and you'll find the verse of the day, the next prayer and the time left, and the adhkar for this time of day. Short clips from well-known scholars' official channels scroll up like TikTok, with a short pause every 10 clips so you stay mindful of your time.">أول ما تفتح التطبيق تلاقي آية اليوم، والصلاة الجاية والوقت الباقي عليها، وأذكار الوقت اللي انت فيه. والمقاطع القصيرة بتقلّب فيها لفوق زي تيك توك من القنوات الرسمية للمشايخ، ومعاها وقفة صغيرة كل ١٠ مقاطع عشان وقتك ميضيعش من غير ما تحس.</p>
+            <ul><li data-en="A new verse every day">آية جديدة كل يوم</li><li data-en="Recitations only, or one scholar's clips only">التلاوات بس، أو مقاطع شيخ معيّن بس</li><li data-en="A pause every 10 clips: write what you learned, read a dhikr">وقفة كل ١٠ مقاطع: اكتب استفدت إيه، واقرأ ذكر</li><li data-en="Save the clips you like and share them">احفظ المقاطع اللي عجبتك وشاركها</li></ul>
           </div>
         </div>
         <div class="feature reveal">
           <div class="f-media"><div class="phone sm"><div class="screen"><img src="img/kahf.jpg" class="on" alt="" loading="lazy"></div></div></div>
           <div><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 6.5C10 5 7 4.5 4 5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5c-3-.5-6 0-8 1.5z"/><path d="M12 6.5V19"/></svg></div>
-            <h3>القرآن الكريم</h3>
-            <p>المصحف كامل بالرسم العثماني وبخط واضح. دوّر على أي سورة، كبّر الخط على راحتك، وحط علامة عند آخر آية وصلتلها.</p>
-            <ul><li>١١٤ سورة · ٦٢٣٦ آية</li><li>كمّل من آخر مكان بضغطة</li><li>بيشتغل من غير نت</li></ul>
+            <h3 data-en="The Holy Quran">القرآن الكريم</h3>
+            <p data-en="The full Mushaf in Uthmani script. Read it as the pages of the Madinah Mushaf or in the font that suits you, search any surah, enlarge the text, and mark the last verse you reached.">المصحف كامل بالرسم العثماني. اقرأه بصفحات مصحف المدينة أو بالخط اللي يريّحك، دوّر على أي سورة، كبّر الخط على راحتك، وحط علامة عند آخر آية وصلتلها.</p>
+            <ul><li data-en="114 surahs · 6236 verses">١١٤ سورة · ٦٢٣٦ آية</li><li data-en="Madinah Mushaf pages or a clear font">صفحات مصحف المدينة أو خط واضح</li><li data-en="Continue from where you stopped with one tap">كمّل من آخر مكان بضغطة</li><li data-en="Works offline">بيشتغل من غير نت</li></ul>
+          </div>
+        </div>
+        <div class="feature reveal" id="listen">
+          <div class="f-media"><div class="phone sm"><div class="screen"><img src="img/quran.jpg" class="on" alt="" loading="lazy"></div></div></div>
+          <div><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/></svg></div>
+            <h3 data-en="Listen to the Quran">اسمع القرآن</h3>
+            <p data-en="Listen to the recitation of 12 famous reciters, verse by verse with the verse highlighted, or a whole surah while your screen is locked or you're in another app. Stop it and it continues from the same second, and download any reciter to listen without internet.">اسمع تلاوة ١٢ قارئ من أشهر القرّاء، آية آية والآية بتتلوّن قدامك، أو السورة كلها والشاشة مقفولة أو وانت في برنامج تاني. وقّفها وتكمّل من نفس الثانية، ونزّل أي قارئ عشان تسمعه من غير نت.</p>
+            <ul><li data-en="Al-Afasy, Al-Sudais, Al-Husary, Al-Minshawi, Abdul Basit, Al-Muaiqly, Al-Dossari, Abdullah Kamel, Al-Luhaidan, Al-Tablawi, Al-Banna">العفاسي، السديس، الحصري، المنشاوي، عبد الباسط، المعيقلي، الدوسري، عبدالله كامل، اللحيدان، الطبلاوي، البنا</li><li data-en="The Teaching Mushaf: listen and repeat">المصحف المعلّم: اسمع وردد</li><li data-en="Keeps playing with the screen off">بتكمّل والشاشة مقفولة</li><li data-en="Download one reciter, several, or all of them, in a smaller size if you like">نزّل قارئ أو أكتر أو كلهم، وبحجم أصغر لو حابب</li></ul>
           </div>
         </div>
         <div class="feature reveal">
           <div class="f-media"><div class="phone sm"><div class="screen"><img src="img/prayer.jpg" class="on" alt="" loading="lazy"></div></div></div>
           <div><div class="ic"><svg viewBox="0 0 24 24"><path d="M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.5z"/></svg></div>
-            <h3>مواقيت الصلاة</h3>
-            <p>المواقيت بتتحسب على موبايلك حسب مكانك، بطريقة الهيئة المصرية العامة للمساحة. وفيه عدّاد للصلاة الجاية واتجاه القبلة.</p>
-            <ul><li>تنبيه الأذان في نسخة الأندرويد حتى والتطبيق مقفول</li><li>اتجاه القبلة من مكانك</li></ul>
+            <h3 data-en="Prayer times">مواقيت الصلاة</h3>
+            <p data-en="Prayer times are calculated on your phone for your location, using the Egyptian General Authority of Survey method, with a countdown to the next prayer and the qibla direction.">المواقيت بتتحسب على موبايلك حسب مكانك، بطريقة الهيئة المصرية العامة للمساحة. وفيه عدّاد للصلاة الجاية واتجاه القبلة.</p>
+            <ul><li data-en="Adhan notifications on Android, iPhone and Windows">تنبيه الأذان على الأندرويد والآيفون والويندوز</li><li data-en="Qibla direction from where you are">اتجاه القبلة من مكانك</li><li data-en="Reminders for adhkar, Surat Al-Kahf on Friday, and fasting Monday and Thursday">تذكير بالأذكار، وسورة الكهف يوم الجمعة، وصيام الاثنين والخميس</li></ul>
+          </div>
+        </div>
+        <div class="feature reveal">
+          <div class="f-media"><div class="phone sm"><div class="screen"><img src="img/prayer.jpg" class="on" alt="" loading="lazy"></div></div></div>
+          <div><div class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M8.5 7.5h7"/><path d="M8.5 12h2M13.5 12h2M8.5 16h2M13.5 16h2"/></svg></div>
+            <h3 data-en="Count your missed prayers">احسب صلاتك الفايتة</h3>
+            <p data-en="If there were years you didn't pray, enter how long and Tuba tells you how many Fajr, Dhuhr, Asr, Maghrib and Isha prayers you owe, then you tick off each one you make up. Before you start, it explains what the four schools of jurisprudence say about making up missed prayers.">لو فيه سنين مكنتش بتصلي فيها، اكتب المدة ويطلعلك عدد الصلوات اللي فاتتك من كل فرض، وتعلّم على كل صلاة بتقضيها. وقبل ما تبدأ بيشرحلك رأي المذاهب الأربعة في قضاء الصلوات.</p>
+            <ul><li data-en="A count for every prayer, and your progress">عدّاد لكل فرض ونسبة اللي خلّصته</li><li data-en="Days of menstruation are subtracted for women">أيام العذر الشرعي بتتطرح للبنات</li><li data-en="Everything stays on your phone">كل حاجة بتتحفظ على موبايلك بس</li></ul>
           </div>
         </div>
         <div class="feature reveal">
           <div class="f-media"><div class="phone sm"><div class="screen"><img src="img/azkar.jpg" class="on" alt="" loading="lazy"></div></div></div>
           <div><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="6"/><path d="M12 16v3.5"/><circle cx="12" cy="20.5" r="1"/></svg></div>
-            <h3>الأذكار</h3>
-            <p>أذكار الصباح والمساء وبعد الصلاة والنوم من حصن المسلم. اضغط على الذكر وهو يعدّ معاك، والموبايل يهزّ لما تخلّص.</p>
-            <ul><li>عدّاد لكل ذكر</li><li>بيفتكر انت وصلت لفين النهارده</li></ul>
+            <h3 data-en="Adhkar">الأذكار</h3>
+            <p data-en="Morning, evening, after-prayer and sleep adhkar from Hisn Al-Muslim. Tap a dhikr and it counts with you, the phone vibrates when you finish, and you can listen to them in Sheikh Mishary Al-Afasy's voice.">أذكار الصباح والمساء وبعد الصلاة والنوم من حصن المسلم. اضغط على الذكر وهو يعدّ معاك، والموبايل يهزّ لما تخلّص، وتقدر تسمعها بصوت الشيخ مشاري العفاسي.</p>
+            <ul><li data-en="A counter for every dhikr">عدّاد لكل ذكر</li><li data-en="Remembers how far you got today">بيفتكر انت وصلت لفين النهارده</li><li data-en="Audio you can download">بالصوت، وتقدر تنزّله</li></ul>
           </div>
         </div>
         <div class="feature reveal">
           <div class="f-media"><div class="phone sm"><div class="screen"><img src="img/dark.jpg" class="on" alt="" loading="lazy"></div></div></div>
           <div><div class="ic"><svg viewBox="0 0 24 24"><path d="M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.5z"/></svg></div>
-            <h3>مريح لعينك بالليل</h3>
-            <p>فيه وضع ليلي تختاره من الإعدادات، أو تخليه يمشي مع موبايلك. وتقدر تكبّر خط المصحف على راحتك.</p>
-            <ul><li>فاتح · ليلي · زي الموبايل</li></ul>
+            <h3 data-en="Easy on your eyes at night">مريح لعينك بالليل</h3>
+            <p data-en="A dark mode you can pick in settings, or let it follow your phone. You can also enlarge the Mushaf text as you like.">فيه وضع ليلي تختاره من الإعدادات، أو تخليه يمشي مع موبايلك. وتقدر تكبّر خط المصحف على راحتك.</p>
+            <ul><li data-en="Light · Dark · Like the phone">فاتح · ليلي · زي الموبايل</li><li data-en="Arabic or English">عربي أو English</li></ul>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="block" aria-label="ليه طُوبَى">
+  <section class="block" aria-label="ليه طُوبَى" data-en-aria="Why Tuba">
     <div class="wrap">
       <div class="band reveal">
-        <div><h3>مجاني بالكامل</h3><p>ببلاش ومن غير اشتراكات.</p></div>
-        <div><h3>من غير إعلانات</h3><p>مفيش حاجة هتقطع عليك وانت بتقرا أو بتذكر.</p></div>
-        <div><h3>مصادر موثوقة</h3><p>كل حاجة في التطبيق مكتوب مصدرها، ومحتوى المشايخ من قنواتهم الرسمية.</p></div>
+        <div><h3 data-en="Completely free">مجاني بالكامل</h3><p data-en="Free, with no subscriptions.">ببلاش ومن غير اشتراكات.</p></div>
+        <div><h3 data-en="No ads">من غير إعلانات</h3><p data-en="Nothing interrupts you while you read or remember Allah.">مفيش حاجة هتقطع عليك وانت بتقرا أو بتذكر.</p></div>
+        <div><h3 data-en="Trusted sources">مصادر موثوقة</h3><p data-en="Every source is named in the app, and scholars' clips come from their official channels.">كل حاجة في التطبيق مكتوب مصدرها، ومحتوى المشايخ من قنواتهم الرسمية.</p></div>
       </div>
     </div>
   </section>
 
   <section class="block" id="maker">
     <div class="wrap maker reveal">
-      <div class="sec-title" style="margin-bottom:6px"><h2>مين صمّم طُوبَى؟</h2><p>طُوبَى من تصميم وتطوير <b>محمد صلاح</b>. ومن تصميمه كمان:</p></div>
-      <div class="card"><h3>Nono's World</h3><p>تطبيق لتنظيم الفلوس والمذاكرة والمود والمذكرات في مكان واحد.</p><a class="btn alt" href="https://teto-boday.github.io/nonos-world/" target="_blank" rel="noopener">شوف Nono's World</a></div>
+      <div class="sec-title" style="margin-bottom:6px"><h2 data-en="Who designed Tuba?">مين صمّم طُوبَى؟</h2><p data-en="Tuba is designed and developed by &lt;b&gt;Mohamed Salah&lt;/b&gt;. He also designed:">طُوبَى من تصميم وتطوير <b>محمد صلاح</b>. ومن تصميمه كمان:</p></div>
+      <div class="card"><h3>Nono's World</h3><p data-en="An app to organize money, study, mood and diaries in one place.">تطبيق لتنظيم الفلوس والمذاكرة والمود والمذكرات في مكان واحد.</p><a class="btn alt" href="https://teto-boday.github.io/nonos-world/" target="_blank" rel="noopener" data-en="See Nono's World">شوف Nono's World</a></div>
     </div>
   </section>
 
   <section class="block" id="download">
     <div class="wrap">
-      <div class="sec-title reveal"><h2>نزّل طُوبَى</h2><p>اختار جهازك.</p></div>
+      <div class="sec-title reveal"><h2 data-en="Get Tuba">نزّل طُوبَى</h2><p data-en="Choose your device.">اختار جهازك.</p></div>
       <div class="dl reveal">
         <div class="card">
-          <h3>أندرويد</h3>
-          <ol><li>دوس على الزرار ونزّل الملف.</li><li>لو الموبايل سألك، اسمح بالتثبيت من المصدر ده.</li><li>دوس تثبيت وافتح التطبيق.</li><li>اسمح بالإشعارات عشان يجيلك تنبيه الأذان.</li></ol>
-          <a class="btn main" href="https://github.com/Teto-Boday/tuba/releases/latest/download/Tuba.apk">نزّل للأندرويد</a>
+          <h3 data-en="Android">أندرويد</h3>
+          <ol><li data-en="Tap the button and download the file.">دوس على الزرار ونزّل الملف.</li><li data-en="If your phone asks, allow installing from this source.">لو الموبايل سألك، اسمح بالتثبيت من المصدر ده.</li><li data-en="Tap install and open the app.">دوس تثبيت وافتح التطبيق.</li><li data-en="Allow notifications to get the adhan.">اسمح بالإشعارات عشان يجيلك تنبيه الأذان.</li></ol>
+          <a class="btn main" href="https://github.com/Teto-Boday/tuba/releases/latest/download/Tuba.apk" data-en="Download for Android">نزّل للأندرويد</a>
         </div>
         <div class="card">
-          <h3>آيفون وآيباد</h3>
-          <ol><li>افتح رابط التطبيق من سفاري.</li><li>دوس على زرار المشاركة.</li><li>اختار "إضافة إلى الشاشة الرئيسية".</li><li>دوس "إضافة".</li></ol>
-          <a class="btn alt" href="app/">افتح التطبيق في سفاري</a>
+          <h3 data-en="iPhone and iPad">آيفون وآيباد</h3>
+          <ol><li data-en="Open the app link in Safari.">افتح رابط التطبيق من سفاري.</li><li data-en="Tap the Share button.">دوس على زرار المشاركة.</li><li data-en="Choose &quot;Add to Home Screen&quot;.">اختار "إضافة إلى الشاشة الرئيسية".</li><li data-en="Tap &quot;Add&quot;, and always open Tuba from its icon.">دوس "إضافة"، وافتح طُوبَى دايمًا من الأيقونة.</li></ol>
+          <a class="btn alt" href="app/" data-en="Open the app in Safari">افتح التطبيق في سفاري</a>
         </div>
         <div class="card">
-          <h3>الكمبيوتر (ويندوز)</h3>
-          <ol><li>نزّل البرنامج وشغّل الملف.</li><li>لو ويندوز قالك إنه حماك، دوس "More info" وبعدين "Run anyway".</li><li>البرنامج بيتثبّت لوحده وبيفتح مع الويندوز، عشان تنبيه الأذان يوصلك في معاده.</li></ol>
-          <a class="btn main" href="https://github.com/Teto-Boday/tuba/releases/latest/download/Tuba-Setup.exe">نزّل للويندوز</a>
-          <a class="btn alt" href="app/" style="margin-top:8px">أو افتحه كصفحة ويب على طول</a>
+          <h3 data-en="Computer (Windows)">الكمبيوتر (ويندوز)</h3>
+          <ol><li data-en="Download the program and run the file.">نزّل البرنامج وشغّل الملف.</li><li data-en="If Windows says it protected your PC, tap &quot;More info&quot; then &quot;Run anyway&quot;.">لو ويندوز قالك إنه حماك، دوس "More info" وبعدين "Run anyway".</li><li data-en="It installs by itself and starts with Windows, so the adhan reaches you on time.">البرنامج بيتثبّت لوحده وبيفتح مع الويندوز، عشان تنبيه الأذان يوصلك في معاده.</li></ol>
+          <a class="btn main" href="https://github.com/Teto-Boday/tuba/releases/latest/download/Tuba-Setup.exe" data-en="Download for Windows">نزّل للويندوز</a>
+          <a class="btn alt" href="app/" style="margin-top:8px" data-en="Or open it as a web page">أو افتحه كصفحة ويب على طول</a>
         </div>
       </div>
     </div>
@@ -277,16 +296,18 @@ img,svg{-webkit-user-drag:none;user-drag:none}
 
   <section class="block" id="faq">
     <div class="wrap faq">
-      <div class="sec-title reveal"><h2>أسئلة</h2></div>
-      <details><summary>هل طُوبَى ببلاش فعلًا؟</summary><p>أيوه، ببلاش بالكامل ومن غير إعلانات. ولو حبيت تدعمنا، فيه صفحة "ادعمنا" جوه التطبيق.</p></details>
-      <details><summary>بيشتغل من غير نت؟</summary><p>القرآن والأذكار ومواقيت الصلاة بيشتغلوا من غير نت بعد أول مرة تفتح فيها التطبيق. المقاطع بس هي اللي محتاجة نت.</p></details>
-      <details><summary>منين بتيجي المحتوى؟</summary><p>نص المصحف من موسوعة القرآن الكريم (QuranEnc.com)، والأذكار من كتاب حصن المسلم، والمواقيت بتتحسب بطريقة الهيئة المصرية العامة للمساحة، والمقاطع من القنوات الرسمية للمشايخ.</p></details>
-      <details><summary>ليه الأندرويد بيقولي إن التطبيق من مصدر غير معروف؟</summary><p>لأن التطبيق مش منزّل على جوجل بلاي لسه، فالموبايل بيطلب منك تأكد إنك عايز تثبّته. ده طبيعي في أي تطبيق بيتنزّل من برّه المتجر.</p></details>
+      <div class="sec-title reveal"><h2 data-en="Questions">أسئلة</h2></div>
+      <details><summary data-en="Is Tuba really free?">هل طُوبَى ببلاش فعلًا؟</summary><p data-en="Yes, completely free and without ads. If you'd like to support us, there's a &quot;Support&quot; page inside the app.">أيوه، ببلاش بالكامل ومن غير إعلانات. ولو حبيت تدعمنا، فيه صفحة "ادعمنا" جوه التطبيق.</p></details>
+      <details><summary data-en="Does it work offline?">بيشتغل من غير نت؟</summary><p data-en="The Quran text, adhkar and prayer times work offline after you open the app the first time. You can also download the Mushaf pages and any reciter's recitation to listen offline. Only the clips need internet.">القرآن والأذكار ومواقيت الصلاة بيشتغلوا من غير نت بعد أول مرة تفتح فيها التطبيق. وتقدر كمان تنزّل صفحات المصحف وتلاوة أي قارئ وتسمعها من غير نت. المقاطع بس هي اللي محتاجة نت.</p></details>
+      <details><summary data-en="Can I listen to the Quran with the screen locked?">ينفع أسمع القرآن والشاشة مقفولة؟</summary><p data-en="Yes. Turn on 🎧 in the Quran player (or pick a whole-surah reciter), press play and lock the screen. On Android, update to the latest version of the app.">أيوه. شغّل 🎧 في شريط تشغيل القرآن (أو اختار قارئ "السورة كاملة")، ودوس ▶ واقفل الشاشة. على الأندرويد حدّث التطبيق لآخر نسخة.</p></details>
+      <details><summary data-en="Where does the content come from?">منين بتيجي المحتوى؟</summary><p data-en="The Mushaf text is from the Quran Encyclopedia (QuranEnc.com) and the Mushaf pages from the King Fahd Complex. The adhkar are from Hisn Al-Muslim, prayer times use the Egyptian General Authority of Survey method, recitations come from Quran audio libraries, and the clips from scholars' official channels.">نص المصحف من موسوعة القرآن الكريم (QuranEnc.com)، وصفحات المصحف من مجمع الملك فهد، والأذكار من كتاب حصن المسلم، والمواقيت بتتحسب بطريقة الهيئة المصرية العامة للمساحة، والتلاوات من مكتبات صوتيات القرآن، والمقاطع من القنوات الرسمية للمشايخ.</p></details>
+      <details><summary data-en="Does Tuba collect my data?">طُوبَى بيجمع بيانات عني؟</summary><p data-en="No. Tuba only counts how many times the app is opened and which clips get a like, without your name, email or location and without cookies. Your notes, missed prayers and everything else stay on your phone.">لأ. طُوبَى بيعدّ بس مرات فتح التطبيق والمقاطع اللي عليها لايك، من غير اسمك ولا إيميلك ولا مكانك ومن غير cookies. ملاحظاتك وصلواتك الفايتة وكل حاجة تانية بتفضل على موبايلك.</p></details>
+      <details><summary data-en="Why does Android say the app is from an unknown source?">ليه الأندرويد بيقولي إن التطبيق من مصدر غير معروف؟</summary><p data-en="Because the app isn't on Google Play yet, so your phone asks you to confirm you want to install it. That's normal for any app downloaded outside the store.">لأن التطبيق مش منزّل على جوجل بلاي لسه، فالموبايل بيطلب منك تأكد إنك عايز تثبّته. ده طبيعي في أي تطبيق بيتنزّل من برّه المتجر.</p></details>
     </div>
   </section>
 </main>
 
-<footer><div class="wrap">طُوبَى · قصيرة. إسلامية. مفيدة.<br>تصميم وتطوير: محمد صلاح</div></footer>
+<footer><div class="wrap"><span data-en="Tuba · Short. Islamic. Beneficial.">طُوبَى · قصيرة. إسلامية. مفيدة.</span><br><span data-en="Designed and developed by Mohamed Salah">تصميم وتطوير: محمد صلاح</span></div></footer>
 
 <script>
 (function(){
@@ -316,6 +337,29 @@ img,svg{-webkit-user-drag:none;user-drag:none}
     var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ e.target.classList.remove("pending"); io.unobserve(e.target); } }); }, {threshold:.12});
     els.forEach(function(el){ var r = el.getBoundingClientRect(); if (r.top > innerHeight){ el.classList.add("pending"); io.observe(el); } });
   }
+})();
+</script>
+<script>
+// عربي / English: كل عنصر فيه data-en بيتبدّل، والاختيار بيتحفظ. أول زيارة بلغة غير العربي بتفتح بالإنجليزي
+(function(){
+  var T = { ar:{ title:"طُوبَى — قصيرة. إسلامية. مفيدة.", desc:"طُوبَى: مقاطع إسلامية قصيرة من مصادر موثوقة، والقرآن الكريم بأصوات أشهر القرّاء، ومواقيت الصلاة، والأذكار. مجاني بالكامل ومن غير إعلانات." },
+            en:{ title:"Tuba — Short. Islamic. Beneficial.", desc:"Tuba: short Islamic clips from trusted sources, the Holy Quran with famous reciters, prayer times and adhkar. Completely free with no ads." } };
+  var els = Array.prototype.slice.call(document.querySelectorAll("[data-en],[data-en-alt],[data-en-aria]"));
+  els.forEach(function(el){ if (el.hasAttribute("data-en")) el.setAttribute("data-ar", el.innerHTML); if (el.hasAttribute("data-en-alt")) el.setAttribute("data-ar-alt", el.getAttribute("alt") || ""); if (el.hasAttribute("data-en-aria")) el.setAttribute("data-ar-aria", el.getAttribute("aria-label") || ""); });
+  function set(lang){
+    var en = lang === "en", h = document.documentElement; h.lang = en ? "en" : "ar"; h.dir = en ? "ltr" : "rtl";
+    els.forEach(function(el){ if (el.hasAttribute("data-en")) el.innerHTML = en ? el.getAttribute("data-en") : el.getAttribute("data-ar");
+      if (el.hasAttribute("data-en-alt")) el.setAttribute("alt", en ? el.getAttribute("data-en-alt") : el.getAttribute("data-ar-alt"));
+      if (el.hasAttribute("data-en-aria")) el.setAttribute("aria-label", en ? el.getAttribute("data-en-aria") : el.getAttribute("data-ar-aria")); });
+    document.title = T[lang].title; var d = document.querySelector('meta[name="description"]'); if (d) d.setAttribute("content", T[lang].desc);
+    var b = document.getElementById("langBtn"); b.textContent = en ? "عربي" : "EN"; b.setAttribute("aria-label", en ? "العربية" : "English"); b.lang = en ? "ar" : "en";
+    try { localStorage.setItem("tuba-site-lang", lang); localStorage.setItem("tuba:lang", JSON.stringify(lang)); } catch(e){}
+  }
+  var saved = null; try { saved = localStorage.getItem("tuba-site-lang"); } catch(e){}
+  var q = /[?&]lang=(en|ar)/.exec(location.search);
+  var start = q ? q[1] : saved || (/^ar/i.test(navigator.language || "ar") ? "ar" : "en");
+  if (start === "en") set("en");
+  document.getElementById("langBtn").addEventListener("click", function(){ set(document.documentElement.lang === "en" ? "ar" : "en"); });
 })();
 </script>
 <script>
