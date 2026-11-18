@@ -507,9 +507,9 @@ html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,
       </div>
     </div>
     <div class="card stack" style="gap:10px">
-      <b style="font-size:16px">القارئ</b>
-      <span class="muted">اللي بتسمعه لما تدوس ▶ في المصحف (محتاج نت)</span>
-      <div class="chips" id="reciters" role="group" aria-label="اختار القارئ" style="flex-wrap:wrap"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><b style="font-size:16px">القارئ</b><button class="btn ghost" id="aDlEvery" style="height:38px;padding:0 12px;font-size:14px">⬇ نزّل كل القرّاء</button></div>
+      <span class="muted">دوس على اسم القارئ عشان تسمعه، ودوس ⬇ جنبه عشان تنزّله وتسمعه من غير نت</span>
+      <div class="stack" id="reciters" role="group" aria-label="اختار القارئ" style="gap:8px"></div>
       <div id="repBox" class="stack" style="gap:8px" hidden>
         <span style="font-weight:600">ردد ورايا</span>
         <span class="small">الشيخ بيقرأ الآية ويسكت عشان تقولها وراه. اختار كل آية تتكرر كام مرة قبل اللي بعدها:</span>
@@ -517,10 +517,10 @@ html[data-theme="dark"] .m-strip.sf{background:linear-gradient(to bottom,rgba(0,
       </div>
       <div class="m-dl" style="margin:0">
         <span class="grow"><span id="aDlTxt" style="font-weight:600">نزّل التلاوة عشان تسمع من غير نت</span><span class="small" id="aDlSub" style="display:block"></span><span class="bar" id="aDlBar" hidden><i></i></span></span>
-        <button class="btn" id="aDlAll" style="height:42px;padding:0 14px;font-size:14px;white-space:nowrap">نزّل كله</button>
+        <button class="btn" id="aDlAll" style="height:42px;padding:0 14px;font-size:14px;white-space:nowrap;display:none">نزّل كله</button>
       </div>
       <button class="btn ghost" id="aDlClear" style="height:40px;font-size:14px" hidden>امسح التلاوة المتنزّلة للقارئ ده</button>
-      <button class="btn ghost" id="aDlEvery" style="height:40px;font-size:14px">نزّل كل القرّاء</button>
+      <div id="aDlQ" class="stack" style="gap:6px"><span class="small">حجم التحميل</span><div class="chips" style="padding:0"><button class="chip" data-q="small">موفّر: نص الحجم تقريبًا</button><button class="chip" data-q="high">جودة أعلى</button></div></div>
     </div>
     <div class="card stack" style="gap:10px">
       <b style="font-size:16px">تذكيرات</b>
@@ -1302,6 +1302,7 @@ mushafDownloaded().then((d) => { if (d) try { navigator.storage.persist(); } cat
 // المصحف المعلّم للحصري: الشيخ بيقرأ الآية بالتجويد ويسيب سكتة عشان تردد وراه (ملفات آية آية من EveryAyah)
 const EVERYAYAH = { "husary.muallim": "Husary_Muallim_128kbps" };
 // قرّاء عندهم السورة كاملة بس (مفيش آية آية): بيشتغلوا زي وضع 🎧 على طول، من غير تلوين الآية
+let aDl = null, dlQ = []; // التنزيل الشغال دلوقتي {rec, stop, pc}، والقرّاء اللي مستنيين دورهم
 const n3 = (n) => String(n).padStart(3, "0");
 const SURAH_ONLY = {
   "mp3q.kamel": (n) => `https://server16.mp3quran.net/kamel/Rewayat-Hafs-A-n-Assem/${n3(n)}.mp3`,
@@ -1320,6 +1321,10 @@ const srcUrl = (rec, g, bi) => { if (SURAH_ONLY[rec]) return SURAH_ONLY[rec](g +
   return `https://cdn.islamic.network/quran/audio/${BITRATES[bi]}/${rec}/${g + 1}.mp3`; };
 const nBr = (rec) => EVERYAYAH[rec] || SURAH_ONLY[rec] ? 1 : BITRATES.length;
 const recTag = (rec) => SURAH_ONLY[rec] ? SURAH_ONLY[rec](1).replace(/[^/]+$/, "").replace(/^https?:\/\/[^/]+/, "") : EVERYAYAH[rec] ? `/${EVERYAYAH[rec]}/` : `/${rec}/`;
+// حجم التحميل: "موفّر" بينزّل ٦٤ كيلوبت (نص الحجم تقريبًا والصوت واضح)، و"عالي" بينزّل ١٢٨
+const dlSmall = () => store.get("dlq", "small") === "small";
+const dlPref = (rec) => EVERYAYAH[rec] || SURAH_ONLY[rec] ? 0 : dlSmall() ? 2 : 0;
+const dlOrder = (rec) => { const p = dlPref(rec); return [p, ...[...Array(nBr(rec)).keys()].filter((i) => i !== p)]; };
 const recTotal = (rec) => SURAH_ONLY[rec] ? 114 : 6236;
 const aUrl = (g, bi) => srcUrl(reciter(), g, bi) + "?s=1"; // ?s=1: من النت على طول من غير الـ service worker، عشان الصوت ميعلقش
 // هل الموقع بيسمح نقرا الملف (CORS)؟ لو آه بنحفظه ملف عادي بيشتغل على أي موبايل، ولو لأ بنحفظه "مقفول"
@@ -1502,16 +1507,40 @@ function pickReciter(id) { store.set("reciter", id); aNext._g = -1; bgPos = { s:
 $("#qRec").addEventListener("click", () => { renderRecPick(); $("#recPick").hidden = false; });
 $("#recClose").addEventListener("click", () => { $("#recPick").hidden = true; });
 $("#recPick").addEventListener("click", (e) => { if (e.target.id === "recPick") $("#recPick").hidden = true; });
-function renderReciters() {
-  $("#reciters").innerHTML = RECITERS.map(([id, n]) => `<button class="chip" data-r="${id}" aria-pressed="${id === reciter()}">${n}</button>`).join("");
-  $("#reciters").querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => pickReciter(b.dataset.r)));
+// كل قارئ في سطر: الاسم (تختاره) وجنبه زرار تنزيله وحالته (⬇ / ٪ / في الطابور / ✓)
+let recDone = {};
+async function recCounts() { try { const c = await caches.open(AUDIO_CACHE), ks = await c.keys(), out = {};
+    for (const [id] of RECITERS) { const tag = recTag(id), names = new Set(); for (const k of ks) { if (!k.url.includes(tag) || k.url.includes("/saved/")) continue; names.add(k.url.split("/").pop()); } out[id] = names.size; }
+    recDone = out; } catch (e) {} }
+function recDlLabel(id) {
+  if (aDl && aDl.rec === id) return { t: aDl.pc != null ? ar(aDl.pc) + "٪" : "…", a: "وقّف التنزيل", on: true };
+  if (dlQ.includes(id)) return { t: "⏳", a: "في الطابور، دوس عشان تشيله" };
+  const n = recDone[id] || 0, tot = recTotal(id);
+  if (n >= tot) return { t: "✓", a: "متنزّل كله", done: true };
+  return { t: n ? "⬇ " + ar(Math.floor(n / tot * 100)) + "٪" : "⬇", a: n ? "كمّل التنزيل" : "نزّله" };
 }
+function renderReciters() {
+  $("#reciters").innerHTML = RECITERS.map(([id, n]) => { const d = recDlLabel(id), sel = id === reciter();
+    return `<div style="display:flex;gap:8px;align-items:center"><button class="chip" data-r="${id}" aria-pressed="${sel}" style="flex:1;min-width:0;justify-content:flex-start;text-align:start;white-space:normal">${n}</button>
+      <button class="chip" data-dl="${id}" aria-label="${d.a}: ${n}" title="${d.a}" style="flex:none;width:68px;padding:0;justify-content:center${d.on ? ";background:var(--green);color:var(--on-green)" : ""}${d.done ? ";opacity:.7" : ""}">${d.t}</button></div>`; }).join("");
+  $("#reciters").querySelectorAll("[data-r]").forEach((b) => b.addEventListener("click", () => pickReciter(b.dataset.r)));
+  $("#reciters").querySelectorAll("[data-dl]").forEach((b) => b.addEventListener("click", () => dlToggle(b.dataset.dl)));
+}
+function dlToggle(rec) {
+  const name = RECITERS.find((x) => x[0] === rec)[1].replace(/\s*\(.*\)$/, "");
+  if (aDl && aDl.rec === rec) { aDl.stop = true; toast("بيوقف التنزيل…"); return; }
+  if (dlQ.includes(rec)) { dlQ = dlQ.filter((x) => x !== rec); toast(`${name} اتشال من الطابور`); renderReciters(); renderADl(); return; }
+  if ((recDone[rec] || 0) >= recTotal(rec)) { toast(`${name} متنزّل كله ✓ وتقدر تمسحه من تحت لما تختاره`); return; }
+  if (aDl) { dlQ.push(rec); toast(`${name} هيتنزّل بعد اللي شغال دلوقتي`); renderReciters(); renderADl(); return; }
+  toast(`بدأ تنزيل ${name}`); runDl(rec);
+}
+recCounts().then(renderReciters);
 renderReciters();
 setTimeout(renderRecPick, 0);
 setTimeout(renderRep, 0);
 
 // ---------- تنزيل التلاوة: سورة سورة أو المصحف كله، لكل قارئ ----------
-let aDl = null; // {rec, stop}
+// (aDl و dlQ متعرّفين فوق جنب قايمة القرّاء)
 // التلاوة بتتحفظ ملف عادي (مقروء) عشان تشتغل على الأيفون والأندرويد من غير نت.
 // لو الموقع فعلًا مش بيسمح (CORS) بنحفظها "مقفولة" كحل أخير. ومش بنحكم على الموقع من غلطة نت واحدة
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -1548,18 +1577,18 @@ async function dlAyah(c, rec, g) {
   const h = hostOf(srcUrl(rec, g, 0));
   if (aCors[h] !== false) {
     try {
-      for (let bi = aBr[rec] || 0; bi < nBr(rec); bi++) { const u = srcUrl(rec, g, bi), r = await corsGet(u);
-        if (r) { aBr[rec] = bi; await c.put(u, r); if (old && old !== u) await c.delete(old); setCors(h, true); return; } }
+      for (const bi of dlOrder(rec)) { const u = srcUrl(rec, g, bi), r = await corsGet(u);
+        if (r) { await c.put(u, r); if (old && old !== u) await c.delete(old); setCors(h, true); return; } }
       throw new Error("missing");
     } catch (e) {
       if (!(e instanceof TypeError)) throw e;
       if (aCors[h] === true) throw new Error("net"); // الموقع بيسمح، يبقى النت هو اللي فاصل
       // نتأكد إن النت شغال: لو الملف بييجي "مقفول" يبقى الموقع فعلًا مش بيسمح
-      const u = srcUrl(rec, g, aBr[rec] || 0), r = await fetch(u, { mode: "no-cors" }); setCors(h, false); if (old) return; await c.put(u, r); return;
+      const u = srcUrl(rec, g, dlPref(rec)), r = await fetch(u, { mode: "no-cors" }); setCors(h, false); if (old) return; await c.put(u, r); return;
     }
   }
   if (old) return;
-  const u = srcUrl(rec, g, aBr[rec] || 0), r = await fetch(u, { mode: "no-cors" });
+  const u = srcUrl(rec, g, dlPref(rec)), r = await fetch(u, { mode: "no-cors" });
   if (r.type !== "opaque" && !r.ok) throw new Error("http " + r.status);
   await c.put(u, r);
 }
@@ -1576,35 +1605,32 @@ async function dlRange(list, onProg, recIn) {
 async function savedCount(rec) { try { const c = await caches.open(AUDIO_CACHE), tag = recTag(rec); const ks = (await c.keys()).filter((r) => r.url.includes(tag) && !r.url.includes("/saved/")), names = new Set();
     for (const r of ks) { if (aCors[hostOf(r.url)] !== false && (await c.match(r)).type === "opaque") continue; names.add(r.url.split("/").pop()); } return names.size; } catch (e) { return 0; } }
 const recName = () => RECITERS.find((x) => x[0] === reciter())[1];
+function renderDlQ() { const r = reciter(), on = !EVERYAYAH[r] && !SURAH_ONLY[r]; $("#aDlQ").hidden = !on; document.querySelectorAll("#aDlQ [data-q]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.q === (dlSmall() ? "small" : "high")))); }
+document.querySelectorAll("#aDlQ [data-q]").forEach((b) => b.addEventListener("click", () => { store.set("dlq", b.dataset.q); renderDlQ(); toast(b.dataset.q === "small" ? "التحميل الجاي هياخد نص المساحة تقريبًا، والصوت واضح" : "التحميل الجاي بجودة أعلى وحجم أكبر"); }));
 async function renderADl() {
+  renderDlQ();
   if (!("caches" in window)) { $("#aDlAll").hidden = true; $("#aDlSub").textContent = "التنزيل مش متاح على الجهاز ده"; return; }
   const rec0 = reciter(); if (aDl && aDl.rec === rec0) return;
   if (dlQ.includes(rec0)) { $("#aDlTxt").textContent = `${recShort()} في الطابور`; $("#aDlSub").textContent = `هيتنزّل بعد ما تلاوة ${aDl ? RECITERS.find((x) => x[0] === aDl.rec)[1].replace(/\s*\(.*\)$/, "") : ""} تخلص`; $("#aDlAll").hidden = false; $("#aDlAll").textContent = "شيله من الطابور"; $("#aDlClear").hidden = true; $("#aDlBar").hidden = true; return; }
   if (isSurahOnly(rec0)) { const n = await savedCount(rec0); if (reciter() !== rec0 || (aDl && aDl.rec === rec0)) return;
-    $("#aDlTxt").textContent = n >= 114 ? `تلاوة ${recShort()} متنزّلة كلها ✓` : `نزّل تلاوة ${recShort()} عشان تسمع من غير نت`;
+    $("#aDlTxt").textContent = n >= 114 ? `تلاوة ${recShort()} متنزّلة كلها ✓` : (n ? `تلاوة ${recShort()}` : `تلاوة ${recShort()} مش متنزّلة · دوس ⬇ جنب اسمه`);
     $("#aDlSub").textContent = n >= 114 ? "بتشتغل من غير نت" : n ? `متنزّل ${ar(n)} سورة من ١١٤` : "";
     $("#aDlAll").hidden = n >= 114; $("#aDlAll").textContent = n ? "كمّل التنزيل" : "نزّل كله"; $("#aDlClear").hidden = !n; $("#aDlBar").hidden = true; return; }
   const n = await savedCount(rec0); if (reciter() !== rec0 || (aDl && aDl.rec === rec0)) return; // القارئ اتغيّر وإحنا بنعدّ: متكتبش حالة القارئ القديم
-  $("#aDlTxt").textContent = n >= 6236 ? `تلاوة ${recName()} متنزّلة كلها ✓` : "نزّل التلاوة عشان تسمع من غير نت";
+  $("#aDlTxt").textContent = n >= 6236 ? `تلاوة ${recName()} متنزّلة كلها ✓` : n ? `تلاوة ${recName()}` : `تلاوة ${recName()} مش متنزّلة · دوس ⬇ جنب اسمه`;
   $("#aDlSub").textContent = n >= 6236 ? "بتشتغل من غير نت" : n ? `متنزّل ${n < 63 ? ar(n) + " آية" : ar(Math.round(n / 6236 * 100)) + "٪"} من المصحف بصوت ${recName()}` : `المصحف كله بصوت ${recName()} حوالي ٦٠٠ ميجا أو أكتر، أو نزّل سورة سورة من زرار ⬇ في المصحف`;
   $("#aDlAll").hidden = n >= 6236; $("#aDlAll").textContent = n ? "كمّل التنزيل" : "نزّل كله"; $("#aDlClear").hidden = !n; $("#aDlBar").hidden = true;
 }
 const dlFail = (e) => toast(String(e && e.message).startsWith("http") || (e && e.message) === "missing" ? "في ملفات مش موجودة عند القارئ ده، جرّب قارئ تاني" : "النت فصل أو التنزيل مش متاح دلوقتي، جرّب تاني وهيكمّل من مكانه");
 // تنزيل أكتر من قارئ: اللي بتدوسه وفيه تنزيل شغال بيستنى في الطابور ويبدأ لوحده بعده
-let dlQ = [];
-$("#aDlAll").addEventListener("click", () => {
-  const rec = reciter();
-  if (aDl && aDl.rec === rec) { aDl.stop = true; $("#aDlAll").textContent = "بيوقف…"; return; }
-  if (dlQ.includes(rec)) { dlQ = dlQ.filter((x) => x !== rec); toast("اتشال من الطابور"); renderADl(); return; }
-  if (aDl) { dlQ.push(rec); toast(`${recShort()} هيتنزّل بعد اللي شغال دلوقتي`); renderADl(); return; }
-  runDl(rec);
-});
+$("#aDlAll").addEventListener("click", () => dlToggle(reciter()));
 // كل القرّاء: بيتنزّلوا واحد ورا التاني (أسرع من إنهم يتقسموا على النت مع بعض)، واللي متنزّل خلاص بيتعدّى بسرعة
 $("#aDlEvery").addEventListener("click", () => {
-  if (!confirm("تنزّل المصحف كامل لكل القرّاء؟ ده حجمه كبير جدًا (عشرات الجيجات)، فاتأكد إن عندك مساحة ونت واي فاي.")) return;
+  if (!confirm(`تنزّل المصحف كامل لكل القرّاء؟ ده حجمه كبير${dlSmall() ? "" : " جدًا"}، فاتأكد إن عندك مساحة ونت واي فاي.`)) return;
   const all = RECITERS.map((x) => x[0]).filter((r) => r !== (aDl && aDl.rec) && !dlQ.includes(r));
-  if (aDl) { dlQ.push(...all); toast(`${ar(all.length)} قارئ اتضافوا للطابور`); renderADl(); return; }
-  const [first, ...rest] = all; dlQ.push(...rest); toast(`بدأ تنزيل كل القرّاء: ${ar(all.length)} قارئ`); runDl(first);
+  if (aDl) { const add = all.filter((r) => (recDone[r] || 0) < recTotal(r)); dlQ.push(...add); toast(`${ar(add.length)} قارئ اتضافوا للطابور`); renderReciters(); renderADl(); return; }
+  const todo = all.filter((r) => (recDone[r] || 0) < recTotal(r)); if (!todo.length) { toast("كل القرّاء متنزّلين ✓"); return; }
+  const [first, ...rest] = todo; dlQ.push(...rest); toast(`بدأ تنزيل ${ar(todo.length)} قارئ، واحد ورا التاني`); runDl(first); renderReciters();
 });
 async function runDl(rec) {
   const here = () => reciter() === rec, big = isSurahOnly(rec), name = RECITERS.find((x) => x[0] === rec)[1].replace(/\s*\(.*\)$/, "");
@@ -1616,18 +1642,19 @@ async function runDl(rec) {
   if (big) dlBytes = (s, got, tot) => { cur.set(s, tot ? Math.floor(got / tot * 100) : null); const now = Date.now(); if (now - (dlBytes.t || 0) > 400) { dlBytes.t = now; show(); } };
   try { const ok = await dlRange([...Array(recTotal(rec)).keys()], (d, t, now, fin) => {
       if (big) { doneN = d; if (now != null) cur.set(now, null); if (fin != null) cur.delete(fin); }
+      if (aDl) { const pc = Math.floor(d / t * 100); if (pc !== aDl.pc) { aDl.pc = pc; renderReciters(); } }
       if (!here()) return; $("#aDlBar").firstElementChild.style.width = Math.max(2, d / t * 100) + "%";
       if (big) show(); else { $("#aDlAll").textContent = "وقّف"; $("#aDlSub").textContent = `${ar(Math.floor(d / t * 100))}٪ · سيب التطبيق مفتوح لحد ما يخلص${dlQ.length ? ` · بعده ${ar(dlQ.length)} في الطابور` : ""}`; } }, rec);
     if (ok) toast(`تلاوة ${name} اتنزّلت كلها`); else dlQ = []; }
   catch (e) { dlFail(e); dlQ = []; }
   dlBytes = null;
-  renderADl();
   const next = dlQ.shift(); if (next) runDl(next);
+  await recCounts(); renderReciters(); renderADl();
 }
 $("#aDlClear").addEventListener("click", async () => {
   if (!confirm(`تمسح تلاوة ${recName()} المتنزّلة؟`)) return;
   const c = await caches.open(AUDIO_CACHE), rec = reciter(), tag = recTag(rec); for (const r of await c.keys()) if (r.url.includes(tag)) await c.delete(r);
-  toast("اتمسحت"); renderADl();
+  toast("اتمسحت"); await recCounts(); renderReciters(); renderADl();
 });
 $("#mDlSura").addEventListener("click", async () => {
   if (aDl && aDl.rec !== reciter()) { toast("استنى لحد ما التنزيل الشغال يخلص، أو وقّفه من الإعدادات"); return; }
@@ -2321,7 +2348,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261118030636";
+const BUILD = "20261118031343";
 let updLast = 0;
 async function checkUpdate(auto) {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
