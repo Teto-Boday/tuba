@@ -20,3 +20,7 @@
 - نص المصحف: موسوعة القرآن الكريم QuranEnc.com عن طريق مشروع quran-json (CC BY-SA 4.0). ممنوع التعديل في النص.
 - مواقيت الصلاة: مكتبة Adhan (MIT)، طريقة الهيئة المصرية العامة للمساحة.
 - الأذكار: حصن المسلم.
+
+## النشر على العنوانين
+- الكود بيترفع على المستودعين: `Teto-Boday/tuba` (العنوان القديم teto-boday.github.io/tuba، للبرامج القديمة المتسطّبة) و`tuba-app/tuba-app.github.io` (العنوان الأساسي).
+- `git push origin main && git push new main`
