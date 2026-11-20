@@ -7,6 +7,9 @@ service cloud.firestore {
       let d = float(int(day));
       return d >= x - 0.5 - 1.0 && d <= x + 0.5834;
     }
+    // 20 Nov 2026: question time went from 20 to 30 seconds, so everyone who
+    // played before this moment may play that day's challenge once more
+    function resetAt() { return 1795197000000; }
     function signedAs(uid) {
       return request.auth != null && request.auth.uid == uid;
     }
@@ -17,12 +20,21 @@ service cloud.firestore {
         && dayOk(day)
         && request.resource.data.keys().hasOnly(['start'])
         && request.resource.data.start == request.time;
+      allow update: if signedAs(uid)
+        && dayOk(day)
+        && resource.data.start.toMillis() < resetAt()
+        && request.resource.data.keys().hasOnly(['start'])
+        && request.resource.data.start == request.time;
     }
     // Today's score: once, and it must match the time the server measured
     match /days/{day}/scores/{uid} {
       allow get: if true;
       allow list: if true;
       allow create: if signedAs(uid) && okScore(day, uid, request.resource.data);
+      allow update: if signedAs(uid)
+        && resource.data.at.toMillis() < resetAt()
+        && get(/databases/$(database)/documents/days/$(day)/runs/$(uid)).data.start.toMillis() >= resetAt()
+        && okScore(day, uid, request.resource.data);
     }
     function okScore(day, uid, d) {
       let p = /databases/$(database)/documents/days/$(day)/runs/$(uid);
