@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Player's local day number since 1970 (any time zone, UTC-12 to UTC+14)
+    function dayOk(day) {
+      let x = request.time.toMillis() / 86400000.0;
+      let d = float(int(day));
+      return d >= x - 0.5 - 1.0 && d <= x + 0.5834;
+    }
+    function signedAs(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+    // Start of today's challenge: server writes the time, once per day
+    match /days/{day}/runs/{uid} {
+      allow get: if signedAs(uid);
+      allow create: if signedAs(uid)
+        && dayOk(day)
+        && request.resource.data.keys().hasOnly(['start'])
+        && request.resource.data.start == request.time;
+    }
+    // Today's score: once, and it must match the time the server measured
+    match /days/{day}/scores/{uid} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if signedAs(uid) && okScore(day, uid, request.resource.data);
+    }
+    function okScore(day, uid, d) {
+      let p = /databases/$(database)/documents/days/$(day)/runs/$(uid);
+      let ran = exists(p);
+      let el = ran ? (request.time.toMillis() - get(p).data.start.toMillis()) / 1000 : 0;
+      return ran && el >= 15 && el <= 1800
+        && d.keys().hasAll(['name', 'score', 'sec', 'pts', 'at'])
+        && d.keys().hasOnly(['name', 'score', 'sec', 'pts', 'at'])
+        && d.score is int && d.score >= 0 && d.score <= 10
+        && d.sec is int && d.sec >= 10 && d.sec <= el + 5
+        && d.pts is int && d.pts >= d.score * 10 && d.pts <= d.score * 40
+        && d.name is string && d.name.size() >= 2 && d.name.size() <= 24
+        && !d.name.lower().matches('.*(http|www|[.]com|[<>@/:]).*')
+        && d.at == request.time;
+    }
+  }
+}
