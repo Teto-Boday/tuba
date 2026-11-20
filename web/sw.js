@@ -4,7 +4,7 @@ const CACHE = "tuba-__BUILD__";
 const MUSHAF = "tuba-mushaf";
 // التلاوات المتنزّلة: مواقع الصوت مش بتسمح للتطبيق يقرا الملف، فبنحفظه زي ما هو والمشغّل بياخده من هنا
 const AUDIO = "tuba-audio";
-const CORE = ["./", "index.html", "config.js", "azkar.js", "amiri-quran.woff2", "font-scheherazade.woff2", "font-naskh.woff2", "manifest.json", "icon.svg", "icon-192.png", "icon-512.png"];
+const CORE = ["./", "index.html", "config.js", "azkar.js", "amiri-quran.woff2", "font-scheherazade.woff2", "font-naskh.woff2", "manifest.json", "icon.svg", "icon-192.png", "icon-512.png", "quiz-data.json"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE.map((u) => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting())); });
 self.addEventListener("activate", (e) => {
   e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE && k !== MUSHAF && k !== AUDIO).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
