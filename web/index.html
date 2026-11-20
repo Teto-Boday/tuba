@@ -1453,6 +1453,56 @@ function qzQuranAt(rnd, si, ai, kind) {
   if (w.length >= 5 && w.length <= 28 && qzUnique(v)) { const opts = new Set(); while (opts.size < 3) { const o = QURAN[Math.floor(rnd() * 114)][0]; if (o !== S[0]) opts.add(o); } return { c: "quran", t: "الآية دي من أنهي سورة؟", ay: v, a: S[0], w: [...opts], r: `سورة ${S[0]}، آية ${ar(ai + 1)}` }; }
   return null;
 }
+// ---- السيرة: أسئلة من جدول الأحداث (المرجع: الرحيق المختوم) وأحاديث السيرة من البخاري ----
+// se: [الحدث، إمتى، زمن تقريبي بالسنين من ولادة النبي ﷺ، السنة الهجرية، العمر، فيه خلاف؟، معلومة]
+function qzSirah(rnd, L, seen, daily) {
+  const D = QZD; if (!D || !D.se) return null;
+  const E = D.se, gap = L === 1 ? 5 : L === 2 ? 2 : 0.9;
+  const okPair = (a, b) => Math.abs(E[a][2] - E[b][2]) >= ((E[a][5] || E[b][5]) ? Math.max(gap, 2.5) : gap);
+  const kinds = L === 1 ? ["first", "first", "year", "age", "fact"] : L === 2 ? ["first", "first", "year", "inYear", "age", "fact", "hs"] : ["first", "first", "inYear", "year", "fact", "hs", "hs"];
+  for (let tries = 0; tries < 40; tries++) {
+    // تحدي اليوم: مقارنات الأحداث بس (ملايين التركيبات) عشان مفيش يوم يكرر سؤال يوم قبله
+    const k = daily ? "first" : qzPick(rnd, kinds);
+    if (k === "first") {
+      const pick = []; for (let j = 0; j < 80 && pick.length < 4; j++) { const i = Math.floor(rnd() * E.length); if (pick.every((x) => x !== i && okPair(x, i))) pick.push(i); }
+      if (pick.length < 4) continue;
+      const ans = pick.reduce((m, i) => (E[i][2] < E[m][2] ? i : m), pick[0]), key = "sF" + [...pick].sort((a, b) => a - b).join("-");
+      if (seen.has(key)) continue;
+      const order = [...pick].sort((a, b) => E[a][2] - E[b][2]);
+      return { key, c: "s", t: "أنهي حدث من دول حصل الأول؟", a: E[ans][0], w: pick.filter((i) => i !== ans).map((i) => E[i][0]), r: "الرحيق المختوم", e: order.map((i) => "• " + E[i][0] + ": " + E[i][1]).join("\n") };
+    }
+    if (k === "year") {
+      const pool = E.map((x, i) => i).filter((i) => E[i][3] && !E[i][5] && !seen.has("sY" + i)); if (!pool.length) continue;
+      const i = qzPick(rnd, pool), y = E[i][3], opts = new Set();
+      for (const d of qzShuffle(rnd, [-3, -2, -1, 1, 2, 3])) { if (opts.size >= 3) break; if (y + d >= 1 && y + d <= 11) opts.add(ar(y + d) + " هـ"); }
+      if (opts.size < 3) continue;
+      return { key: "sY" + i, c: "s", t: `«${E[i][0]}» كانت سنة كام هجرية؟`, a: ar(y) + " هـ", w: [...opts], r: "الرحيق المختوم", e: E[i][1] + (E[i][6] ? " · " + E[i][6] : "") };
+    }
+    if (k === "age") {
+      const pool = E.map((x, i) => i).filter((i) => E[i][4] && !seen.has("sA" + i)); if (!pool.length) continue;
+      const i = qzPick(rnd, pool), a = E[i][4], opts = new Set();
+      for (const d of qzShuffle(rnd, [-5, -3, -2, 2, 3, 5, 10])) { if (opts.size >= 3) break; if (a + d > 0 && a + d !== a) opts.add(ar(a + d) + " سنة"); }
+      return { key: "sA" + i, c: "s", t: `النبي ﷺ كان عنده كام سنة وقت «${E[i][0]}»؟`, a: ar(a) + " سنة", w: [...opts], r: "الرحيق المختوم", e: E[i][6] || "" };
+    }
+    if (k === "inYear") {
+      const pool = E.map((x, i) => i).filter((i) => E[i][3] && !E[i][5] && !seen.has("sI" + i)); if (!pool.length) continue;
+      const i = qzPick(rnd, pool), y = E[i][3], others = new Set();
+      for (let j = 0; j < 80 && others.size < 3; j++) { const o = Math.floor(rnd() * E.length); if (!E[o][5] && (E[o][3] ? Math.abs(E[o][3] - y) >= 2 : true)) others.add(o); }
+      if (others.size < 3) continue;
+      return { key: "sI" + i, c: "s", t: `أنهي حدث من دول كان سنة ${ar(y)} هـ؟`, a: E[i][0], w: [...others].map((o) => E[o][0]), r: "الرحيق المختوم", e: [i, ...others].map((o) => "• " + E[o][0] + ": " + E[o][1]).join("\n") };
+    }
+    if (k === "fact") {
+      const pool = D.sf.map((x, i) => i).filter((i) => !seen.has("sQ" + i)); if (!pool.length) continue;
+      const i = qzPick(rnd, pool), [q, a, w] = D.sf[i];
+      return { key: "sQ" + i, c: "s", t: q, a, w: [...w], r: "الرحيق المختوم" };
+    }
+    if (k === "hs" && D.hs && D.hs.length) {
+      const pool = D.hs.filter((i) => !seen.has("h" + i)); if (!pool.length) continue;
+      const g = qzGen(rnd, "h", L, seen, qzPick(rnd, pool)); if (g) { g.c = "s"; return g; }
+    }
+  }
+  return null;
+}
 // ترتيب ثابت للأسئلة المكتوبة، عشان تحدّي كل يوم ياخد أسئلة غير اللي قبله
 const qzPerm = (n) => qzShuffle(qzRng(777), Array.from({ length: n }, (_, i) => i));
 function qzBuild(seed, cat, lv, opt = {}) {
@@ -1470,12 +1520,14 @@ function qzBuild(seed, cat, lv, opt = {}) {
       // تحدّي اليوم: كل يوم بياخد أسئلة جديدة بالترتيب، فمفيش يومين بنفس السؤال
       if (opt.daily && (c === "h" || c === "t" || c === "m") && QZD && tries < 6) { const arr = c === "h" ? QZD.h : c === "t" ? QZD.t : QZD.g, P = qzPermN(c, arr.length), slot = (opt.cnt[c] = (opt.cnt[c] || 0) + 1) - 1 + tries * 3; const g = qzGen(rnd, c, L, used, P[((opt.day || 0) * 20 + slot) % P.length]); if (g && !used.has(g.key)) { q = g; break; } continue; }
       if ((c === "h" || c === "t" || c === "m") && (QZD || c === "m") && (opt.daily || rnd() < 0.85 || tries > 0)) { const g = qzGen(rnd, c, L, new Set([...seen, ...used])); if (g && !used.has(qzCK(g))) { q = g; break; } }
+      if ((c === "s" || (c === "sq" && QZD)) && QZD && QZD.se && (opt.daily || rnd() < 0.85 || tries > 1)) { const S2 = new Set([...seen, ...used]); for (let z = 0; z < 8 && !q; z++) { const g = qzSirah(rnd, L, S2, opt.daily); if (g && !used.has(qzCK(g))) q = g; } if (q) break; }
       let pool = QZ_BANK.map((x, j) => [x, j]).filter(([x, j]) => x.c === c && !used.has("b" + j));
       if (c === "sq") pool = QZ_BANK.map((x, j) => [x, j]).filter(([x, j]) => (x.c === "s" || x.c === "q") && !used.has("b" + j));
       if (opt.daily && pool.length) { const P = qzPerm(QZ_BANK.length).filter((j) => pool.some(([, pj]) => pj === j)), k = (opt.day || 0) % P.length; pool = [[QZ_BANK[P[k]], P[k]]]; }
       else { const fresh = pool.filter(([x, j]) => !seen.has("b" + j));
         // خلّصت الأسئلة المكتوبة دي؟ ارجع للأسئلة المتولّدة بدل ما نكرر
         if (!fresh.length && (c === "h" || c === "t" || c === "m") && (QZD || c === "m")) { const g = qzGen(rnd, c, L, new Set([...seen, ...used])); if (g && !used.has(qzCK(g))) { q = g; break; } }
+        if (!fresh.length && (c === "s" || c === "sq") && QZD && QZD.se) { const S2 = new Set([...seen, ...used]); for (let z = 0; z < 24 && !q; z++) { const g = qzSirah(rnd, z < 8 ? L : z < 16 ? 2 : 3, S2); if (g && !used.has(qzCK(g))) q = g; } if (q) break; }
         if (!fresh.length && c === "q") { c = "quran"; continue; }
         if (fresh.length) pool = fresh; const exact = pool.filter(([x]) => x.l === L); if (exact.length) pool = exact; }
       if (!pool.length) { c = c === "quran" ? "q" : "quran"; continue; }
@@ -1625,7 +1677,7 @@ function qzAsk() {
     $("#qzAfter").innerHTML = `<div class="card stack" style="gap:6px;border-color:${ok ? "var(--green)" : "#c0392b"}">
       <b style="color:${ok ? "var(--green)" : "#c0392b"}">${ok ? `صح! +${ar(gain)} نقطة 🎉` : pick == null ? "الوقت خلص ⏰" : "مش صح"}</b>
       ${q.quranOpt ? "" : `<span class="notr">الإجابة: <b>${qzEsc(q.a)}</b></span>`}
-      ${q.e ? `<span class="muted small notr">${qzEsc(q.e)}</span>` : ""}${q.r ? `<span class="small notr">المرجع: ${qzEsc(q.r)}${q.c === "t" ? "" : ""}</span>` : q.c === "t" ? `<span class="small">المرجع: التفسير الميسّر</span>` : ""}
+      ${q.e ? `<span class="muted small notr" style="white-space:pre-line">${qzEsc(q.e)}</span>` : ""}${q.r ? `<span class="small notr">المرجع: ${qzEsc(q.r)}${q.c === "t" ? "" : ""}</span>` : q.c === "t" ? `<span class="small">المرجع: التفسير الميسّر</span>` : ""}
     </div>${q.after ? `<div class="card stack" style="gap:8px;margin-top:10px;border-color:var(--green)"><span class="small">📖 الآية والإجابة الصح:</span><p class="mushaf qz-ay copyable" style="margin:0">${q.after.ay}</p><span class="notr" style="line-height:1.8">${q.after.word ? `<span class="mushaf" style="font-size:20px">${qzEsc(q.after.word)}</span>: ` : ""}<b>${qzEsc(q.after.line)}</b></span><span class="small notr">${qzEsc(q.r)}</span></div>` : ""}${q.fullTxt ? `<div class="card stack" style="gap:6px;margin-top:10px"><span class="small">📖 الحديث كامل:</span><p class="copyable" style="margin:0;font-size:18px;line-height:1.9">${qzEsc(q.fullTxt)}</p><span class="small notr">${qzEsc(q.r)}</span></div>` : ""}${q.full ? `<div class="card stack" style="gap:6px;margin-top:10px"><span class="small">📖 اقرأ الآية كاملة، وخُد ثوابها 🌿</span><p class="mushaf qz-ay copyable" style="margin:0">${q.full}</p><span class="small notr">${qzEsc(q.fullRef)}</span></div>` : ""}<button class="btn" id="qzNext" style="width:100%;margin-top:10px">${g.i + 1 < g.qs.length ? "اللي بعده" : "شوف نتيجتك 🏆"}</button>`;
     $("#qzNext").addEventListener("click", () => { g.i++; qzAsk(); $("#quiz").scrollTop = 0; });
     $("#qzNext").focus();
@@ -3046,7 +3098,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261120153140";
+const BUILD = "20261120155345";
 let updLast = 0;
 async function checkUpdate(auto) {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
