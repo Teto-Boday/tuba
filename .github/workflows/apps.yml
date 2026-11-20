@@ -13,6 +13,7 @@ permissions:
   contents: write
 jobs:
   android:
+    if: github.repository == 'Teto-Boday/tuba'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -47,6 +48,7 @@ jobs:
           name: android
           path: Tuba.apk
   windows:
+    if: github.repository == 'Teto-Boday/tuba'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4

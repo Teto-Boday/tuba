@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://teto-boday.github.io/tuba/sitemap.xml
+Sitemap: https://tuba-app.github.io/sitemap.xml

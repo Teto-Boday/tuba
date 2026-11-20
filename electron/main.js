@@ -1,7 +1,7 @@
 // برنامج طُوبَى للويندوز: بيفتح التطبيق، وبيفضل في شريط المهام عشان تنبيه الأذان يوصل في معاده.
 const { app, BrowserWindow, Tray, Menu, shell, nativeImage, session } = require("electron");
 const path = require("path");
-const URL = "https://teto-boday.github.io/tuba/app/";
+const URL = "https://tuba-app.github.io/app/";
 let win, tray, quitting = false;
 if (!app.requestSingleInstanceLock()) app.quit();
 app.setAppUserModelId("app.tuba.teto");

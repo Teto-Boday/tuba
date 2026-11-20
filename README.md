@@ -2,8 +2,8 @@
 
 قصيرة. إسلامية. مفيدة. مقاطع إسلامية قصيرة من مصادر موثوقة، والقرآن الكريم، ومواقيت الصلاة، والأذكار. مجاني ومن غير إعلانات.
 
-- الموقع: https://teto-boday.github.io/tuba/
-- التطبيق على المتصفح: https://teto-boday.github.io/tuba/app/
+- الموقع: https://tuba-app.github.io/
+- التطبيق على المتصفح: https://tuba-app.github.io/app/
 - أندرويد: https://github.com/Teto-Boday/tuba/releases/latest/download/Tuba.apk
 
 تصميم وتطوير: محمد صلاح
