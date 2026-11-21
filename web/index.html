@@ -2187,7 +2187,7 @@ const isMuallim = () => reciter() === "husary.muallim";
 const repN = () => isMuallim() ? (REPS.includes(store.get("rep", 1)) ? store.get("rep", 1) : 1) : 1;
 let aRepDone = 0;
 aEl.addEventListener("ended", () => { if (!aOn || aEl._unlock) return;
-  if (aEl._bg) { bgPos = { s: -1, t: 0 }; bgSave(); if (bgSur < 113) bgPlay(bgSur + 1); else audioStop(); return; }
+  if (aEl._bg) { bgPos = { s: -1, t: 0 }; bgSave(); if (bgSur < 113) bgNext(bgSur + 1); else audioStop(); return; }
   if (++aRepDone < repN()) { aEl.currentTime = 0; aEl.play().catch(() => {}); return; }
   if (aG + 1 >= 6236) return audioStop(); audioGo(aG + 1); });
 function renderRep() {
@@ -2269,7 +2269,10 @@ function noTags(b) {
 }
 async function bgLocal(s) {
   if (isSurahOnly(reciter())) { try { const u = SURAH_ONLY[reciter()](s + 1), hit = await (await caches.open(AUDIO_CACHE)).match(u); if (!hit) return null;
-    if (hit.type === "opaque") return navigator.onLine ? null : u; // الملف "المقفول" مش بيشتغل كويس على الأيفون: لو فيه نت نشغّل من النت
+    if (hit.type === "opaque") { // الملف "المقفول" (من نسخة قديمة) مش بيشتغل كويس على الأيفون
+      if (navigator.onLine) { if (CORS_OK(hostOf(u)) && !aDl) { const rec = reciter(); caches.open(AUDIO_CACHE).then((c) => dlSurahFile(c, rec, s)).then(() => recCounts && recCounts()).catch(() => {}); } return null; } // نشغّل من النت، ونعيد تنزيلها في الخلفية ملف عادي
+      if (IOS && CORS_OK(hostOf(u))) { toast("السورة دي متنزّلة بطريقة قديمة مش بتشتغل على الأيفون من غير نت. شغّلها مرة وإنت على النت وهتتصلّح لوحدها"); return "old"; }
+      return u; }
     return URL.createObjectURL(await hit.blob()); } catch (e) { return null; } } // السورة متنزّلة: تشتغل من الجهاز
   try { const c = await caches.open(AUDIO_CACHE), rec = reciter(), parts = [];
     for (let g = MBASE[s]; g < MBASE[s + 1]; g++) { let hit = null;
@@ -2279,10 +2282,22 @@ async function bgLocal(s) {
   } catch (e) { return null; }
 }
 const SILENT = "data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA";
+// السورة خلصت: نشغّل اللي بعدها. من غير نت بنعدّي على السور اللي مش متنزّلة لحد أول سورة متنزّلة
+async function bgNext(s) {
+  if (navigator.onLine) return bgPlay(s);
+  aEl._unlock = true; aEl.src = SILENT; aEl.play().catch(() => {}); // عشان الأيفون يفضل سامح بالتشغيل والشاشة مقفولة
+  try { const c = await caches.open(AUDIO_CACHE), rec = reciter();
+    for (let x = s; x < 114; x++) {
+      if (isSurahOnly(rec)) { const u = SURAH_ONLY[rec](x + 1), h = await c.match(u); if (h && (h.type !== "opaque" || !IOS)) { if (x !== s) toast(`سورة ${QURAN[x][0]}: أول سورة متنزّلة بعد اللي خلصت`); return bgPlay(x); } }
+      else { let ok = true; for (let g = MBASE[x]; g < MBASE[x + 1] && ok; g++) { let hit = false; for (let bi = 0; bi < nBr(rec) && !hit; bi++) { const h = await c.match(srcUrl(rec, g, bi)); hit = !!h && h.type !== "opaque"; } ok = hit; } if (ok) { if (x !== s) toast(`سورة ${QURAN[x][0]}: أول سورة متنزّلة بعد اللي خلصت`); return bgPlay(x); } }
+    } } catch (e) {}
+  aEl._unlock = false; toast("مفيش سور متنزّلة بعد كده، نزّل سور تانية عشان تكمّل من غير نت"); audioStop();
+}
 async function bgPlay(s, at) {
   // الأيفون مش بيسمح بالتشغيل بعد ما نستنى؛ فبنشغّل لحظة صمت دلوقتي والتلاوة تكمّل عليها
   aEl._unlock = true; aEl.src = SILENT; aEl.play().catch(() => {});
-  const local = await bgLocal(s); aEl._unlock = false;
+  let local = await bgLocal(s); aEl._unlock = false;
+  if (local === "old") { audioStop(); return; }
   if (!local && !navigator.onLine && isSurahOnly(reciter())) { aEl._unlock = false; toast(`${recShort()} محتاج نت عشان يشتغل`); audioStop(); return; }
   if (!local && !navigator.onLine) { aEl._bg = false; bgSur = -1; toast("السورة دي مش متنزّلة كلها، نزّلها من ⬇ عشان تشتغل في الخلفية من غير نت"); aOn = true; return audioGo(MBASE[s]); }
   aOn = true; bgSur = s; aG = MBASE[s]; aEl._bg = true; aEl._bgbi = 0; aEl._nerr = 0; aEl._retry = 0; aEl._saved = false;
@@ -3169,7 +3184,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261121012346";
+const BUILD = "20261121172832";
 let updLast = 0;
 async function checkUpdate(auto) {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
