@@ -2095,6 +2095,9 @@ mushafDownloaded().then((d) => { if (d) try { navigator.storage.persist(); } cat
 
 // ---------- القرآن المسموع: آية آية من شبكة Islamic Network (مجاني لغير الأغراض التجارية) ----------
 // المصحف المعلّم للحصري: الشيخ بيقرأ الآية بالتجويد ويسيب سكتة عشان تردد وراه (ملفات آية آية من EveryAyah)
+// نفس القرّاء على everyayah.com (الموقع ده بيسمح نحفظ الملف عادي): التحميل بيبقى منه عشان يشتغل على الأيفون من غير نت
+const EA_ALT = { "ar.alafasy": ["Alafasy_128kbps", "Alafasy_64kbps"], "ar.abdurrahmaansudais": ["Abdurrahmaan_As-Sudais_192kbps", "Abdurrahmaan_As-Sudais_64kbps"], "ar.husary": ["Husary_128kbps", "Husary_64kbps"], "ar.minshawi": ["Minshawy_Murattal_128kbps"], "ar.abdulbasitmurattal": ["Abdul_Basit_Murattal_192kbps", "Abdul_Basit_Murattal_64kbps"], "ar.mahermuaiqly": ["MaherAlMuaiqly128kbps", "Maher_AlMuaiqly_64kbps"] };
+const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 const EVERYAYAH = { "husary.muallim": "Husary_Muallim_128kbps", "everyayah.neana": "Ahmed_Neana_128kbps" };
 // قرّاء عندهم السورة كاملة بس (مفيش آية آية): بيشتغلوا زي وضع 🎧 على طول، من غير تلوين الآية
 let aDl = null, dlQ = []; // التنزيل الشغال دلوقتي {rec, stop, pc}، والقرّاء اللي مستنيين دورهم
@@ -2114,13 +2117,17 @@ let aG = -1, aOn = false; const aEl = new Audio(), aNext = new Audio(); aEl.prel
 const reciter = () => { const r = store.get("reciter", "ar.alafasy"); return RECITERS.some((x) => x[0] === r) ? r : "ar.alafasy"; };
 const srcUrl = (rec, g, bi) => { if (SURAH_ONLY[rec]) return SURAH_ONLY[rec](g + 1); // القرّاء اللي عندهم السورة كاملة: g هنا رقم السورة
   if (EVERYAYAH[rec]) { const [s, a] = ayahOf(g); return `https://everyayah.com/data/${EVERYAYAH[rec]}/${String(s + 1).padStart(3, "0")}${String(a + 1).padStart(3, "0")}.mp3`; }
+  if (bi >= BITRATES.length && EA_ALT[rec]) { const [s, a] = ayahOf(g), f = EA_ALT[rec][bi - BITRATES.length] || EA_ALT[rec][0]; return `https://everyayah.com/data/${f}/${String(s + 1).padStart(3, "0")}${String(a + 1).padStart(3, "0")}.mp3`; }
   return `https://cdn.islamic.network/quran/audio/${BITRATES[bi]}/${rec}/${g + 1}.mp3`; };
-const nBr = (rec) => EVERYAYAH[rec] || SURAH_ONLY[rec] ? 1 : BITRATES.length;
+const nBr = (rec) => EVERYAYAH[rec] || SURAH_ONLY[rec] ? 1 : BITRATES.length + (EA_ALT[rec] ? EA_ALT[rec].length : 0);
+// يطابق ملفات القارئ في الكاش (من الموقعين)، وبيرجّع رقم الآية أو السورة عشان العدّ ميتكررش
+const recHas = (rec, u) => u.includes(recTag(rec)) || (EA_ALT[rec] || []).some((f) => u.includes(`/${f}/`));
+const fileKey = (u) => { const n = u.split("?")[0].split("/").pop(), m = /^(\d{3})(\d{3})\.mp3$/.exec(n); return m ? "g" + (MBASE[+m[1] - 1] + +m[2] - 1) : /^\d+\.mp3$/.test(n) && u.includes("islamic.network") ? "g" + (+n.split(".")[0] - 1) : n; };
 const recTag = (rec) => SURAH_ONLY[rec] ? SURAH_ONLY[rec](1).replace(/[^/]+$/, "").replace(/^https?:\/\/[^/]+/, "") : EVERYAYAH[rec] ? `/${EVERYAYAH[rec]}/` : `/${rec}/`;
 // حجم التحميل: "موفّر" بينزّل ٦٤ كيلوبت (نص الحجم تقريبًا والصوت واضح)، و"عالي" بينزّل ١٢٨
 const dlSmall = () => store.get("dlq", "small") === "small";
-const dlPref = (rec) => EVERYAYAH[rec] || SURAH_ONLY[rec] ? 0 : dlSmall() ? 2 : 0;
-const dlOrder = (rec) => { const p = dlPref(rec); return [p, ...[...Array(nBr(rec)).keys()].filter((i) => i !== p)]; };
+const dlPref = (rec) => EVERYAYAH[rec] || SURAH_ONLY[rec] ? 0 : EA_ALT[rec] ? BITRATES.length + (dlSmall() && EA_ALT[rec][1] ? 1 : 0) : dlSmall() ? 2 : 0;
+const dlOrder = (rec) => { const p = dlPref(rec), all = [...Array(nBr(rec)).keys()].filter((i) => !EA_ALT[rec] || i >= BITRATES.length); return [p, ...all.filter((i) => i !== p)]; };
 const recTotal = (rec) => SURAH_ONLY[rec] ? 114 : 6236;
 const aUrl = (g, bi) => srcUrl(reciter(), g, bi) + "?s=1"; // ?s=1: من النت على طول من غير الـ service worker، عشان الصوت ميعلقش
 // هل الموقع بيسمح نقرا الملف (CORS)؟ لو آه بنحفظه ملف عادي بيشتغل على أي موبايل، ولو لأ بنحفظه "مقفول"
@@ -2130,7 +2137,7 @@ const hostOf = (u) => new URL(u).hostname;
 const CORS_OK = (h) => h === "everyayah.com" || h === "archive.org" || /\.mp3quran\.net$/.test(h);
 for (const h in aCors) if (CORS_OK(h)) aCors[h] = true;
 const setCors = (h, v) => { if (CORS_OK(h)) v = true; aCors[h] = v; try { localStorage.setItem("tuba:acors", JSON.stringify(aCors)); } catch (e) {} };
-const goodHit = (hit, u) => hit && (hit.type !== "opaque" || aCors[hostOf(u)] === false);
+const goodHit = (hit, u) => hit && (hit.type !== "opaque" || (aCors[hostOf(u)] === false && !(IOS && hostOf(u) === "cdn.islamic.network")));
 const aBr = {}; // أول bitrate اشتغل لكل قارئ
 const AUDIO_CACHE = "tuba-audio";
 const aKey = (rec, g) => `https://cdn.islamic.network/quran/audio/saved/${rec}/${g + 1}.mp3`;
@@ -2139,8 +2146,9 @@ async function aSrc(el, g) {
   el._g = g; el._rec = reciter(); el._opq = false; el._retry = 0; el._nerr = 0; // عشان لو القارئ اتغيّر، الآية اللي متحضّرة بالصوت القديم متتشغلش
   el._bi = aBr[reciter()] || 0; el._saved = false;
   try { const c = await caches.open(AUDIO_CACHE), rec = reciter();
-    for (let bi = 0; bi < nBr(rec); bi++) { const u0 = srcUrl(rec, g, bi), hit = await c.match(u0);
-      if (!hit) continue; el._saved = true; el._bi = bi;
+    const order = [...Array(nBr(rec)).keys()].sort((x, y) => (y >= BITRATES.length) - (x >= BITRATES.length)); // الملفات العادية (everyayah) الأول
+    for (const bi of order) { const u0 = srcUrl(rec, g, bi), hit = await c.match(u0);
+      if (!hit) continue; if (IOS && hit.type === "opaque" && EA_ALT[rec] && navigator.onLine) continue; el._saved = true; el._bi = bi;
       if (hit.type === "opaque") { el.src = u0; el._opq = true; return; } // الـ service worker بيشغّله من الجهاز
       const u = URL.createObjectURL(await hit.blob()); if (el._blob) URL.revokeObjectURL(el._blob); el._blob = u; el.src = u; return; } } catch (e) {}
   el.src = aUrl(g, el._bi);
@@ -2234,7 +2242,12 @@ function audioStop() {
 }
 $("#mPlay").addEventListener("click", () => {
   if (aOn) return audioStop();
-  if (mSel < 0 && MD && !$("#mRead").hidden) { const L = pageSurahs(mPage); if (L.length > 1 && !(aResume >= 0 && MD.ap[aResume] === mPage) && !(bgPos.s >= 0 && bgPos.t > 1 && L.includes(bgPos.s))) return mChooseSurah(L); }
+  if (mSel < 0 && MD && !$("#mRead").hidden) { const L = pageSurahs(mPage);
+    if (L.length > 1) {
+      if (bgOn() && bgPos.s >= 0 && bgPos.t > 1 && L.includes(bgPos.s)) return audioPlay(MBASE[bgPos.s]); // يكمّل السورة اللي كان بيسمعها من مكانها
+      if (!bgOn() && aResume >= 0 && MD.ap[aResume] === mPage) return audioPlay(aResume);
+      return mChooseSurah(L);
+    } }
   audioPlay(mSel >= 0 ? mSel : null);
 });
 // ---------- السماع في الخلفية: السورة كلها ملف واحد، عشان التلاوة تكمّل والشاشة مقفولة أو وانت في برنامج تاني ----------
@@ -2318,7 +2331,7 @@ $("#recPick").addEventListener("click", (e) => { if (e.target.id === "recPick") 
 // كل قارئ في سطر: الاسم (تختاره) وجنبه زرار تنزيله وحالته (⬇ / ٪ / في الطابور / ✓)
 let recDone = {};
 async function recCounts() { try { const c = await caches.open(AUDIO_CACHE), ks = await c.keys(), out = {};
-    for (const [id] of RECITERS) { const tag = recTag(id), names = new Set(); for (const k of ks) { if (!k.url.includes(tag) || k.url.includes("/saved/")) continue; names.add(k.url.split("/").pop()); } out[id] = names.size; }
+    for (const [id] of RECITERS) { const names = new Set(); for (const k of ks) { if (!recHas(id, k.url) || k.url.includes("/saved/")) continue; if (IOS && k.url.includes("islamic.network") && EA_ALT[id]) continue; names.add(fileKey(k.url)); } out[id] = names.size; }
     recDone = out; } catch (e) {} }
 function recDlLabel(id) {
   if (aDl && aDl.rec === id) return { t: aDl.pc != null ? ar(aDl.pc) + "٪" : "…", a: "وقّف التنزيل", on: true };
@@ -2382,7 +2395,7 @@ async function dlAyah(c, rec, g) {
   if (isSurahOnly(rec)) return dlSurahFile(c, rec, g);
   let old = null;
   for (let bi = 0; bi < nBr(rec); bi++) { const u = srcUrl(rec, g, bi), hit = await c.match(u); if (goodHit(hit, u)) return; if (hit) old = u; }
-  const h = hostOf(srcUrl(rec, g, 0));
+  const h = hostOf(srcUrl(rec, g, dlPref(rec)));
   if (aCors[h] !== false) {
     try {
       for (const bi of dlOrder(rec)) { const u = srcUrl(rec, g, bi), r = await corsGet(u);
@@ -2410,8 +2423,8 @@ async function dlRange(list, onProg, recIn) {
   const stopped = aDl.stop; aDl = null;
   if (err) throw err; return !stopped;
 }
-async function savedCount(rec) { try { const c = await caches.open(AUDIO_CACHE), tag = recTag(rec); const ks = (await c.keys()).filter((r) => r.url.includes(tag) && !r.url.includes("/saved/")), names = new Set();
-    for (const r of ks) { if (aCors[hostOf(r.url)] !== false && (await c.match(r)).type === "opaque") continue; names.add(r.url.split("/").pop()); } return names.size; } catch (e) { return 0; } }
+async function savedCount(rec) { try { const c = await caches.open(AUDIO_CACHE); const ks = (await c.keys()).filter((r) => recHas(rec, r.url) && !r.url.includes("/saved/")), names = new Set();
+    for (const r of ks) { const h = await c.match(r); if (!goodHit(h, r.url)) continue; names.add(fileKey(r.url)); } return names.size; } catch (e) { return 0; } }
 const recName = () => RECITERS.find((x) => x[0] === reciter())[1];
 function renderDlQ() { const r = reciter(), on = !EVERYAYAH[r] && !SURAH_ONLY[r]; $("#aDlQ").hidden = !on; document.querySelectorAll("#aDlQ [data-q]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.q === (dlSmall() ? "small" : "high")))); }
 document.querySelectorAll("#aDlQ [data-q]").forEach((b) => b.addEventListener("click", () => { store.set("dlq", b.dataset.q); renderDlQ(); toast(b.dataset.q === "small" ? "التحميل الجاي هياخد نص المساحة تقريبًا، والصوت واضح" : "التحميل الجاي بجودة أعلى وحجم أكبر"); }));
@@ -2461,7 +2474,7 @@ async function runDl(rec) {
 }
 $("#aDlClear").addEventListener("click", async () => {
   if (!confirm(tr(`تمسح تلاوة ${recName()} المتنزّلة؟`))) return;
-  const c = await caches.open(AUDIO_CACHE), rec = reciter(), tag = recTag(rec); for (const r of await c.keys()) if (r.url.includes(tag)) await c.delete(r);
+  const c = await caches.open(AUDIO_CACHE), rec = reciter(); for (const r of await c.keys()) if (recHas(rec, r.url)) await c.delete(r);
   toast("اتمسحت"); await recCounts(); renderReciters(); renderADl();
 });
 $("#mDlSura").addEventListener("click", async () => {
@@ -2612,7 +2625,6 @@ async function scheduleDesktop() {
 if (DESKTOP) setInterval(scheduleDesktop, 6 * 36e5);
 // ---------- الآيفون والأندرويد (من المتصفح): الأذان عن طريق تطبيق ntfy المجاني ----------
 // نسخة الأندرويد المتنزّلة (APK) بتأذّن لوحدها، فدي للي فاتح طُوبَى من المتصفح أو من الشاشة الرئيسية
-const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 const ANDROID = /Android/i.test(navigator.userAgent);
 const NTFY_APP = IOS ? "https://apps.apple.com/app/ntfy/id1625396347" : "https://play.google.com/store/apps/details?id=io.heckel.ntfy";
 const ntfyPhone = () => (IOS || ANDROID) && !LN();
@@ -3157,7 +3169,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261121011056";
+const BUILD = "20261121012346";
 let updLast = 0;
 async function checkUpdate(auto) {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
