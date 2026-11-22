@@ -2122,6 +2122,8 @@ const srcUrl = (rec, g, bi) => { if (SURAH_ONLY[rec]) return SURAH_ONLY[rec](g +
   if (EVERYAYAH[rec]) { const [s, a] = ayahOf(g); return `https://everyayah.com/data/${EVERYAYAH[rec]}/${String(s + 1).padStart(3, "0")}${String(a + 1).padStart(3, "0")}.mp3`; }
   if (bi >= BITRATES.length && EA_ALT[rec]) { const [s, a] = ayahOf(g), f = EA_ALT[rec][bi - BITRATES.length] || EA_ALT[rec][0]; return `https://everyayah.com/data/${f}/${String(s + 1).padStart(3, "0")}${String(a + 1).padStart(3, "0")}.mp3`; }
   return `https://cdn.islamic.network/quran/audio/${BITRATES[bi]}/${rec}/${g + 1}.mp3`; };
+// السديس وعبد الباسط مش موجودين بجودة 128 على الموقع ده، فنبدأ بـ 192 على طول من غير محاولة فاشلة
+const BR_START = { "ar.abdurrahmaansudais": 1, "ar.abdulbasitmurattal": 1 };
 const nBr = (rec) => EVERYAYAH[rec] || SURAH_ONLY[rec] ? 1 : BITRATES.length + (EA_ALT[rec] ? EA_ALT[rec].length : 0);
 // يطابق ملفات القارئ في الكاش (من الموقعين)، وبيرجّع رقم الآية أو السورة عشان العدّ ميتكررش
 const recHas = (rec, u) => u.includes(recTag(rec)) || (EA_ALT[rec] || []).some((f) => u.includes(`/${f}/`));
@@ -2147,7 +2149,7 @@ const aKey = (rec, g) => `https://cdn.islamic.network/quran/audio/saved/${rec}/$
 let aBlobs = {};
 async function aSrc(el, g) {
   el._g = g; el._rec = reciter(); el._opq = false; el._retry = 0; el._nerr = 0; // عشان لو القارئ اتغيّر، الآية اللي متحضّرة بالصوت القديم متتشغلش
-  el._bi = aBr[reciter()] || 0; el._saved = false;
+  el._bi = aBr[reciter()] ?? BR_START[reciter()] ?? 0; el._saved = false;
   try { const c = await caches.open(AUDIO_CACHE), rec = reciter();
     const order = [...Array(nBr(rec)).keys()].sort((x, y) => (y >= BITRATES.length) - (x >= BITRATES.length)); // الملفات العادية (everyayah) الأول
     for (const bi of order) { const u0 = srcUrl(rec, g, bi), hit = await c.match(u0);
@@ -3187,7 +3189,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261122145549";
+const BUILD = "20261122150141";
 let updLast = 0;
 async function checkUpdate(auto) {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
