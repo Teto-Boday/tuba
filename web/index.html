@@ -1633,15 +1633,18 @@ async function qzSubmit(g, name) {
 }
 async function qzBoard(el) {
   try {
-    const fb = await qzWait(qzFire(), 8000), F = fb.F, col = F.collection(fb.db, "days", String(qzDayN()), "scores");
-    const snap = await qzWait(F.getDocs(F.query(col, F.orderBy("pts", "desc"), F.limit(10))), 8000);
+    const fb = await qzWait(qzFire(), 15000), F = fb.F, col = F.collection(fb.db, "days", String(qzDayN()), "scores");
+    const snap = await qzWait(F.getDocs(F.query(col, F.orderBy("pts", "desc"), F.limit(10))), 12000);
     const me = fb.auth.currentUser.uid, rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     let mine = "";
-    const myDoc = await F.getDoc(F.doc(col, me)).catch(() => null);
-    if (myDoc && myDoc.exists()) { const m = myDoc.data(); const [above, all] = await Promise.all([F.getCountFromServer(F.query(col, F.where("pts", ">", m.pts))), F.getCountFromServer(col)]);
-      mine = `<p class="small" style="margin:8px 0 0">إنت رقم <b class="qn">${ar(above.data().count + 1)}</b> من <b class="qn">${ar(all.data().count)}</b> لعبوا النهارده</p>`; }
     el.innerHTML = rows.length ? `<ol class="qz-lb">${rows.map((r, i) => `<li class="${r.id === me ? "me" : ""}"><span class="qz-rk">${i < 3 ? ["🥇", "🥈", "🥉"][i] : ar(i + 1)}</span><span class="qz-nm notr">${qzEsc(r.name)}</span><span class="small">${ar(r.score)}/${ar(QZ_N)}</span><b class="qn">${ar(r.pts)}</b></li>`).join("")}</ol>${mine}` : `<p class="muted small" style="margin:0">لسه محدش سجّل النهارده، كن أول واحد 🏆</p>`;
-  } catch (e) { el.innerHTML = `<p class="muted small" style="margin:0">الترتيب محتاج نت، جرّب تاني لما النت يرجع</p>`; }
+    // ترتيبك إنت بييجي بعد ما القايمة تظهر، ولو اتأخر مش بيعطّلها
+    try {
+      const myDoc = await qzWait(F.getDoc(F.doc(col, me)), 8000);
+      if (myDoc && myDoc.exists()) { const m = myDoc.data(); const [above, all] = await qzWait(Promise.all([F.getCountFromServer(F.query(col, F.where("pts", ">", m.pts))), F.getCountFromServer(col)]), 8000);
+        if (el.isConnected) el.insertAdjacentHTML("beforeend", `<p class="small" style="margin:8px 0 0">إنت رقم <b class="qn">${ar(above.data().count + 1)}</b> من <b class="qn">${ar(all.data().count)}</b> لعبوا النهارده</p>`); }
+    } catch (e) {}
+  } catch (e) { if (el.isConnected) el.innerHTML = `<p class="muted small" style="margin:0 0 8px">الترتيب مش راضي يحمّل دلوقتي، اتأكد من النت</p><button class="btn ghost" id="qzLbRetry">جرّب تاني 🔄</button>`; const b = el.querySelector("#qzLbRetry"); if (b) b.onclick = () => { el.innerHTML = `<p class="muted small" style="margin:0">بيحمّل الترتيب…</p>`; qzBoard(el); }; }
 }
 // ---- الشاشات ----
 function qzHome() {
@@ -3184,7 +3187,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261121172832";
+const BUILD = "20261122145549";
 let updLast = 0;
 async function checkUpdate(auto) {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
