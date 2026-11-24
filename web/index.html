@@ -48,6 +48,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="طُوبَى">
 <link rel="preconnect" href="https://www.youtube-nocookie.com">
+<link rel="preconnect" href="https://www.youtube.com">
+<link rel="preconnect" href="https://www.google.com">
 <link rel="preconnect" href="https://i.ytimg.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1087,7 +1089,7 @@ function renderClips() {
     const i = reels.indexOf(reel);
     reels.forEach((r, j) => {
       if (j === i) { play(r); r._playing = true; }
-      else if (j === i + 1) { r._playing = false; if (!r.querySelector("iframe")) load(r, false); else ytCmd(r.querySelector("iframe"), "pauseVideo"); }
+      else if (j === i + 1 || (j === i + 2 && !lowData())) { r._playing = false; if (!r.querySelector("iframe")) load(r, false); else ytCmd(r.querySelector("iframe"), "pauseVideo"); }
       else if (r.querySelector("iframe")) stop(r);
     });
   };
@@ -1116,6 +1118,17 @@ function renderClips() {
     if (cur) { const f = cur.querySelector("iframe"); cur._yt = { tries: 1, at: muted ? 0 : Date.now(), blocked: false }; soundPill(cur, false);
       if (muted) ytCmd(f, "mute"); else { ytCmd(f, "unMute"); ytCmd(f, "setVolume", [100]); ytCmd(f, "playVideo"); } }
   }));
+}
+// النت ضعيف أو موفّر البيانات شغال: منحمّلش مقاطع زيادة
+const lowData = () => { const c = navigator.connection; return !!(c && (c.saveData || /2g/.test(c.effectiveType || ""))); };
+// أول ما البرنامج يفتح: نحمّل مشغّل يوتيوب في الخلفية مرة واحدة، فأول مقطع يفتح أسرع لما تروح للمقاطع
+function warmClips() {
+  if (warmClips.done || lowData() || !navigator.onLine || $("#s-clips").classList.contains("on")) return;
+  const r = $("#feed").querySelector(".reel:not(.pause)"); if (!r) return; warmClips.done = true;
+  const f = document.createElement("iframe"); f.setAttribute("aria-hidden", "true"); f.tabIndex = -1;
+  f.style.cssText = "position:fixed;width:2px;height:2px;left:-10px;bottom:0;opacity:0;pointer-events:none;border:0";
+  f.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(r.dataset.id)}?autoplay=0&mute=1&playsinline=1&controls=0`;
+  f.addEventListener("load", () => setTimeout(() => f.remove(), 15000)); document.body.appendChild(f);
 }
 function stopAllClips() { $("#feed").querySelectorAll(".reel:not(.pause)").forEach((r) => { r.querySelector(".player").innerHTML = ""; r._playing = false; r._kick = false; }); }
 
@@ -3227,7 +3240,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261122152251";
+const BUILD = "20261124071045";
 let updLast = 0;
 async function checkUpdate(auto) {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();
@@ -3258,6 +3271,7 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 
 // ---------- البداية ----------
 renderClips(); renderSurahList(""); renderPrayer(); tick.ready = true;
+setTimeout(warmClips, 3500);
 renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); renderExtra(); scheduleExtra(); scheduleDesktop(); schedulePushIOS(); setTimeout(() => { renderExtra(); scheduleExtra(); renderNotif(); scheduleAdhan(); renderFast(); scheduleFast(); }, 1500);
 go((location.hash || "#home").slice(1));
 // الشرح العام اتشال، شرح كل صفحة بيكفي
