@@ -14,7 +14,8 @@
   - `web/azkar.js` الأذكار (لازم تتراجع من متخصص).
 - `site/` صفحة التطبيق اللي فيها التحميل.
 - `.github/workflows/pages.yml` بينشر الموقع والتطبيق على GitHub Pages مع كل تعديل.
-- `.github/workflows/android.yml` بيبني ملف الأندرويد (Tuba.apk) وبينزّله في Releases.
+- `.github/workflows/apps.yml` بيبني الأندرويد (Tuba.apk) والويندوز وبينزّلهم في Releases بتاعة `Teto-Boday/tuba`.
+- `.github/workflows/sync-old.yml` بيحدّث العنوان القديم لوحده (تحت).
 
 ## المصادر
 - نص المصحف: موسوعة القرآن الكريم QuranEnc.com عن طريق مشروع quran-json (CC BY-SA 4.0). ممنوع التعديل في النص.
@@ -22,5 +23,7 @@
 - الأذكار: حصن المسلم.
 
 ## النشر على العنوانين
-- الكود بيترفع على المستودعين: `Teto-Boday/tuba` (العنوان القديم teto-boday.github.io/tuba، للبرامج القديمة المتسطّبة) و`tuba-app/tuba-app.github.io` (العنوان الأساسي).
-- `git push origin main && git push new main`
+- الأساس هو `tuba-app/tuba-app.github.io` (العنوان الأساسي). ارفع عليه بس: `git push new main`
+- `Teto-Boday/tuba` (العنوان القديم teto-boday.github.io/tuba، للبرامج القديمة المتسطّبة، وفيه بناء الأندرويد والويندوز) بيتحدّث لوحده: `.github/workflows/sync-old.yml` بيبص كل ربع ساعة على `main` في tuba-app، ولو فيه جديد بينقله وينشر الموقع القديم ويبني التطبيقات لو ملفاتها اتغيّرت. عايزه دلوقتي؟ شغّله بإيدك من Actions ← Sync from tuba-app ← Run workflow.
+- لو التعديل فيه ملفات في `.github/workflows/`، GitHub مش بيسمح للمزامنة تنقلها، فارفع على القديم بإيدك المرة دي بس: `git push origin main`
+- ماتعدّلش في `Teto-Boday/tuba` مباشرة، وإلا المزامنة هتقف لحد ما التعديل يتنقل لـ tuba-app.

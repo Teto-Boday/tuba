@@ -1,0 +1,53 @@
+# يربط العنوان القديم بالجديد: بيشتغل في Teto-Boday/tuba بس.
+# كل ربع ساعة بيبص على main في tuba-app/tuba-app.github.io، ولو فيه جديد
+# بينقله هنا ويشغّل نشر الموقع (وبناء التطبيقات لو ملفاتها اتغيّرت).
+# كده بتنشر على tuba-app بس، والقديم بيتحدّث لوحده.
+name: Sync from tuba-app
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: sync-old
+  cancel-in-progress: false
+jobs:
+  sync:
+    if: github.repository == 'Teto-Boday/tuba'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Check tuba-app for new commits
+        id: check
+        run: |
+          git fetch --quiet https://github.com/tuba-app/tuba-app.github.io.git main
+          NEW=$(git rev-parse FETCH_HEAD)
+          OLD=$(git rev-parse HEAD)
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          if [ "$NEW" = "$OLD" ]; then echo "Up to date."; echo "same=1" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if ! git merge-base --is-ancestor "$OLD" "$NEW"; then
+            echo "::error::main here has commits that are not in tuba-app/tuba-app.github.io. Put them in tuba-app first, then run this again."
+            exit 1
+          fi
+          CHANGED=$(git diff --name-only "$OLD" "$NEW")
+          if echo "$CHANGED" | grep -q '^\.github/workflows/'; then
+            echo "::error::Workflow files changed, and GitHub does not let this sync push them. Push main to Teto-Boday/tuba by hand once (git push origin main); after that the sync carries on by itself."
+            exit 1
+          fi
+          if echo "$CHANGED" | grep -qE '^(capacitor\.config\.json|assets/|electron/|android-extra/)'; then echo "apps=1" >> "$GITHUB_OUTPUT"; fi
+      - name: Copy the new commits here
+        if: steps.check.outputs.same != '1'
+        run: git push origin "${{ steps.check.outputs.new }}:refs/heads/main"
+      # الـ push اللي بيعمله الـ workflow مش بيشغّل workflows تانية، فبنشغّلهم بإيدينا
+      - name: Publish the old address
+        if: steps.check.outputs.same != '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run pages.yml --ref main
+          if [ "${{ steps.check.outputs.apps }}" = "1" ]; then gh workflow run apps.yml --ref main; fi
