@@ -2173,12 +2173,22 @@ const EVERYAYAH = { "husary.muallim": "Husary_Muallim_128kbps", "everyayah.neana
 // قرّاء عندهم السورة كاملة بس (مفيش آية آية): بيشتغلوا زي وضع 🎧 على طول، من غير تلوين الآية
 let aDl = null, dlQ = []; // التنزيل الشغال دلوقتي {rec, stop, pc}، والقرّاء اللي مستنيين دورهم
 const n3 = (n) => String(n).padStart(3, "0");
+// mp3quran نقل الملفات على cdn.mp3quran.net (العناوين القديمة بقت بتحوّل عليه، وده بيأخّر البداية)
+const MQ = (p) => (n) => `https://cdn.mp3quran.net/audio/${p}/${n3(n)}.mp3`;
 const SURAH_ONLY = {
-  "mp3q.kamel": (n) => `https://server16.mp3quran.net/kamel/Rewayat-Hafs-A-n-Assem/${n3(n)}.mp3`,
-  "mp3q.dossari": (n) => `https://archive.org/download/Yasser_Aldosari_MP3_Quran/${n3(n)}.mp3`,
-  "mp3q.luhaidan": (n) => `https://server8.mp3quran.net/lhdan/${n3(n)}.mp3`,
-  "mp3q.tablawi": (n) => `https://server12.mp3quran.net/tblawi/${n3(n)}.mp3`,
-  "mp3q.banna": (n) => `https://server8.mp3quran.net/bna/${n3(n)}.mp3`,
+  "mp3q.kamel": MQ("abdullah-kamel/r1"),
+  "mp3q.dossari": MQ("yasser-dosari/r1"),
+  "mp3q.luhaidan": MQ("muhammad-luhaidan/r1"),
+  "mp3q.tablawi": MQ("muhammad-tablawi/r1"),
+  "mp3q.banna": MQ("mahmoud-banna/r1"),
+};
+// العناوين القديمة: عشان السور اللي الناس نزّلتها قبل كده تفضل شغالة من غير نت (بتتنقل للعنوان الجديد مرة واحدة)
+const SURAH_OLD = {
+  "mp3q.kamel": "https://server16.mp3quran.net/kamel/Rewayat-Hafs-A-n-Assem/",
+  "mp3q.dossari": "https://archive.org/download/Yasser_Aldosari_MP3_Quran/",
+  "mp3q.luhaidan": "https://server8.mp3quran.net/lhdan/",
+  "mp3q.tablawi": "https://server12.mp3quran.net/tblawi/",
+  "mp3q.banna": "https://server8.mp3quran.net/bna/",
 };
 const isSurahOnly = (rec) => !!SURAH_ONLY[rec];
 const recShort = () => recName().replace(/\s*\(.*\)$/, "");
@@ -2229,7 +2239,7 @@ async function aSrc(el, g) {
 function bgArm() { const tok = aEl._tok = (aEl._tok || 0) + 1, s0 = bgSur; aEl._got = false; setTimeout(() => { if (aEl._tok === tok && aOn && aEl._bg && bgSur === s0 && !aEl._got) aEl.dispatchEvent(new Event("error")); }, 15000); }
 aEl.addEventListener("error", () => { if (!aOn || aEl._unlock) return;
   if (aEl._bg) { bgArm(); if (aEl._bgLocal) { aEl._bgLocal = false; aEl._bgbi = 0; aEl.src = bgUrl(bgSur, 0); aEl.play().catch(() => {}); return; }
-    if (++aEl._bgbi < BG_BR.length) { aEl.src = bgUrl(bgSur, aEl._bgbi); aEl.play().catch(() => {}); } else bgFail(); return; }
+    if (++aEl._bgbi < bgSrcs(reciter(), bgSur).length) { aEl.src = bgUrl(bgSur, aEl._bgbi); aEl.play().catch(() => {}); } else bgFail(); return; }
   if (aEl._saved) { aEl._saved = false; aEl.src = aUrl(aEl._g, aEl._bi); aEl.play().catch(() => {}); return; } // النسخة المحفوظة مرضيتش تشتغل: من النت
   if ((aEl._nerr = (aEl._nerr || 0) + 1) <= 2) { const g0 = aEl._g; setTimeout(() => { if (aOn && aEl._g === g0) { aEl.src = aUrl(aEl._g, aEl._bi); aEl.play().catch(() => {}); } }, 1500); return; } // النت قطع لحظة: نجرّب تاني قبل ما نغيّر الجودة
   aEl._nerr = 0; if (aEl._bi < nBr(reciter()) - 1) { aEl._bi++; aEl.src = aUrl(aEl._g, aEl._bi); aEl.play().catch(() => {}); } else { toast("مقدرناش نشغّل التلاوة، اتأكد من النت"); audioStop(); } });
@@ -2324,9 +2334,13 @@ $("#mPlay").addEventListener("click", () => {
   audioPlay(mSel >= 0 ? mSel : null);
 });
 // ---------- السماع في الخلفية: السورة كلها ملف واحد، عشان التلاوة تكمّل والشاشة مقفولة أو وانت في برنامج تاني ----------
-const BG_BR = [128, 192, 64];
+// ملف السورة الكاملة لكل قارئ: Islamic Network عنده العفاسي وعبد الباسط بس (بجودة 128)،
+// والباقيين بنجيبهم من mp3quran (نفس القارئ، حفص عن عاصم مرتل). وmp3quran احتياطي للاتنين كمان
+const BG_MQ = { "ar.alafasy": "mishary-alafasy/r1", "ar.abdurrahmaansudais": "abdulrahman-sudais/r1", "ar.husary": "mahmoud-husary/r1", "ar.minshawi": "muhammad-minshawi/r1", "ar.abdulbasitmurattal": "abdulbasit-abdulsamad/r3", "ar.mahermuaiqly": "maher-muaiqly/r1" };
+const BG_IN = { "ar.alafasy": 1, "ar.abdulbasitmurattal": 1 };
+const bgSrcs = (rec, s) => isSurahOnly(rec) ? [SURAH_ONLY[rec](s + 1)] : [...(BG_IN[rec] ? [`https://cdn.islamic.network/quran/audio-surah/128/${rec}/${s + 1}.mp3`] : []), ...(BG_MQ[rec] ? [MQ(BG_MQ[rec])(s + 1)] : [])];
 const bgOn = () => isSurahOnly(reciter()) || (!!store.get("bgl", false) && !EVERYAYAH[reciter()]);
-const bgUrl = (s, bi) => isSurahOnly(reciter()) ? SURAH_ONLY[reciter()](s + 1) + "?s=1" : `https://cdn.islamic.network/quran/audio-surah/${BG_BR[bi]}/${reciter()}/${s + 1}.mp3?s=1`;
+const bgUrl = (s, bi) => (bgSrcs(reciter(), s)[bi] || bgSrcs(reciter(), s)[0]) + "?s=1";
 let bgSur = -1, bgPos = (() => { const p = store.get("bgPos", null); return p && p.r === store.get("reciter", "") && p.s >= 0 ? { s: p.s, t: p.t || 0 } : { s: -1, t: 0 }; })();
 const bgSave = () => store.set("bgPos", { ...bgPos, r: reciter() });
 // بنحفظ المكان كل شوية وهو شغال، عشان لو التطبيق اتقفل يرجع يكمّل من نفس المكان
@@ -2513,6 +2527,13 @@ async function dlRange(list, onProg, recIn) {
 }
 async function savedCount(rec) { try { const c = await caches.open(AUDIO_CACHE); const ks = (await c.keys()).filter((r) => recHas(rec, r.url) && !r.url.includes("/saved/")), names = new Set();
     for (const r of ks) { const h = await c.match(r); if (!goodHit(h, r.url)) continue; names.add(fileKey(r.url)); } return names.size; } catch (e) { return 0; } }
+// السور اللي اتنزّلت من عناوين mp3quran القديمة: بننقلها للعنوان الجديد مرة واحدة، عشان تفضل شغالة من غير نت وتتعدّ صح
+(async function mqMove() { if (!("caches" in window) || store.get("mqMoved", 0)) return;
+  try { const c = await caches.open(AUDIO_CACHE), ks = await c.keys(); let n = 0;
+    for (const r of ks) { const u = r.url.split("?")[0];
+      for (const rec in SURAH_OLD) { if (!u.startsWith(SURAH_OLD[rec])) continue; const m = /(\d{3})\.mp3$/.exec(u);
+        if (m) { const nu = SURAH_ONLY[rec](+m[1]); if (!(await c.match(nu))) { const h = await c.match(r); if (h) await c.put(nu, h); } await c.delete(r); n++; } break; } }
+    store.set("mqMoved", 1); if (n) renderReciters(); } catch (e) {} })();
 const recName = () => RECITERS.find((x) => x[0] === reciter())[1];
 function renderDlQ() { const r = reciter(), on = !EVERYAYAH[r] && !SURAH_ONLY[r]; $("#aDlQ").hidden = !on; document.querySelectorAll("#aDlQ [data-q]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.q === (dlSmall() ? "small" : "high")))); }
 document.querySelectorAll("#aDlQ [data-q]").forEach((b) => b.addEventListener("click", () => { store.set("dlq", b.dataset.q); renderDlQ(); toast(b.dataset.q === "small" ? "التحميل الجاي هياخد نص المساحة تقريبًا، والصوت واضح" : "التحميل الجاي بجودة أعلى وحجم أكبر"); }));
