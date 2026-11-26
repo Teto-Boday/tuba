@@ -2932,7 +2932,16 @@ $("#payList").querySelectorAll("[data-copy]").forEach((b) => b.addEventListener(
   const v = PAY_OPTIONS[+b.dataset.copy].value; store.set("donTry", { at: Date.now(), via: PAY_OPTIONS[+b.dataset.copy].label });
   try { await navigator.clipboard.writeText(v); toast("اتنسخ: " + v); } catch (e) { toast(v); }
 }));
-// ---------- اللي اتبرع يعرّفنا بنفسه: بيوصل لموبايل المصمم على نفس قناة الآراء ----------
+// ---------- اللي اتبرع يعرّفنا بنفسه: بيتحفظ في Firebase (محدش يقدر يقراه غير المصمم من الكونسول) ----------
+// كل جهاز ليه لحد 100 خانة (uid_0 … uid_99)، ولو الخانة اتكتبت قبل كده بنجرب اللي بعدها
+async function donSave(rec) {
+  const fb = await qzWait(qzFire(), 12000), uid = fb.auth.currentUser.uid;
+  for (let k = 0; k < 100; k++) {
+    const n = (store.get("donN", 0) + k) % 100;
+    try { await qzWait(fb.F.setDoc(fb.F.doc(fb.db, "donations", uid + "_" + n), { ...rec, at: fb.F.serverTimestamp(), uid }), 12000); store.set("donN", n + 1); return; }
+    catch (e) { if (!(e && e.code === "permission-denied") || k > 3) throw e; }
+  }
+}
 const donIsNum = (t) => /^[\d٠-٩\s+()-]+$/.test(t);
 if (store.get("donName", "")) $("#donWho").value = store.get("donName", "");
 function donThanks(who) {
@@ -2948,11 +2957,12 @@ $("#donSend").addEventListener("click", async () => {
   if (Date.now() - store.get("donLast", 0) < 60e3) { toast("استنى دقيقة وابعت تاني"); return; }
   const t = store.get("donTry", null), via = t && Date.now() - t.at < 3 * 864e5 ? t.via : "";
   const dev = LN() ? "أندرويد" : DESKTOP ? "ويندوز" : IOS ? "آيفون" : "موقع";
-  const body = "🤍 " + who + (amt ? "\nالمبلغ: " + amt : "") + (via ? "\nحوّل بـ: " + via : "") + "\n\n— " + dev;
+  const rec = { who: who.slice(0, 60), device: dev, lang: EN_ON ? "en" : "ar" }; if (amt) rec.amount = amt.slice(0, 12); if (via) rec.via = String(via).slice(0, 20);
   $("#donSend").disabled = true;
   try {
-    const r = await fetch("https://ntfy.sh/" + FB_TOPIC, { method: "POST", headers: { Title: "Tuba donation", Tags: "heart" }, body: body.slice(0, 600) });
-    if (!r.ok) throw 0;
+    await donSave(rec);
+    // تنبيه للمصمم من غير الاسم ولا الرقم: البيانات نفسها في Firebase بس
+    fetch("https://ntfy.sh/" + FB_TOPIC, { method: "POST", headers: { Title: "Tuba donation", Tags: "heart" }, body: "🤍 حد اتبرع لطُوبَى وساب اسمه. شوفه في Firebase ← Firestore ← donations" }).catch(() => {});
     store.set("donLast", Date.now()); store.set("donName", who); store.set("donTry", null); $("#donAmt").value = "";
     donThanks(who);
   } catch (e) { toast("ماوصلش، اتأكد من النت وجرّب تاني"); }
@@ -3290,7 +3300,7 @@ $("#tour").addEventListener("touchend", (e) => { if (tsX === null) return; const
 
 // ---------- التحديث: لو فيه نسخة أحدث على النت، نحفظها ونعرض زرار "حدّث" ----------
 // الموبايل على نت ضعيف بيفتح النسخة المحفوظة (الملف كبير)، فمن غير ده الناس كانت بتفضل على نسخة قديمة
-const BUILD = "20261125142458";
+const BUILD = "20261126101703";
 let updLast = 0;
 async function checkUpdate(auto) {
   if (Date.now() - updLast < 6e5 || !("caches" in window)) return; updLast = Date.now();

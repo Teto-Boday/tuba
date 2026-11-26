@@ -36,6 +36,25 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/days/$(day)/runs/$(uid)).data.start.toMillis() >= resetAt()
         && okScore(day, uid, request.resource.data);
     }
+    // Donors who leave their name or number. Nobody can read, change or delete
+    // them from the app: only the designer sees them, in the Firebase console.
+    // At most 100 per device (id = uid_0 ... uid_99).
+    match /donations/{id} {
+      allow create: if request.auth != null
+        && id.matches(request.auth.uid + '_[0-9]{1,2}')
+        && okDonation(request.resource.data);
+    }
+    function okDonation(d) {
+      return d.keys().hasAll(['who', 'at', 'uid'])
+        && d.keys().hasOnly(['who', 'amount', 'via', 'device', 'lang', 'at', 'uid'])
+        && d.who is string && d.who.size() >= 2 && d.who.size() <= 60
+        && (!('amount' in d) || (d.amount is string && d.amount.size() <= 12))
+        && (!('via' in d) || (d.via is string && d.via.size() <= 20))
+        && (!('device' in d) || (d.device is string && d.device.size() <= 10))
+        && (!('lang' in d) || d.lang in ['ar', 'en'])
+        && d.at == request.time
+        && d.uid == request.auth.uid;
+    }
     function okScore(day, uid, d) {
       let p = /databases/$(database)/documents/days/$(day)/runs/$(uid);
       let ran = exists(p);
